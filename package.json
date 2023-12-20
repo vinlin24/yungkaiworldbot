@@ -1,0 +1,30 @@
+{
+  "name": "tempbot",
+  "version": "0.0.0",
+  "description": "yung kai world's Moderation & Misc Bot",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "sync": "ts-node src/index.ts --sync",
+    "clean": "rm -rf dist/*",
+    "build": "npm run clean && tsc",
+    "start": "npm run build && node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Vincent Lin"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^20.10.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  }
+}
