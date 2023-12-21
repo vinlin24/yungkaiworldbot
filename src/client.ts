@@ -21,7 +21,15 @@ export class BotClient extends Client {
   public readonly commands = new Collection<string, CommandSpec>();
 
   constructor() {
-    super({ intents: GatewayIntentBits.Guilds });
+    super({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+      ],
+    });
   }
 
   public loadModules(): void {
