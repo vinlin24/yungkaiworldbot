@@ -1,13 +1,15 @@
 import {
   CommandInteraction,
-  GuildMember,
   GuildTextBasedChannel,
+  Message,
 } from "discord.js";
+
+export function formatContext(message: Message): string;
+export function formatContext(interaction: CommandInteraction): string;
 
 /**
  * Return a formatted string containing the relevant information about a
- * command: the caller's username, the command name, and the name of the channel
- * the command was invoked in. Example usage:
+ * message or application command invocation. Example usage:
  *
  *    ```
  *    const context = formatContext(interaction);
@@ -16,9 +18,16 @@ import {
  *
  * TODO: Not sure if there's a way to automate this through Winston.
  */
-export function formatContext(interaction: CommandInteraction): string {
-  const commandName = interaction.commandName;
-  const callerName = (interaction.member as GuildMember).user.username;
-  const channelName = (interaction.channel as GuildTextBasedChannel).name;
-  return `@${callerName} /${commandName} #${channelName}`;
+export function formatContext(obj: Message | CommandInteraction): string {
+  if (obj instanceof CommandInteraction) {
+    const interaction = obj;
+    const commandName = interaction.commandName;
+    const callerName = interaction.user.username;
+    const channelName = (interaction.channel as GuildTextBasedChannel).name;
+    return `@${callerName} /${commandName} #${channelName}`;
+  }
+  const message = obj;
+  const authorName = message.author.username;
+  const channelName = (message.channel as GuildTextBasedChannel).name;
+  return `@${authorName} <MSG> #${channelName}`;
 }
