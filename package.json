@@ -4,7 +4,7 @@
   "description": "yung kai world's Moderation & Misc Bot",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "LOGGER_LEVEL=debug ts-node src/index.ts",
     "sync": "ts-node src/index.ts --sync",
     "clean": "rm -rf dist/*",
     "build": "npm run clean && tsc",
