@@ -1,15 +1,9 @@
 import { Message } from "discord.js";
 
 import log from "../logger";
+import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
-
-// TODO: Maybe move this to a utils module.
-function addDateSeconds(date: Date, seconds: number): Date {
-  const newDate = new Date(date);
-  newDate.setSeconds(newDate.getSeconds() + seconds);
-  return newDate;
-}
 
 // TODO: Wrong value at the moment. Also, move to another module maybe, and make
 // it an environment variable?
