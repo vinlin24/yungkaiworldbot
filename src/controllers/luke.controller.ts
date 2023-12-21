@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { GuildTextBasedChannel, Message } from "discord.js";
 
 import config from "../config";
 import log from "../logger";
@@ -6,8 +6,6 @@ import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
 
-// TODO: Wrong value at the moment. Also, move to another module maybe, and make
-// it an environment variable?
 const { LUKE_UID } = config;
 
 export class LukeController {
@@ -23,13 +21,30 @@ export class LukeController {
 
   constructor() {
     if (LUKE_UID === undefined) {
-      log.warn("luke UID not found");
+      log.warn("luke UID not found.");
     }
   }
 
   public async processMessage(message: Message) {
+    // Ignore all bot messages (including self).
     if (message.author.bot)
       return;
+
+    const channel = message.channel as GuildTextBasedChannel;
+    const channelName = channel.name.toLowerCase();
+
+    // Might be best to not annoy the kiddos too much.
+    if (channelName.indexOf("general") !== -1)
+      return;
+
+    // Don't pollute important channels.
+    const importantSubstrings = ["introductions", "announcements", "welcome"];
+    if (importantSubstrings.some(s => channelName.indexOf(s) !== -1))
+      return;
+
+    // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
+    // tagged with Mental Health).
+
     await this.processDadJoke(message);
     await this.processDeez(message);
     await this.processDab(message);
