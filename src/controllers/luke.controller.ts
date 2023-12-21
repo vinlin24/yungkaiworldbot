@@ -1,6 +1,7 @@
-import { Message, MessageFlags } from "discord.js";
+import { Message } from "discord.js";
 
 import log from "../logger";
+import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
 
 // TODO: Maybe move this to a utils module.
@@ -64,12 +65,7 @@ export class LukeController {
       response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
     }
 
-    await message.reply({
-      content: response,
-      allowedMentions: { repliedUser: false },
-      flags: MessageFlags.SuppressNotifications,
-    });
-
+    await replySilently(message, response);
     const newCooldown = addDateSeconds(now, LukeController.DAD_COOLDOWN_SEC);
     this.dadCooldowns.set(author.id, newCooldown);
 
@@ -88,11 +84,7 @@ export class LukeController {
     if (this.deezCooldown >= now)
       return;
 
-    await message.reply({
-      content: "deez",
-      allowedMentions: { repliedUser: false },
-      flags: MessageFlags.SuppressNotifications,
-    });
+    await replySilently(message, "deez");
     this.deezCooldown = addDateSeconds(now, LukeController.DEEZ_COOLDOWN_SEC);
 
     const context = formatContext(message);
@@ -107,11 +99,7 @@ export class LukeController {
     if (this.dabCooldown >= now)
       return;
 
-    await message.reply({
-      content: "dab",
-      allowedMentions: { repliedUser: false },
-      flags: MessageFlags.SuppressNotifications,
-    });
+    await replySilently(message, "dab");
     this.dabCooldown = addDateSeconds(now, LukeController.DAB_COOLDOWN_SEC);
 
     const context = formatContext(message);
@@ -123,12 +111,7 @@ export class LukeController {
       return;
     const willMeow = Math.random() < this.meowChance;
     if (willMeow) {
-      await message.reply({
-        content: "meow meow",
-        allowedMentions: { repliedUser: false },
-        flags: MessageFlags.SuppressNotifications,
-      });
-
+      await replySilently(message, "meow meow");
       const context = formatContext(message);
       log.debug(`${context}: meowed at Luke.`);
     }
