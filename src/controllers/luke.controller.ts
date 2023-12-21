@@ -1,4 +1,4 @@
-import { GuildTextBasedChannel, Message } from "discord.js";
+import { GuildMember, GuildTextBasedChannel, Message } from "discord.js";
 
 import config from "../config";
 import log from "../logger";
@@ -74,7 +74,9 @@ export class LukeController {
   }
 
   private async processDadJoke(message: Message) {
-    const { author } = message;
+    // Use .member instead of .author so .displayName works as expected.
+    const author = message.member as GuildMember;
+
     const cooldown = this.dadCooldowns.get(author.id);
     const now = new Date();
     if (cooldown !== undefined && cooldown >= now)
