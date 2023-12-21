@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "discord.js";
 
-import { CommandSpec, RoleLevel } from "../../types/command.types";
+import { CommandSpec, ModuleSpec, RoleLevel } from "../../types/spec.types";
 
-const spec: CommandSpec = {
+const shutdownCommand: CommandSpec = {
   privilege: RoleLevel.BABY_MOD,
 
   data: new SlashCommandBuilder()
@@ -13,6 +13,12 @@ const spec: CommandSpec = {
     await interaction.reply({ content: "🫡", ephemeral: true });
     await interaction.client.destroy();
   },
+};
+
+const spec: ModuleSpec = {
+  name: "shutdown",
+  commands: [shutdownCommand],
+  events: [],
 };
 
 export default spec;

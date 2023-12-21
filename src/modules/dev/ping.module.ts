@@ -3,7 +3,7 @@ import child_process from "node:child_process";
 import { SlashCommandBuilder } from "discord.js";
 
 import log from "../../logger";
-import { CommandSpec } from "../../types/command.types";
+import { CommandSpec, ModuleSpec } from "../../types/spec.types";
 
 function getCurrentBranchName(): string | null {
   const command = "git rev-parse --abbrev-ref HEAD";
@@ -19,7 +19,7 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-const spec: CommandSpec = {
+const pingCommand: CommandSpec = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Basic sanity check command."),
@@ -43,6 +43,12 @@ const spec: CommandSpec = {
 
     await interaction.reply({ content: text, ephemeral: true });
   },
+};
+
+const spec: ModuleSpec = {
+  name: "ping",
+  commands: [pingCommand],
+  events: [],
 };
 
 export default spec;

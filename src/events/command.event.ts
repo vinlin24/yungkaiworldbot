@@ -3,8 +3,7 @@ import { CommandInteraction, Events, GuildMember } from "discord.js";
 import { BotClient } from "../client";
 import config from "../config";
 import log from "../logger";
-import { CommandSpec, RoleLevel } from "../types/command.types";
-import { EventSpec } from "../types/event.types";
+import { CommandSpec, EventSpec, RoleLevel } from "../types/spec.types";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
 

@@ -11,28 +11,26 @@ import {
 
 import config from "./config";
 import log from "./logger";
-import { CommandSpec } from "./types/command.types";
-import { EventSpec } from "./types/event.types";
+import { CommandSpec, EventSpec, ModuleSpec } from "./types/spec.types";
 
-const COMMANDS_DIR_PATH = path.join(__dirname, "commands");
 const EVENTS_DIR_PATH = path.join(__dirname, "events");
+const MODULES_DIR_PATH = path.join(__dirname, "modules");
 
 export class BotClient extends Client {
-  commands = new Collection<string, CommandSpec>();
+  public readonly modules = new Collection<string, ModuleSpec>();
+  public readonly commands = new Collection<string, CommandSpec>();
 
   constructor() {
-    super({
-      intents: GatewayIntentBits.Guilds,
-    });
+    super({ intents: GatewayIntentBits.Guilds });
   }
 
   public loadModules(): void {
-    this.loadCommands();
-    this.loadEvents();
+    this.loadModuleSpecs();
+    this.registerEvents();
   }
 
   public async syncCommands(): Promise<void> {
-    this.loadCommands();
+    this.loadModuleSpecs();
     const commandsJSON = this.commands.map(spec => spec.data.toJSON?.());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
@@ -54,59 +52,84 @@ export class BotClient extends Client {
         `successfully reloaded ${data.length} application (/) commands.`
       );
     } catch (error) {
+      log.crit("failed to refresh application commands.");
       console.error(error);
     }
   }
 
-  private loadCommands(): void {
+  private loadModuleSpecs(): void {
     let subfolders: string[];
     try {
-      subfolders = fs.readdirSync(COMMANDS_DIR_PATH);
+      subfolders = fs.readdirSync(MODULES_DIR_PATH);
     } catch (error) {
-      console.error(`Failed to load from ${COMMANDS_DIR_PATH}: ${error}`);
+      log.crit(`failed to load from ${MODULES_DIR_PATH}: ${error}`);
       return;
     }
+    log.info(
+      `detected ${subfolders.length} subfolders under ${MODULES_DIR_PATH}.`
+    );
 
     for (const folder of subfolders) {
-      const subfolderPath = path.join(COMMANDS_DIR_PATH, folder);
+      const subfolderPath = path.join(MODULES_DIR_PATH, folder);
 
-      const commandFiles = fs.readdirSync(subfolderPath)
+      const moduleFiles = fs.readdirSync(subfolderPath)
         .filter(file => file.endsWith(".js") || file.endsWith(".ts"));
 
-      for (const file of commandFiles) {
-        const filePath = path.join(subfolderPath, file);
-        const command: CommandSpec = require(filePath).default;
-        this.commands.set(command.data.name!, command);
-      }
-
       log.info(
-        `loaded ${commandFiles.length} command files from ${subfolderPath}.`
+        `importing ${moduleFiles.length} module specs from ` +
+        `${path.basename(subfolderPath).toUpperCase()}...`
       );
+
+      for (const file of moduleFiles) {
+        const filePath = path.join(subfolderPath, file);
+        const moduleSpec = require(filePath).default as ModuleSpec;
+        this.modules.set(moduleSpec.name, moduleSpec);
+        log.info(`imported module '${moduleSpec.name}'.`);
+
+        // Also set the commands mapping for easy retrieval by command name.
+        for (const commandSpec of moduleSpec.commands) {
+          this.commands.set(commandSpec.data.name!, commandSpec);
+        }
+        log.debug(
+          `registered ${moduleSpec.commands.length} command specs ` +
+          `from module '${moduleSpec.name}'.`
+        );
+      }
     }
   }
 
-  private loadEvents(): void {
-    let eventFiles: string[];
-    try {
-      eventFiles = fs.readdirSync(EVENTS_DIR_PATH)
-        .filter(file => file.endsWith(".js") || file.endsWith(".ts"));
-    } catch (error) {
-      console.error(`Failed to load from ${EVENTS_DIR_PATH}: ${error}`);
-      return;
+  private registerEvents(): void {
+    const registerEvent = (eventSpec: EventSpec<any>) => {
+      if (eventSpec.once) {
+        this.once(eventSpec.name, (...args) => eventSpec.execute(...args));
+      } else {
+        this.on(eventSpec.name, (...args) => eventSpec.execute(...args));
+      }
     }
 
+    // Register the events that come in modules.
+    for (const [name, moduleSpec] of this.modules) {
+      for (const eventSpec of moduleSpec.events) {
+        registerEvent(eventSpec);
+      }
+      log.debug(
+        `registered ${moduleSpec.events.length} event specs ` +
+        `from module '${name}'.`
+      )
+    }
+
+    // Register the global standalone events.
+    const eventFiles = fs.readdirSync(EVENTS_DIR_PATH)
+      .filter(file => file.endsWith(".js") || file.endsWith(".ts"));
     for (const file of eventFiles) {
       const filePath = path.join(EVENTS_DIR_PATH, file);
-      const event: EventSpec<any> = require(filePath).default;
-
-      if (event.once) {
-        this.once(event.name, (...args) => event.execute(...args));
-      } else {
-        this.on(event.name, (...args) => event.execute(...args));
-      }
-
-      log.info(`loaded event file ${file}.`);
+      const eventSpec = require(filePath).default as EventSpec<any>;
+      registerEvent(eventSpec);
     }
+    log.info(
+      `registered ${eventFiles.length} global event specs ` +
+      `from ${EVENTS_DIR_PATH}.`
+    );
   }
 };
 
