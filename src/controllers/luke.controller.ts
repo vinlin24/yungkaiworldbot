@@ -6,7 +6,7 @@ import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
 
-const { LUKE_UID } = config;
+const { LUKE_UID, KLEE_UID } = config;
 
 export class LukeController {
   public static DAD_COOLDOWN_SEC = 600;
@@ -23,6 +23,9 @@ export class LukeController {
     if (LUKE_UID === undefined) {
       log.warn("luke UID not found.");
     }
+    if (KLEE_UID === undefined) {
+      log.warn("klee UID not found.");
+    }
   }
 
   public async processMessage(message: Message) {
@@ -30,20 +33,12 @@ export class LukeController {
     if (message.author.bot)
       return;
 
-    const channel = message.channel as GuildTextBasedChannel;
-    const channelName = channel.name.toLowerCase();
-
-    // Might be best to not annoy the kiddos too much.
-    if (channelName.indexOf("general") !== -1)
-      return;
-
-    // Don't pollute important channels.
-    const importantSubstrings = ["introductions", "announcements", "welcome"];
-    if (importantSubstrings.some(s => channelName.indexOf(s) !== -1))
-      return;
-
-    // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
-    // tagged with Mental Health).
+    // Ignore messages in "immune" channels to avoid pollution.
+    if (this.inImmuneChannel(message)) {
+      // Klee can bypass channel filter.
+      if (message.author.id !== KLEE_UID)
+        return;
+    }
 
     await this.processDadJoke(message);
     await this.processDeez(message);
@@ -57,6 +52,25 @@ export class LukeController {
 
   public setMeowChance(probability: number) {
     this.meowChance = probability;
+  }
+
+  private inImmuneChannel(message: Message): boolean {
+    const channel = message.channel as GuildTextBasedChannel;
+    const channelName = channel.name.toLowerCase();
+
+    // Might be best to not annoy the kiddos too much.
+    if (channelName.indexOf("general") !== -1)
+      return true;
+
+    // Don't pollute important channels.
+    const importantSubstrings = ["introductions", "announcements", "welcome"];
+    if (importantSubstrings.some(s => channelName.indexOf(s) !== -1))
+      return true;
+
+    // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
+    // tagged with Mental Health).
+
+    return false;
   }
 
   private async processDadJoke(message: Message) {
@@ -111,14 +125,21 @@ export class LukeController {
     if (message.content.toLowerCase() !== "dab")
       return;
 
+    const context = formatContext(message);
+
+    // Klee can bypass cooldown.
+    if (message.author.id === KLEE_UID) {
+      await replySilently(message, "dab");
+      log.debug(`${context}: replied with dab (bypassed cooldown).`);
+      return; // Independent from ongoing cooldown.
+    }
+
     const now = new Date();
     if (this.dabCooldown >= now)
       return;
 
     await replySilently(message, "dab");
     this.dabCooldown = addDateSeconds(now, LukeController.DAB_COOLDOWN_SEC);
-
-    const context = formatContext(message);
     log.debug(`${context}: replied with dab.`);
   }
 
