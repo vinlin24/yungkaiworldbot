@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 
+import config from "../config";
 import log from "../logger";
 import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
@@ -7,7 +8,7 @@ import { formatContext } from "../utils/logging.utils";
 
 // TODO: Wrong value at the moment. Also, move to another module maybe, and make
 // it an environment variable?
-const LUKE_UID = "4242424242";
+const { LUKE_UID } = config;
 
 export class LukeController {
   public static DAD_COOLDOWN_SEC = 600;
@@ -19,6 +20,12 @@ export class LukeController {
   private deezCooldown = new Date(0);
   private dabCooldown = new Date(0);
   private meowChance = LukeController.INIT_MEOW_CHANCE;
+
+  constructor() {
+    if (LUKE_UID === undefined) {
+      log.warn("luke UID not found");
+    }
+  }
 
   public async processMessage(message: Message) {
     if (message.author.bot)

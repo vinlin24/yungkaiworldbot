@@ -57,6 +57,12 @@ declare global {
      * Role ID for "baby mods", the lesser moderator role of the server.
      */
     BABY_MOD_RID: string;
+
+    //////////////////////////////
+    //     Discord User IDs     //
+    //////////////////////////////
+
+    LUKE_UID?: string;
   };
 
   namespace NodeJS {
