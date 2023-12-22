@@ -3,7 +3,12 @@ import { CommandInteraction, Events, GuildMember } from "discord.js";
 import { BotClient } from "../client";
 import config from "../config";
 import log from "../logger";
-import { CommandSpec, EventSpec, RoleLevel } from "../types/spec.types";
+import {
+  CommandCheck,
+  CommandSpec,
+  EventSpec,
+  RoleLevel,
+} from "../types/spec.types";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
 
@@ -76,6 +81,25 @@ async function handleCommandError(
   }
 }
 
+async function runCheck(
+  interaction: CommandInteraction,
+  check: CommandCheck,
+): Promise<boolean> {
+  const context = formatContext(interaction);
+  try {
+    const checkPassed = await check(interaction);
+    if (!checkPassed) {
+      log.debug(`${context}: check failed, not executing command.`);
+      return false;
+    }
+  } catch (error) {
+    log.error(`${context}: check errored, counting as failure.`);
+    console.error(error); // For the traceback.
+    return false;
+  }
+  return true;
+}
+
 const spec: EventSpec<Events.InteractionCreate> = {
   name: Events.InteractionCreate,
 
@@ -98,6 +122,12 @@ const spec: EventSpec<Events.InteractionCreate> = {
     const authorized = await checkPrivilege(command, interaction);
     if (!authorized)
       return;
+
+    if (command.check) {
+      const passedCheck = await runCheck(interaction, command.check);
+      if (!passedCheck)
+        return;
+    }
 
     try {
       await command.execute(interaction);

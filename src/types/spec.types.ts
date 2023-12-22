@@ -31,10 +31,14 @@ export enum RoleLevel {
   DEV,
 };
 
+export type CommandCheck =
+  (interaction: CommandInteraction) => Awaitable<boolean>;
+
 export type CommandSpec = {
   privilege?: RoleLevel;
   data: Partial<SlashCommandBuilder>;
   execute: (interaction: CommandInteraction) => Awaitable<any>;
+  check?: CommandCheck;
 };
 
 // NOTE: This type parameter magic is to imitate what's done in
