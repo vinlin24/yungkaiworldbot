@@ -1,19 +1,19 @@
 import { SlashCommandBuilder } from "discord.js";
 
-import { CommandSpec, ModuleSpec, RoleLevel } from "../../types/spec.types";
+import { checkPrivilege, RoleLevel } from "../../middleware/privilege.middleware";
+import { CommandSpec, ModuleSpec } from "../../types/spec.types";
 
-const shutdownCommand: CommandSpec = {
-  privilege: RoleLevel.BABY_MOD,
+const shutdownCommand = new CommandSpec(new SlashCommandBuilder()
+  .setName("shutdown")
+  .setDescription("Terminates the bot.")
+);
 
-  data: new SlashCommandBuilder()
-    .setName("shutdown")
-    .setDescription("Terminates the bot."),
+shutdownCommand.prehook(checkPrivilege(RoleLevel.BABY_MOD));
 
-  async execute(interaction) {
-    await interaction.reply({ content: "🫡", ephemeral: true });
-    await interaction.client.destroy();
-  },
-};
+shutdownCommand.execute(async (interaction) => {
+  await interaction.reply({ content: "🫡", ephemeral: true });
+  await interaction.client.destroy();
+});
 
 const spec: ModuleSpec = {
   name: "shutdown",

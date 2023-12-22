@@ -19,31 +19,30 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-const pingCommand: CommandSpec = {
-  data: new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Basic sanity check command."),
+const pingCommand = new CommandSpec(new SlashCommandBuilder()
+  .setName("ping")
+  .setDescription("Basic sanity check command.")
+);
 
-  async execute(interaction) {
-    let text = "Hello there!";
+pingCommand.execute(async (interaction) => {
+  let text = "Hello there!";
 
-    // NOTE: For some reason, this seems to be -1 for a while right after bot
-    // startup. Supposedly this is because the client has not sent its first
-    // heartbeat yet.
-    const latency = interaction.client.ws.ping;
-    text += `\n* Latency: **${latency}** ms`;
-    if (latency == 69) { // Easter egg.
-      text += " (nice)";
-    }
+  // NOTE: For some reason, this seems to be -1 for a while right after bot
+  // startup. Supposedly this is because the client has not sent its first
+  // heartbeat yet.
+  const latency = interaction.client.ws.ping;
+  text += `\n* Latency: **${latency}** ms`;
+  if (latency == 69) { // Easter egg.
+    text += " (nice)";
+  }
 
-    const branchName = getCurrentBranchName();
-    if (branchName !== null) {
-      text += `\n* Branch: \`${branchName}\``;
-    }
+  const branchName = getCurrentBranchName();
+  if (branchName !== null) {
+    text += `\n* Branch: \`${branchName}\``;
+  }
 
-    await interaction.reply({ content: text, ephemeral: true });
-  },
-};
+  await interaction.reply({ content: text, ephemeral: true });
+});
 
 const spec: ModuleSpec = {
   name: "ping",

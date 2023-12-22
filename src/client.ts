@@ -39,7 +39,7 @@ export class BotClient extends Client {
 
   public async syncCommands(): Promise<void> {
     this.loadModuleSpecs();
-    const commandsJSON = this.commands.map(spec => spec.data.toJSON?.());
+    const commandsJSON = this.commands.map(spec => spec.toDeployJSON());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
     const rest = new REST().setToken(BOT_TOKEN);
@@ -96,7 +96,7 @@ export class BotClient extends Client {
 
         // Also set the commands mapping for easy retrieval by command name.
         for (const commandSpec of moduleSpec.commands) {
-          this.commands.set(commandSpec.data.name!, commandSpec);
+          this.commands.set(commandSpec.commandName, commandSpec);
         }
         log.debug(
           `registered ${moduleSpec.commands.length} command specs ` +
@@ -107,18 +107,10 @@ export class BotClient extends Client {
   }
 
   private registerEvents(): void {
-    const registerEvent = (eventSpec: EventSpec<any>) => {
-      if (eventSpec.once) {
-        this.once(eventSpec.name, (...args) => eventSpec.execute(...args));
-      } else {
-        this.on(eventSpec.name, (...args) => eventSpec.execute(...args));
-      }
-    }
-
     // Register the events that come in modules.
     for (const [name, moduleSpec] of this.modules) {
       for (const eventSpec of moduleSpec.events) {
-        registerEvent(eventSpec);
+        eventSpec.register(this);
       }
       log.debug(
         `registered ${moduleSpec.events.length} event specs ` +
@@ -132,7 +124,7 @@ export class BotClient extends Client {
     for (const file of eventFiles) {
       const filePath = path.join(EVENTS_DIR_PATH, file);
       const eventSpec = require(filePath).default as EventSpec<any>;
-      registerEvent(eventSpec);
+      eventSpec.register(this);
     }
     log.info(
       `registered ${eventFiles.length} global event specs ` +
