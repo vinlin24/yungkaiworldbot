@@ -52,6 +52,9 @@ export class Command {
   }
 
   public async run(interaction: CommandInteraction): Promise<void> {
+    const context = formatContext(interaction);
+    log.debug(`${context}: processing command.`);
+
     // prehooks -> execute -> posthooks.
     const passedChecks = await this.runPrehooks(interaction);
     if (!passedChecks)
@@ -59,6 +62,8 @@ export class Command {
     const success = await this.runCallback(interaction);
     if (success)
       await this.runPosthooks(interaction);
+
+    log.debug(`${context}: command processed successfully.`);
   }
 
   private async runPrehooks(interaction: CommandInteraction): Promise<boolean> {

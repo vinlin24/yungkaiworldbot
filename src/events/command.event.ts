@@ -24,10 +24,8 @@ commandDispatcher.execute(async (interaction) => {
     return;
   }
 
-  log.debug(`${context}: processing command.`);
   try {
     await command.run(interaction);
-    log.debug(`${context}: command processed successfully.`);
   } catch (error) {
     log.crit("unexpected error in command dispatch pipeline.");
     console.error(error);
