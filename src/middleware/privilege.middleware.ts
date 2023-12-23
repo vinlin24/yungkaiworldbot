@@ -1,7 +1,9 @@
 import { CommandInteraction, GuildMember } from "discord.js";
+
 import config from "../config";
 import log from "../logger";
 import { CommandCheck } from "../types/module.types";
+import { iterateEnum } from "../utils/iteration.utils";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
 
@@ -31,17 +33,20 @@ export enum RoleLevel {
   DEV,
 };
 
-const LEVEL_TO_RID = new Map([
-  [RoleLevel.DEV, config.BOT_DEV_RID],
-  [RoleLevel.KAI, config.KAI_RID],
-  [RoleLevel.ALPHA_MOD, config.ALPHA_MOD_RID],
-  [RoleLevel.BABY_MOD, config.BABY_MOD_RID],
-]);
+export const LEVEL_TO_RID: Record<
+  Exclude<RoleLevel, RoleLevel.NONE>,
+  string
+> = {
+  [RoleLevel.DEV]: config.BOT_DEV_RID,
+  [RoleLevel.KAI]: config.KAI_RID,
+  [RoleLevel.ALPHA_MOD]: config.ALPHA_MOD_RID,
+  [RoleLevel.BABY_MOD]: config.BABY_MOD_RID,
+};
 
 export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
   function check(interaction: CommandInteraction): boolean {
     const member = interaction.member as GuildMember;
-    for (const [level, roleId] of LEVEL_TO_RID.entries()) {
+    for (const [level, roleId] of iterateEnum(LEVEL_TO_RID)) {
       // As long as the level required by the command is less than any of the
       // levels for which the caller has a role, then they pass.
       if (commandLevel <= level && member.roles.cache.has(roleId))
@@ -53,7 +58,10 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
   async function onFail(interaction: CommandInteraction): Promise<void> {
     const member = interaction.member as GuildMember;
 
-    const minimumRoleId = LEVEL_TO_RID.get(commandLevel)!;
+    if (commandLevel === RoleLevel.NONE) { // Pacify LEVEL_TO_RID lookup.
+      throw new Error("commandLevel was NONE, check shouldn't have failed.");
+    }
+    const minimumRoleId = LEVEL_TO_RID[commandLevel];
     const roleMention = toRoleMention(minimumRoleId);
     const reason = (
       "minimum required privilege level: " +
