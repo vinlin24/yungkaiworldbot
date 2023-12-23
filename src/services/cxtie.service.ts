@@ -8,7 +8,7 @@ import uids from "../utils/uids.utils";
 const log = getLogger(__filename);
 
 export class CxtieService {
-  public static SNIFFS_COOLDOWN = 600;
+  public static SNIFFS_COOLDOWN_SEC = 600;
 
   private sniffsCooldown = new Date(0);
 
@@ -18,7 +18,7 @@ export class CxtieService {
     }
   }
 
-  public async processSniffs(message: Message) {
+  public processSniffs = async (message: Message) => {
     // NOTE: Crude but should do the job.
     const sniffsWithPossibleMarkdown = /^(?:[*_`|~]*|#+ )sniffs?[*_`|~]*$/i;
     if (!message.content.match(sniffsWithPossibleMarkdown))
@@ -26,7 +26,8 @@ export class CxtieService {
     const now = new Date();
     if (this.sniffsCooldown < now) {
       await replySilently(message, message.content);
-      this.sniffsCooldown = addDateSeconds(now, CxtieService.SNIFFS_COOLDOWN);
+      const cooldown = addDateSeconds(now, CxtieService.SNIFFS_COOLDOWN_SEC);
+      this.sniffsCooldown = cooldown;
       const context = formatContext(message);
       log.info(`${context}: echoed sniffs.`);
     }
