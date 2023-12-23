@@ -2,7 +2,9 @@
 
 import client from "./client";
 import config from "./config";
-import log from "./logger";
+import getLogger from "./logger";
+
+const log = getLogger(__filename);
 
 async function main() {
   if (process.argv.includes("--sync")) {

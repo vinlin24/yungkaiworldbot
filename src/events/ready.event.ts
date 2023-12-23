@@ -1,7 +1,9 @@
 import { Events } from "discord.js";
 
-import log from "../logger";
+import getLogger from "../logger";
 import { Listener } from "../types/controller.types";
+
+const log = getLogger(__filename);
 
 const onReady = new Listener<Events.ClientReady>({
   name: Events.ClientReady,

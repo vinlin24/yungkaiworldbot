@@ -1,10 +1,12 @@
 import { GuildMember, GuildTextBasedChannel, Message } from "discord.js";
 
-import log from "../logger";
+import getLogger from "../logger";
 import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
 import uids from "../utils/uids.utils";
+
+const log = getLogger(__filename);
 
 export class LukeService {
   public static DAD_COOLDOWN_SEC = 600;

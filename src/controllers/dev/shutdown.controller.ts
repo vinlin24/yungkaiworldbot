@@ -1,9 +1,11 @@
 import { SlashCommandBuilder } from "discord.js";
 
-import log from "../../logger";
+import getLogger from "../../logger";
 import { checkPrivilege, RoleLevel } from "../../middleware/privilege.middleware";
 import { Command, Controller } from "../../types/controller.types";
 import { formatContext } from "../../utils/logging.utils";
+
+const log = getLogger(__filename);
 
 const shutdownCommand = new Command(new SlashCommandBuilder()
   .setName("shutdown")

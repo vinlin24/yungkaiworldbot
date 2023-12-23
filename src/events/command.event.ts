@@ -1,9 +1,11 @@
 import { Events } from "discord.js";
 
 import { BotClient } from "../client";
-import log from "../logger";
+import getLogger from "../logger";
 import { Listener } from "../types/controller.types";
 import { formatContext } from "../utils/logging.utils";
+
+const log = getLogger(__filename);
 
 const commandDispatcher = new Listener<Events.InteractionCreate>({
   name: Events.InteractionCreate,

@@ -5,7 +5,9 @@ import {
   Events,
 } from "discord.js";
 
-import log from "../logger";
+import getLogger from "../logger";
+
+const log = getLogger(__filename);
 
 // NOTE: This type parameter magic is to imitate what's done in
 // discord.js/typings/index.ts to make Client.once and Client.on work with our

@@ -4,7 +4,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import log from "../../logger";
+import getLogger from "../../logger";
 import { RoleLevel, checkPrivilege } from "../../middleware/privilege.middleware";
 import lukeService from "../../services/luke.service";
 import {
@@ -13,6 +13,8 @@ import {
   Listener,
 } from "../../types/controller.types";
 import { formatContext } from "../../utils/logging.utils";
+
+const log = getLogger(__filename);
 
 const onMessageCreate = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,

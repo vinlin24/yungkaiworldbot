@@ -1,9 +1,11 @@
 import { Events, GuildTextBasedChannel } from "discord.js";
 
-import log from "../../logger";
+import getLogger from "../../logger";
 import { ignoreBots } from "../../middleware/filters.middleware";
 import { Controller, Listener } from "../../types/controller.types";
 import { formatContext } from "../../utils/logging.utils";
+
+const log = getLogger(__filename);
 
 const onIntroduction = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,

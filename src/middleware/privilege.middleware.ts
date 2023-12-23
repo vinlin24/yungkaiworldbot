@@ -1,11 +1,13 @@
 import { CommandInteraction, GuildMember } from "discord.js";
 
 import config from "../config";
-import log from "../logger";
+import getLogger from "../logger";
 import { CommandCheck } from "../types/controller.types";
 import { iterateEnum } from "../utils/iteration.utils";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
+
+const log = getLogger(__filename);
 
 export enum RoleLevel {
   /**

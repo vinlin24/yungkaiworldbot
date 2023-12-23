@@ -10,8 +10,10 @@ import {
 } from "discord.js";
 
 import config from "./config";
-import log from "./logger";
+import getLogger from "./logger";
 import { Command, Controller, Listener } from "./types/controller.types";
+
+const log = getLogger(__filename);
 
 /** Path to the directory containing global event listener specs. */
 const EVENTS_DIR_PATH = path.join(__dirname, "events");
