@@ -34,7 +34,7 @@ const setMeowChance = new Command(new SlashCommandBuilder()
   )
 );
 
-setMeowChance.prehook(checkPrivilege(RoleLevel.BABY_MOD));
+setMeowChance.check(checkPrivilege(RoleLevel.BABY_MOD));
 
 setMeowChance.execute(async (interaction) => {
   const oldProbability = lukeService.getMeowChance();

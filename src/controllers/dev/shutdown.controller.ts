@@ -10,7 +10,7 @@ const shutdownCommand = new Command(new SlashCommandBuilder()
   .setDescription("Terminates the bot.")
 );
 
-shutdownCommand.prehook(checkPrivilege(RoleLevel.BABY_MOD));
+shutdownCommand.check(checkPrivilege(RoleLevel.BABY_MOD));
 
 shutdownCommand.execute(async (interaction) => {
   await interaction.reply({ content: "🫡", ephemeral: true });

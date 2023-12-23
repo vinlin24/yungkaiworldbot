@@ -78,5 +78,5 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
     await interaction.reply({ content: response, ephemeral: true });
   }
 
-  return { check, onFail };
+  return { predicate: check, onFail };
 }
