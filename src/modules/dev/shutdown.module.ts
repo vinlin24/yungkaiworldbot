@@ -1,9 +1,9 @@
 import { SlashCommandBuilder } from "discord.js";
 
 import { checkPrivilege, RoleLevel } from "../../middleware/privilege.middleware";
-import { CommandSpec, ModuleSpec } from "../../types/spec.types";
+import { Command, ModuleSpec } from "../../types/module.types";
 
-const shutdownCommand = new CommandSpec(new SlashCommandBuilder()
+const shutdownCommand = new Command(new SlashCommandBuilder()
   .setName("shutdown")
   .setDescription("Terminates the bot.")
 );
@@ -18,7 +18,7 @@ shutdownCommand.execute(async (interaction) => {
 const spec: ModuleSpec = {
   name: "shutdown",
   commands: [shutdownCommand],
-  events: [],
+  listeners: [],
 };
 
 export default spec;

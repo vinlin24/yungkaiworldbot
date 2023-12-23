@@ -11,14 +11,14 @@ import {
 
 import config from "./config";
 import log from "./logger";
-import { CommandSpec, EventSpec, ModuleSpec } from "./types/spec.types";
+import { Command, Listener, ModuleSpec } from "./types/module.types";
 
 const EVENTS_DIR_PATH = path.join(__dirname, "events");
 const MODULES_DIR_PATH = path.join(__dirname, "modules");
 
 export class BotClient extends Client {
   public readonly modules = new Collection<string, ModuleSpec>();
-  public readonly commands = new Collection<string, CommandSpec>();
+  public readonly commands = new Collection<string, Command>();
 
   constructor() {
     super({
@@ -109,11 +109,11 @@ export class BotClient extends Client {
   private registerEvents(): void {
     // Register the events that come in modules.
     for (const [name, moduleSpec] of this.modules) {
-      for (const eventSpec of moduleSpec.events) {
-        eventSpec.register(this);
+      for (const listener of moduleSpec.listeners) {
+        listener.register(this);
       }
       log.debug(
-        `registered ${moduleSpec.events.length} event specs ` +
+        `registered ${moduleSpec.listeners.length} event listener specs ` +
         `from module '${name}'.`
       )
     }
@@ -123,11 +123,11 @@ export class BotClient extends Client {
       .filter(file => file.endsWith(".js") || file.endsWith(".ts"));
     for (const file of eventFiles) {
       const filePath = path.join(EVENTS_DIR_PATH, file);
-      const eventSpec = require(filePath).default as EventSpec<any>;
-      eventSpec.register(this);
+      const listener = require(filePath).default as Listener<any>;
+      listener.register(this);
     }
     log.info(
-      `registered ${eventFiles.length} global event specs ` +
+      `registered ${eventFiles.length} global event listener specs ` +
       `from ${EVENTS_DIR_PATH}.`
     );
   }

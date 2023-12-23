@@ -8,13 +8,13 @@ import lukeController from "../../controllers/luke.controller";
 import log from "../../logger";
 import { RoleLevel, checkPrivilege } from "../../middleware/privilege.middleware";
 import {
-  CommandSpec,
-  EventSpec,
+  Command,
+  Listener,
   ModuleSpec,
-} from "../../types/spec.types";
+} from "../../types/module.types";
 import { formatContext } from "../../utils/logging.utils";
 
-const onMessageCreate = new EventSpec<Events.MessageCreate>({
+const onMessageCreate = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,
 });
 
@@ -22,7 +22,7 @@ onMessageCreate.execute(async (message) => {
   await lukeController.processMessage(message);
 });
 
-const setMeowChance = new CommandSpec(new SlashCommandBuilder()
+const setMeowChance = new Command(new SlashCommandBuilder()
   .setName("set-meow-chance")
   .setDescription("Set probability of meowing at Luke's message.")
   .addNumberOption(option =>
@@ -53,7 +53,7 @@ setMeowChance.execute(async (interaction) => {
 const spec: ModuleSpec = {
   name: "luke",
   commands: [setMeowChance],
-  events: [onMessageCreate],
+  listeners: [onMessageCreate],
 };
 
 export default spec;

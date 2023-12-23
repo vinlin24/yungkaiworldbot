@@ -1,7 +1,7 @@
 import { CommandInteraction, GuildMember } from "discord.js";
 import config from "../config";
 import log from "../logger";
-import { CommandCheck } from "../types/spec.types";
+import { CommandCheck } from "../types/module.types";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
 

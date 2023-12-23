@@ -1,11 +1,10 @@
 import {
   Awaitable,
-  Client,
-  ClientEvents,
   CommandInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
   SlashCommandBuilder,
 } from "discord.js";
+
 import log from "../logger";
 import { formatContext } from "../utils/logging.utils";
 
@@ -23,48 +22,33 @@ export type CommandCheck = {
   onFail?: CommandCheckFailHandler;
 };
 
-// export type CommandSpec = {
-//   privilege?: RoleLevel;
-//   data: Partial<SlashCommandBuilder>;
-//   execute: (interaction: CommandInteraction) => Awaitable<any>;
-// } & (
-//     | { check: CommandCheck; checks?: never; }
-//     | { check?: never; checks: CommandCheck[]; }
-//     | { check?: never; checks?: never; }
-//   );
-
-export class CommandSpec {
+export class Command {
   private prehooks: CommandCheck[] = [];
   private callback: CommandExecuteFunction | null = null;
   private posthooks: CommandExecuteFunction[] = [];
-  constructor(private data: Partial<SlashCommandBuilder>) { }
+  constructor(private slashCommandData: Partial<SlashCommandBuilder>) { }
 
   public get commandName(): string {
-    return this.data.name!;
+    return this.slashCommandData.name!;
   }
 
-  public define(data: Partial<SlashCommandBuilder>): CommandSpec {
-    this.data = data;
-    return this;
-  }
-
-  public prehook(hook: CommandCheck): CommandSpec {
+  public prehook(hook: CommandCheck): Command {
     this.prehooks.push(hook);
     return this;
   }
 
-  public execute(func: CommandExecuteFunction): CommandSpec {
+  public execute(func: CommandExecuteFunction): Command {
     this.callback = func;
     return this;
   }
 
-  public posthook(hook: CommandExecuteFunction): CommandSpec {
+  public posthook(hook: CommandExecuteFunction): Command {
     this.posthooks.push(hook);
     return this;
   }
 
   public toDeployJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody {
-    return this.data.toJSON?.()!;
+    return this.slashCommandData.toJSON?.()!;
   }
 
   public async run(interaction: CommandInteraction): Promise<void> {
@@ -152,6 +136,7 @@ export class CommandSpec {
     interaction: CommandInteraction,
     error: Error,
   ): Promise<void> {
+    console.error(error);
     // TODO: Provide more useful responses.
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
@@ -166,58 +151,3 @@ export class CommandSpec {
     }
   }
 }
-
-// export type EventSpec<EventName extends keyof ClientEvents> = {
-//   name: EventName;
-//   once?: boolean;
-//   execute: (...args: ClientEvents[EventName]) => Awaitable<any>;
-// };
-
-
-// NOTE: This type parameter magic is to imitate what's done in
-// discord.js/typings/index.ts to make Client.once and Client.on work with our
-// custom EventSpec type.
-export type EventExecuteFunction<EventName extends keyof ClientEvents> =
-  (...args: ClientEvents[EventName]) => Awaitable<void>;
-
-export type EventSpecOptions<EventName extends keyof ClientEvents> = {
-  name: EventName,
-  once?: boolean,
-};
-
-export class EventSpec<EventName extends keyof ClientEvents> {
-  private callback: EventExecuteFunction<EventName> | null = null;
-  private name: EventName;
-  private once: boolean;
-
-  constructor(options: EventSpecOptions<EventName>) {
-    this.name = options.name;
-    this.once = options.once ?? false;
-  }
-
-  public execute(func: EventExecuteFunction<EventName>): EventSpec<EventName> {
-    this.callback = func;
-    return this;
-  }
-
-  public register(client: Client): void {
-    if (!this.callback) {
-      log.warn(
-        `no \`execute\` provided for event spec (name='${this.name}'), ` +
-        "registration ignored."
-      );
-      return;
-    }
-    if (this.once) {
-      client.once(this.name, (...args) => this.callback!(...args));
-    } else {
-      client.on(this.name, (...args) => this.callback!(...args));
-    }
-  }
-}
-
-export type ModuleSpec = {
-  name: string;
-  commands: readonly CommandSpec[];
-  events: readonly EventSpec<any>[];
-};

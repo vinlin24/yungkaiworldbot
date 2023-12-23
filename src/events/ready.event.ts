@@ -1,9 +1,9 @@
 import { Events } from "discord.js";
 
 import log from "../logger";
-import { EventSpec } from "../types/spec.types";
+import { Listener } from "../types/module.types";
 
-const onReady = new EventSpec<Events.ClientReady>({
+const onReady = new Listener<Events.ClientReady>({
   name: Events.ClientReady,
   once: true,
 });

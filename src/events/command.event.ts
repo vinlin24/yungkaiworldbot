@@ -2,10 +2,10 @@ import { Events } from "discord.js";
 
 import { BotClient } from "../client";
 import log from "../logger";
-import { EventSpec } from "../types/spec.types";
+import { Listener } from "../types/module.types";
 import { formatContext } from "../utils/logging.utils";
 
-const commandDispatcher = new EventSpec<Events.InteractionCreate>({
+const commandDispatcher = new Listener<Events.InteractionCreate>({
   name: Events.InteractionCreate,
 });
 
