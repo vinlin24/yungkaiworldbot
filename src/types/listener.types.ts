@@ -31,11 +31,6 @@ export class Listener<Event extends keyof ClientEvents> {
     this.once = options.once ?? false;
   }
 
-  // TODO: Maybe add a `filter` helper that registers a callback to use to
-  // ignore events that meet/don't meet a certain predicate. This could be
-  // useful as a way to define the "scope" of a listener (e.g. only listen to
-  // messages from a certain channel).
-
   public filter(predicate: ListenerFilter<Event>): Listener<Event> {
     this.filters.push(predicate);
     return this;

@@ -1,5 +1,6 @@
 import { Events, GuildTextBasedChannel } from "discord.js";
 import log from "../../logger";
+import { ignoreBots } from "../../middleware/filters.middleware";
 import { Listener, ModuleSpec } from "../../types/module.types";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -7,9 +8,7 @@ const onIntroduction = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,
 });
 
-// TODO: This is probably worth its own named middleware, or straight-up just
-// enforced at the event handler dispatch level.
-onIntroduction.filter(message => !message.author.bot);
+onIntroduction.filter(ignoreBots);
 
 onIntroduction.filter(message => {
   const channel = message.channel as GuildTextBasedChannel;
