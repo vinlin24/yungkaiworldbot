@@ -1,6 +1,6 @@
 import child_process from "node:child_process";
 
-import { SlashCommandBuilder } from "discord.js";
+import { CommandInteractionOptionResolver, SlashCommandBuilder } from "discord.js";
 
 import getLogger from "../../logger";
 import { Command, Controller } from "../../types/controller.types";
@@ -24,6 +24,10 @@ function getCurrentBranchName(): string | null {
 const pingCommand = new Command(new SlashCommandBuilder()
   .setName("ping")
   .setDescription("Basic sanity check command.")
+  .addBooleanOption(option => option
+    .setName("broadcast")
+    .setDescription("Whether to respond publicly instead of ephemerally")
+  )
 );
 
 pingCommand.execute(async (interaction) => {
@@ -43,7 +47,9 @@ pingCommand.execute(async (interaction) => {
     text += `\n* Branch: \`${branchName}\``;
   }
 
-  await interaction.reply({ content: text, ephemeral: true });
+  const options = interaction.options as CommandInteractionOptionResolver;
+  const broadcast = options.getBoolean("broadcast");
+  await interaction.reply({ content: text, ephemeral: !broadcast });
 });
 
 const spec: Controller = {
