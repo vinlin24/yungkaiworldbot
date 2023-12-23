@@ -9,7 +9,7 @@ declare global {
      * Environment corresponding to the current software development lifecycle
      * (SDLC) stage.
      */
-    NODE_ENV?: "development" | "production";
+    NODE_ENV: "development" | "production";
     /**
      * The minimum severity level of messages to log. To be passed to Winston
      * initialization.

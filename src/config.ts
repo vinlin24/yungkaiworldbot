@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const REQUIRED_ENV_VARS: (keyof EnvironmentVariables)[] = [
+  "NODE_ENV",
   "BOT_TOKEN",
   "APPLICATION_ID",
   "YUNG_KAI_WORLD_GID",

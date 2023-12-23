@@ -49,7 +49,7 @@ transports.push(new winston.transports.Console({
 }));
 
 // But also add some form of persistent logging based on runtime environment.
-if (!config.NODE_ENV || config.NODE_ENV === "development") {
+if (config.NODE_ENV === "development") {
   transports.push(new winston.transports.File({
     filename: VOLATILE_LOG_PATH,
     format: getLogFormat({ colorized: false }),
