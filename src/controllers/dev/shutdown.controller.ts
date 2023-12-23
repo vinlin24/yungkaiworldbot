@@ -1,7 +1,9 @@
 import { SlashCommandBuilder } from "discord.js";
 
+import log from "../../logger";
 import { checkPrivilege, RoleLevel } from "../../middleware/privilege.middleware";
 import { Command, Controller } from "../../types/controller.types";
+import { formatContext } from "../../utils/logging.utils";
 
 const shutdownCommand = new Command(new SlashCommandBuilder()
   .setName("shutdown")
@@ -13,6 +15,8 @@ shutdownCommand.prehook(checkPrivilege(RoleLevel.BABY_MOD));
 shutdownCommand.execute(async (interaction) => {
   await interaction.reply({ content: "🫡", ephemeral: true });
   await interaction.client.destroy();
+  const context = formatContext(interaction);
+  log.info(`${context}: terminated bot runtime.`);
 });
 
 const spec: Controller = {
