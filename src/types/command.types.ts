@@ -16,26 +16,33 @@ export type CommandCheckFunction =
 export type CommandCheckFailHandler =
   (interaction: CommandInteraction) => Awaitable<void>;
 
+export type CommandCheckErrorHandler =
+  (interaction: CommandInteraction, error: Error) => Awaitable<void>;
+
 export type CommandExecuteFunction =
   (interaction: CommandInteraction) => Awaitable<void>;
 
+export type CommandErrorHandler =
+  (interaction: CommandInteraction, error: Error) => Awaitable<void>;
+
 export type CommandCheck = {
-  check: CommandCheckFunction;
+  predicate: CommandCheckFunction;
   onFail?: CommandCheckFailHandler;
+  onError?: CommandCheckErrorHandler;
 };
 
 export class Command {
-  private prehooks: CommandCheck[] = [];
+  private checks: CommandCheck[] = [];
   private callback: CommandExecuteFunction | null = null;
-  private posthooks: CommandExecuteFunction[] = [];
+  private errorHandler: CommandErrorHandler | null = null;
   constructor(private slashCommandData: Partial<SlashCommandBuilder>) { }
 
   public get commandName(): string {
     return this.slashCommandData.name!;
   }
 
-  public prehook(hook: CommandCheck): Command {
-    this.prehooks.push(hook);
+  public check(check: CommandCheck): Command {
+    this.checks.push(check);
     return this;
   }
 
@@ -44,8 +51,8 @@ export class Command {
     return this;
   }
 
-  public posthook(hook: CommandExecuteFunction): Command {
-    this.posthooks.push(hook);
+  public catch(handler: CommandErrorHandler): Command {
+    this.errorHandler = handler;
     return this;
   }
 
@@ -57,18 +64,25 @@ export class Command {
     const context = formatContext(interaction);
     log.debug(`${context}: processing command.`);
 
-    // prehooks -> execute -> posthooks.
-    const passedChecks = await this.runPrehooks(interaction);
+    // Checks: run predicate
+    //    -> success: move onto Execute
+    //    -> fail: onFail ?? handleCommandError, short-circuit
+    //        -> error: handleCommandError
+    //    -> error: onError ?? handleCommandError, short-circuit
+    //        -> error: handleCommandError
+    // Execute: run callback
+    //    -> success: return
+    //    -> error: errorHandler ?? handleCommandError
+    //        -> error: handleCommandError
+
+    const passedChecks = await this.runChecks(interaction);
     if (!passedChecks)
       return;
-    const success = await this.runCallback(interaction);
-    if (success)
-      await this.runPosthooks(interaction);
-
-    log.debug(`${context}: command processed successfully.`);
+    await this.runCallback(interaction);
+    log.debug(`${context}: finished processing command.`);
   }
 
-  private async runPrehooks(interaction: CommandInteraction): Promise<boolean> {
+  private async runChecks(interaction: CommandInteraction): Promise<boolean> {
     const context = formatContext(interaction);
 
     const runFailHandler = async (onFail?: CommandCheckFailHandler) => {
@@ -82,22 +96,40 @@ export class Command {
       }
     };
 
-    for (const [index, { check, onFail }] of this.prehooks.entries()) {
+    const runErrorHandler = async (
+      error: Error,
+      onError?: CommandErrorHandler | CommandCheckErrorHandler,
+    ) => {
+      if (onError) {
+        try {
+          log.debug(`${context}: running checks's custom error handler...`);
+          await onError(interaction, error);
+          log.debug(`${context}: custom check error handler returned normally`);
+        } catch (error) {
+          log.error(
+            `${context}: error in check error handler, ` +
+            "falling back to global command error handler."
+          );
+          await this.handleCommandError(interaction, error as Error);
+        }
+      }
+    };
+
+    for (const [index, check] of this.checks.entries()) {
+      const { predicate, onFail, onError } = check;
+
       let checkPassed;
       try {
-        checkPassed = await check(interaction);
+        checkPassed = await predicate(interaction);
       } catch (error) {
-        log.error(
-          `${context}: check (position ${index}) errored, counting as failure.`
-        );
-        await this.handleCommandError(interaction, error as Error);
-        await runFailHandler(onFail);
+        log.error(`${context}: check (position ${index}) errored.`);
+        await runErrorHandler(error as Error, onError);
         return false; // Short-circuit.
       }
 
       if (!checkPassed) {
         log.debug(`${context}: check (position ${index}) returned failure.`);
-        runFailHandler(onFail);
+        await runFailHandler(onFail);
         return false; // Short-circuit.
       }
     }
@@ -105,36 +137,33 @@ export class Command {
     return true;
   }
 
-  private async runCallback(interaction: CommandInteraction): Promise<boolean> {
+  private async runCallback(interaction: CommandInteraction): Promise<void> {
     const context = formatContext(interaction);
 
     if (!this.callback) {
       log.warn(`${context}: no \`execute\` provided, using generic response.`);
       await interaction.reply({ content: "👍", ephemeral: true });
-      return true;
+      return;
     }
 
     try {
       await this.callback(interaction);
     } catch (error) {
       log.error(`${context}: error in command execute callback.`);
-      await this.handleCommandError(interaction, error as Error);
-      return false;
-    }
-
-    return true;
-  }
-
-  private async runPosthooks(interaction: CommandInteraction): Promise<void> {
-    const context = formatContext(interaction);
-
-    for (const [index, hook] of this.posthooks.entries()) {
-      try {
-        await hook(interaction);
-      } catch (error) {
-        log.error(`${context}: error in posthook (position ${index}).`);
+      if (this.errorHandler) {
+        try {
+          log.debug(`${context}: running command's custom error handler...`);
+          await this.errorHandler(interaction, error as Error);
+          log.debug(`${context}: custom error handler returned normally.`);
+        } catch (error) {
+          log.error(
+            `${context}: error in command error handler, ` +
+            "falling back to global command error handler."
+          );
+          await this.handleCommandError(interaction, error as Error);
+        }
+      } else {
         await this.handleCommandError(interaction, error as Error);
-        return; // Short-circuit.
       }
     }
   }
