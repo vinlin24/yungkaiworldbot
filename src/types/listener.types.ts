@@ -2,6 +2,7 @@ import {
   Awaitable,
   Client,
   ClientEvents,
+  Events,
 } from "discord.js";
 
 import log from "../logger";
@@ -51,6 +52,16 @@ export class Listener<Event extends keyof ClientEvents> {
     }
 
     const handleEvent = async (...args: ClientEvents[Event]) => {
+      // Specially enforce this policy: the bot is under no circumstances
+      // allowed to listen to its own message creations. This is a simple way to
+      // prevent accidental recursive spam without having to explicitly filter
+      // by message author in every event listener implementation.
+      if (this.name === Events.MessageCreate) {
+        const [message] = args as ClientEvents[Events.MessageCreate];
+        if (message.author.id === client.user!.id)
+          return;
+      }
+
       // filters -> execute.
       for (const [index, predicate] of this.filters.entries()) {
         try {
