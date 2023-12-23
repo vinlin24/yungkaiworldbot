@@ -64,6 +64,7 @@ declare global {
 
     LUKE_UID?: string;
     KLEE_UID?: string;
+    COFFEE_UID?: string;
   };
 
   namespace NodeJS {

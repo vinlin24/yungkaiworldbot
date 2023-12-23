@@ -13,6 +13,7 @@ import config from "../config";
 const NAME_TO_UID = {
   "LUKE": config.LUKE_UID,
   "KLEE": config.KLEE_UID,
+  "COFFEE": config.COFFEE_UID,
 };
 
 export default NAME_TO_UID;

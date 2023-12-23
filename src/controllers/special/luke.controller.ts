@@ -5,7 +5,10 @@ import {
 } from "discord.js";
 
 import getLogger from "../../logger";
-import { RoleLevel, checkPrivilege } from "../../middleware/privilege.middleware";
+import {
+  RoleLevel,
+  checkPrivilege,
+} from "../../middleware/privilege.middleware";
 import lukeService from "../../services/luke.service";
 import {
   Command,
