@@ -12,12 +12,16 @@ import log from "../logger";
 export type ListenerExecuteFunction<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<void>;
 
+export type ListenerFilter<Event extends keyof ClientEvents> =
+  (...args: ClientEvents[Event]) => Awaitable<boolean>;
+
 export type ListenerOptions<Event extends keyof ClientEvents> = {
   name: Event,
   once?: boolean,
 };
 
 export class Listener<Event extends keyof ClientEvents> {
+  private filters: ListenerFilter<Event>[] = [];
   private callback: ListenerExecuteFunction<Event> | null = null;
   private name: Event;
   private once: boolean;
@@ -32,6 +36,11 @@ export class Listener<Event extends keyof ClientEvents> {
   // useful as a way to define the "scope" of a listener (e.g. only listen to
   // messages from a certain channel).
 
+  public filter(predicate: ListenerFilter<Event>): Listener<Event> {
+    this.filters.push(predicate);
+    return this;
+  }
+
   public execute(func: ListenerExecuteFunction<Event>): Listener<Event> {
     this.callback = func;
     return this;
@@ -45,10 +54,41 @@ export class Listener<Event extends keyof ClientEvents> {
       );
       return;
     }
+
+    const handleEvent = async (...args: ClientEvents[Event]) => {
+      // filters -> execute.
+      for (const [index, predicate] of this.filters.entries()) {
+        try {
+          const passed = await predicate(...args);
+          if (!passed)
+            return;
+        } catch (error) {
+          log.error(
+            `error in ${this.name} listener filter (position ${index}), ` +
+            "counting as failure."
+          );
+          this.handleListenerError(error as Error);
+          return;
+        }
+      }
+      try {
+        this.callback!(...args);
+      } catch (error) {
+        // TODO: maybe somehow attach some kind of name/ID to Events so debug
+        // messages can provide better context.
+        log.error(`error in ${this.name} listener callback.`);
+        this.handleListenerError(error as Error);
+      }
+    };
+
     if (this.once) {
-      client.once(this.name, (...args) => this.callback!(...args));
+      client.once(this.name, handleEvent);
     } else {
-      client.on(this.name, (...args) => this.callback!(...args));
+      client.on(this.name, handleEvent);
     }
+  }
+
+  private handleListenerError(error: Error): void {
+    console.error(error);
   }
 }
