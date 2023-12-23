@@ -5,6 +5,7 @@ import {
 } from "discord.js";
 
 import getLogger from "../../logger";
+import { channelPollutionAllowed } from "../../middleware/filters.middleware";
 import {
   RoleLevel,
   checkPrivilege,
@@ -23,6 +24,7 @@ const onMessageCreate = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,
 });
 
+onMessageCreate.filter(channelPollutionAllowed);
 onMessageCreate.execute(async (message) => {
   await lukeService.processMessage(message);
 });

@@ -1,4 +1,4 @@
-import { GuildMember, GuildTextBasedChannel, Message } from "discord.js";
+import { GuildMember, Message } from "discord.js";
 
 import getLogger from "../logger";
 import { addDateSeconds } from "../utils/dates.utils";
@@ -11,38 +11,21 @@ const log = getLogger(__filename);
 export class LukeService {
   public static DAD_COOLDOWN_SEC = 600;
   public static DEEZ_COOLDOWN_SEC = 600;
-  public static DAB_COOLDOWN_SEC = 600;
   public static INIT_MEOW_CHANCE = 0.05;
 
   private dadCooldowns = new Map<string, Date>();
   private deezCooldown = new Date(0);
-  private dabCooldown = new Date(0);
   private meowChance = LukeService.INIT_MEOW_CHANCE;
 
   constructor() {
     if (uids.LUKE === undefined) {
       log.warn("luke UID not found.");
     }
-    if (uids.KLEE === undefined) {
-      log.warn("klee UID not found.");
-    }
   }
 
   public async processMessage(message: Message) {
-    // Ignore all bot messages (including self).
-    if (message.author.bot)
-      return;
-
-    // Ignore messages in "immune" channels to avoid pollution.
-    if (this.inImmuneChannel(message)) {
-      // Klee can bypass channel filter.
-      if (message.author.id !== uids.KLEE)
-        return;
-    }
-
     await this.processDadJoke(message);
     await this.processDeez(message);
-    await this.processDab(message);
     await this.processMeow(message);
   }
 
@@ -52,25 +35,6 @@ export class LukeService {
 
   public setMeowChance(probability: number) {
     this.meowChance = probability;
-  }
-
-  private inImmuneChannel(message: Message): boolean {
-    const channel = message.channel as GuildTextBasedChannel;
-    const channelName = channel.name.toLowerCase();
-
-    // Might be best to not annoy the kiddos too much.
-    if (channelName.indexOf("general") !== -1)
-      return true;
-
-    // Don't pollute important channels.
-    const importantSubstrings = ["introductions", "announcements", "welcome"];
-    if (importantSubstrings.some(s => channelName.indexOf(s) !== -1))
-      return true;
-
-    // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
-    // tagged with Mental Health).
-
-    return false;
   }
 
   private async processDadJoke(message: Message) {
@@ -121,28 +85,6 @@ export class LukeService {
 
     const context = formatContext(message);
     log.debug(`${context}: replied with deez.`);
-  }
-
-  private async processDab(message: Message) {
-    if (message.content.toLowerCase() !== "dab")
-      return;
-
-    const context = formatContext(message);
-
-    // Klee can bypass cooldown.
-    if (message.author.id === uids.KLEE) {
-      await replySilently(message, "dab");
-      log.debug(`${context}: replied with dab (bypassed cooldown).`);
-      return; // Independent from ongoing cooldown.
-    }
-
-    const now = new Date();
-    if (this.dabCooldown >= now)
-      return;
-
-    await replySilently(message, "dab");
-    this.dabCooldown = addDateSeconds(now, LukeService.DAB_COOLDOWN_SEC);
-    log.debug(`${context}: replied with dab.`);
   }
 
   private async processMeow(message: Message) {
