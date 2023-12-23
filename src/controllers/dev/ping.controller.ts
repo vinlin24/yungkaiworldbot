@@ -3,7 +3,7 @@ import child_process from "node:child_process";
 import { SlashCommandBuilder } from "discord.js";
 
 import log from "../../logger";
-import { Command, ModuleSpec } from "../../types/module.types";
+import { Command, Controller } from "../../types/controller.types";
 
 function getCurrentBranchName(): string | null {
   const command = "git rev-parse --abbrev-ref HEAD";
@@ -44,7 +44,7 @@ pingCommand.execute(async (interaction) => {
   await interaction.reply({ content: text, ephemeral: true });
 });
 
-const spec: ModuleSpec = {
+const spec: Controller = {
   name: "ping",
   commands: [pingCommand],
   listeners: [],

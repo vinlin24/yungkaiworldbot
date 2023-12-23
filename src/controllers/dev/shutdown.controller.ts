@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 
 import { checkPrivilege, RoleLevel } from "../../middleware/privilege.middleware";
-import { Command, ModuleSpec } from "../../types/module.types";
+import { Command, Controller } from "../../types/controller.types";
 
 const shutdownCommand = new Command(new SlashCommandBuilder()
   .setName("shutdown")
@@ -15,7 +15,7 @@ shutdownCommand.execute(async (interaction) => {
   await interaction.client.destroy();
 });
 
-const spec: ModuleSpec = {
+const spec: Controller = {
   name: "shutdown",
   commands: [shutdownCommand],
   listeners: [],

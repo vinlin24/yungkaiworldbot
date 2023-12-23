@@ -11,13 +11,16 @@ import {
 
 import config from "./config";
 import log from "./logger";
-import { Command, Listener, ModuleSpec } from "./types/module.types";
+import { Command, Controller, Listener } from "./types/controller.types";
 
+/** Path to the directory containing global event listener specs. */
 const EVENTS_DIR_PATH = path.join(__dirname, "events");
-const MODULES_DIR_PATH = path.join(__dirname, "modules");
+
+/** Path to the directory containing controller specs. */
+const CONTROLLERS_DIR_PATH = path.join(__dirname, "controllers");
 
 export class BotClient extends Client {
-  public readonly modules = new Collection<string, ModuleSpec>();
+  public readonly controllers = new Collection<string, Controller>();
   public readonly commands = new Collection<string, Command>();
 
   constructor() {
@@ -32,14 +35,14 @@ export class BotClient extends Client {
     });
   }
 
-  public loadModules(): void {
-    this.loadModuleSpecs();
+  public prepareRuntime(): void {
+    this.loadControllers();
     this.registerEvents();
   }
 
-  public async syncCommands(): Promise<void> {
-    this.loadModuleSpecs();
-    const commandsJSON = this.commands.map(spec => spec.toDeployJSON());
+  public async deploySlashCommands(): Promise<void> {
+    this.loadControllers();
+    const commandsJSON = this.commands.map(command => command.toDeployJSON());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
     const rest = new REST().setToken(BOT_TOKEN);
@@ -65,56 +68,60 @@ export class BotClient extends Client {
     }
   }
 
-  private loadModuleSpecs(): void {
-    let subfolders: string[];
-    try {
-      subfolders = fs.readdirSync(MODULES_DIR_PATH);
-    } catch (error) {
-      log.crit(`failed to load from ${MODULES_DIR_PATH}: ${error}`);
-      return;
-    }
-    log.info(
-      `detected ${subfolders.length} subfolders under ${MODULES_DIR_PATH}.`
-    );
-
-    for (const folder of subfolders) {
-      const subfolderPath = path.join(MODULES_DIR_PATH, folder);
-
-      const moduleFiles = fs.readdirSync(subfolderPath)
-        .filter(file => file.endsWith(".js") || file.endsWith(".ts"));
-
-      log.info(
-        `importing ${moduleFiles.length} module specs from ` +
-        `${path.basename(subfolderPath).toUpperCase()}...`
-      );
-
-      for (const file of moduleFiles) {
-        const filePath = path.join(subfolderPath, file);
-        const moduleSpec = require(filePath).default as ModuleSpec;
-        this.modules.set(moduleSpec.name, moduleSpec);
-        log.info(`imported module '${moduleSpec.name}'.`);
-
-        // Also set the commands mapping for easy retrieval by command name.
-        for (const commandSpec of moduleSpec.commands) {
-          this.commands.set(commandSpec.commandName, commandSpec);
-        }
+  private discoverControllerFiles(directory: string): string[] {
+    const controllerFiles: string[] = [];
+    const contents = fs.readdirSync(directory);
+    for (const file of contents) {
+      const fullPath = path.join(directory, file);
+      if (fs.lstatSync(fullPath).isDirectory()) {
+        controllerFiles.push(...this.discoverControllerFiles(fullPath));
+        continue;
+      }
+      if (file.endsWith(".controller.js") || file.endsWith(".controller.ts")) {
+        controllerFiles.push(fullPath);
         log.debug(
-          `registered ${moduleSpec.commands.length} command specs ` +
-          `from module '${moduleSpec.name}'.`
+          "discovered controller file: " +
+          `${path.relative(CONTROLLERS_DIR_PATH, fullPath)}.`
         );
       }
+    }
+    return controllerFiles;
+  }
+
+  private loadControllers(): void {
+    log.info(`discovering controller modules under ${CONTROLLERS_DIR_PATH}...`);
+    const controllerFiles = this.discoverControllerFiles(CONTROLLERS_DIR_PATH);
+    log.info(`discovered ${controllerFiles.length} controller modules.`);
+
+    for (const file of controllerFiles) {
+      const controller = require(file).default as Controller;
+      // TODO: Maybe add a runtime validation that controller matches the
+      // Controller schema. Maybe use a library like Zod?
+      log.debug(`imported controller module '${controller.name}'.`);
+
+      this.controllers.set(controller.name, controller);
+
+      // Also set the commands mapping for easy retrieval by command name.
+      for (const command of controller.commands) {
+        this.commands.set(command.commandName, command);
+      }
+      log.debug(
+        `registered ${controller.commands.length} command specs ` +
+        `from controller module '${controller.name}'.`
+      );
     }
   }
 
   private registerEvents(): void {
-    // Register the events that come in modules.
-    for (const [name, moduleSpec] of this.modules) {
-      for (const listener of moduleSpec.listeners) {
+    // Register the events that come in controller modules. Precondition:
+    // loadControllers() initialized this.controllers.
+    for (const [name, controller] of this.controllers) {
+      for (const listener of controller.listeners) {
         listener.register(this);
       }
       log.debug(
-        `registered ${moduleSpec.listeners.length} event listener specs ` +
-        `from module '${name}'.`
+        `registered ${controller.listeners.length} event listener specs ` +
+        `from controller '${name}'.`
       )
     }
 

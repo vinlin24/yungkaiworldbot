@@ -1,7 +1,8 @@
 import { Events, GuildTextBasedChannel } from "discord.js";
+
 import log from "../../logger";
 import { ignoreBots } from "../../middleware/filters.middleware";
-import { Listener, ModuleSpec } from "../../types/module.types";
+import { Controller, Listener } from "../../types/controller.types";
 import { formatContext } from "../../utils/logging.utils";
 
 const onIntroduction = new Listener<Events.MessageCreate>({
@@ -24,7 +25,7 @@ onIntroduction.execute(async (message) => {
   log.info(`${context}: waved at user's introduction.`);
 });
 
-const spec: ModuleSpec = {
+const spec: Controller = {
   name: "wave",
   commands: [],
   listeners: [onIntroduction],

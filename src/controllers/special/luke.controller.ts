@@ -4,14 +4,14 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import lukeController from "../../controllers/luke.controller";
 import log from "../../logger";
 import { RoleLevel, checkPrivilege } from "../../middleware/privilege.middleware";
+import lukeService from "../../services/luke.service";
 import {
   Command,
+  Controller,
   Listener,
-  ModuleSpec,
-} from "../../types/module.types";
+} from "../../types/controller.types";
 import { formatContext } from "../../utils/logging.utils";
 
 const onMessageCreate = new Listener<Events.MessageCreate>({
@@ -19,7 +19,7 @@ const onMessageCreate = new Listener<Events.MessageCreate>({
 });
 
 onMessageCreate.execute(async (message) => {
-  await lukeController.processMessage(message);
+  await lukeService.processMessage(message);
 });
 
 const setMeowChance = new Command(new SlashCommandBuilder()
@@ -37,10 +37,10 @@ const setMeowChance = new Command(new SlashCommandBuilder()
 setMeowChance.prehook(checkPrivilege(RoleLevel.BABY_MOD));
 
 setMeowChance.execute(async (interaction) => {
-  const oldProbability = lukeController.getMeowChance();
+  const oldProbability = lukeService.getMeowChance();
   const options = interaction.options as CommandInteractionOptionResolver;
   const newProbability = options.getNumber("probability", true);
-  lukeController.setMeowChance(newProbability);
+  lukeService.setMeowChance(newProbability);
 
   const context = formatContext(interaction);
   log.info(`${context}: set Luke meow chance to ${newProbability}.`);
@@ -50,7 +50,7 @@ setMeowChance.execute(async (interaction) => {
   );
 })
 
-const spec: ModuleSpec = {
+const spec: Controller = {
   name: "luke",
   commands: [setMeowChance],
   listeners: [onMessageCreate],

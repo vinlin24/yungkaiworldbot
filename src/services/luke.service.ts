@@ -1,14 +1,12 @@
 import { GuildMember, GuildTextBasedChannel, Message } from "discord.js";
 
-import config from "../config";
 import log from "../logger";
 import { addDateSeconds } from "../utils/dates.utils";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
+import uids from "../utils/uids.utils";
 
-const { LUKE_UID, KLEE_UID } = config;
-
-export class LukeController {
+export class LukeService {
   public static DAD_COOLDOWN_SEC = 600;
   public static DEEZ_COOLDOWN_SEC = 600;
   public static DAB_COOLDOWN_SEC = 600;
@@ -17,13 +15,13 @@ export class LukeController {
   private dadCooldowns = new Map<string, Date>();
   private deezCooldown = new Date(0);
   private dabCooldown = new Date(0);
-  private meowChance = LukeController.INIT_MEOW_CHANCE;
+  private meowChance = LukeService.INIT_MEOW_CHANCE;
 
   constructor() {
-    if (LUKE_UID === undefined) {
+    if (uids.LUKE === undefined) {
       log.warn("luke UID not found.");
     }
-    if (KLEE_UID === undefined) {
+    if (uids.KLEE === undefined) {
       log.warn("klee UID not found.");
     }
   }
@@ -36,7 +34,7 @@ export class LukeController {
     // Ignore messages in "immune" channels to avoid pollution.
     if (this.inImmuneChannel(message)) {
       // Klee can bypass channel filter.
-      if (message.author.id !== KLEE_UID)
+      if (message.author.id !== uids.KLEE)
         return;
     }
 
@@ -98,7 +96,7 @@ export class LukeController {
     }
 
     await replySilently(message, response);
-    const newCooldown = addDateSeconds(now, LukeController.DAD_COOLDOWN_SEC);
+    const newCooldown = addDateSeconds(now, LukeService.DAD_COOLDOWN_SEC);
     this.dadCooldowns.set(author.id, newCooldown);
 
     const context = formatContext(message);
@@ -117,7 +115,7 @@ export class LukeController {
       return;
 
     await replySilently(message, "deez");
-    this.deezCooldown = addDateSeconds(now, LukeController.DEEZ_COOLDOWN_SEC);
+    this.deezCooldown = addDateSeconds(now, LukeService.DEEZ_COOLDOWN_SEC);
 
     const context = formatContext(message);
     log.debug(`${context}: replied with deez.`);
@@ -130,7 +128,7 @@ export class LukeController {
     const context = formatContext(message);
 
     // Klee can bypass cooldown.
-    if (message.author.id === KLEE_UID) {
+    if (message.author.id === uids.KLEE) {
       await replySilently(message, "dab");
       log.debug(`${context}: replied with dab (bypassed cooldown).`);
       return; // Independent from ongoing cooldown.
@@ -141,12 +139,12 @@ export class LukeController {
       return;
 
     await replySilently(message, "dab");
-    this.dabCooldown = addDateSeconds(now, LukeController.DAB_COOLDOWN_SEC);
+    this.dabCooldown = addDateSeconds(now, LukeService.DAB_COOLDOWN_SEC);
     log.debug(`${context}: replied with dab.`);
   }
 
   private async processMeow(message: Message) {
-    if (message.author.id !== LUKE_UID)
+    if (message.author.id !== uids.LUKE)
       return;
     const willMeow = Math.random() < this.meowChance;
     if (willMeow) {
@@ -157,4 +155,4 @@ export class LukeController {
   }
 };
 
-export default new LukeController();
+export default new LukeService();
