@@ -46,7 +46,7 @@ export const LEVEL_TO_RID: Record<
 };
 
 export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
-  function check(interaction: CommandInteraction): boolean {
+  function predicate(interaction: CommandInteraction): boolean {
     const member = interaction.member as GuildMember;
     for (const [level, roleId] of iterateEnum(LEVEL_TO_RID)) {
       // As long as the level required by the command is less than any of the
@@ -80,5 +80,5 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
     await interaction.reply({ content: response, ephemeral: true });
   }
 
-  return { predicate: check, onFail };
+  return { predicate, onFail };
 }
