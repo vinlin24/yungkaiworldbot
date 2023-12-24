@@ -2,10 +2,11 @@ import {
   Awaitable,
   Client,
   ClientEvents,
-  Events,
+  Events
 } from "discord.js";
 
 import getLogger from "../logger";
+import { addDateSeconds } from "../utils/dates.utils";
 
 const log = getLogger(__filename);
 
@@ -26,8 +27,12 @@ export type ListenerOptions<Event extends keyof ClientEvents> = {
 export class Listener<Event extends keyof ClientEvents> {
   private filters: ListenerFilter<Event>[] = [];
   private callback: ListenerExecuteFunction<Event> | null = null;
+  private cooldownSecs: number | null = null;
+
   private name: Event;
   private once: boolean;
+
+  private cooldownExpiration = new Date(0);
 
   constructor(options: ListenerOptions<Event>) {
     this.name = options.name;
@@ -44,6 +49,35 @@ export class Listener<Event extends keyof ClientEvents> {
     return this;
   }
 
+  public get cooldown(): number | null {
+    return this.cooldownSecs;
+  }
+
+  public set cooldown(seconds: number | null) {
+    if (seconds !== null && seconds < 0) {
+      log.error(
+        `tried to set listener cooldown with negative seconds (${seconds}).`
+      );
+      throw new RangeError(`seconds must be non-negative, received ${seconds}`);
+    }
+    this.cooldownSecs = seconds;
+    if (seconds === null) {
+      log.info("listener cooldown explicitly disabled (set to null).");
+    }
+  }
+
+  /**
+   * Return whether the cooldown is still active at the given time. If no time
+   * is given, the current time is used. If no cooldown is enabled in the first
+   * place, return false.
+   */
+  public cooldownActive(time?: Date): boolean {
+    if (this.cooldown === null)
+      return false; // Cooldown isn't enabled in the first place.
+    time = time ?? new Date();
+    return time < this.cooldownExpiration;
+  }
+
   public register(client: Client): void {
     if (!this.callback) {
       log.warn(
@@ -54,6 +88,10 @@ export class Listener<Event extends keyof ClientEvents> {
     }
 
     const handleEvent = async (...args: ClientEvents[Event]) => {
+      const now = new Date();
+      if (this.cooldownActive(now))
+        return;
+
       // Specially enforce this policy: the bot is under no circumstances
       // allowed to listen to its own message creations. This is a simple way to
       // prevent accidental recursive spam without having to explicitly filter
@@ -64,7 +102,7 @@ export class Listener<Event extends keyof ClientEvents> {
           return;
       }
 
-      // filters -> execute.
+      // Filters -> Execute.
       for (const [index, predicate] of this.filters.entries()) {
         try {
           const passed = await predicate(...args);
@@ -86,6 +124,15 @@ export class Listener<Event extends keyof ClientEvents> {
         // messages can provide better context.
         log.error(`error in ${this.name} listener callback.`);
         this.handleListenerError(error as Error);
+        return;
+      }
+
+      if (this.cooldown !== null) {
+        this.cooldownExpiration = addDateSeconds(now, this.cooldown);
+        log.debug(
+          `listener cooldown updated to ${this.cooldownExpiration} ` +
+          `(${this.cooldown} seconds from start of processing).`
+        );
       }
     };
 
@@ -96,7 +143,7 @@ export class Listener<Event extends keyof ClientEvents> {
     }
   }
 
-  private handleListenerError(error: Error): void {
+  protected handleListenerError(error: Error): void {
     console.error(error);
   }
 }
