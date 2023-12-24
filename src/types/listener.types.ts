@@ -62,6 +62,12 @@ export class Listener<Event extends keyof ClientEvents> {
     this.once = options.once ?? false;
   }
 
+  public toString = (): string => {
+    const className = `${this.constructor.name}<'${this.name}'>`;
+    const properties = `id='${this.id}', once=${this.once}`;
+    return `${className}(${properties})`;
+  };
+
   public filter(predicate: ListenerFilter<Event>): Listener<Event> {
     this.filters.push(predicate);
     return this;
@@ -75,8 +81,7 @@ export class Listener<Event extends keyof ClientEvents> {
   public register(client: BotClient): void {
     if (!this.callback) {
       log.warn(
-        `no \`execute\` provided for event spec (name='${this.name}'), ` +
-        "registration ignored."
+        `no \`execute\` provided for event spec ${this}, registration ignored.`
       );
       return;
     }
@@ -103,6 +108,7 @@ export class Listener<Event extends keyof ClientEvents> {
     } else {
       client.on(this.name, this.boundEventListener);
     }
+    log.info(`registered event spec ${this}.`);
   }
 
   public unregister(client: Client): void {

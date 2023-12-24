@@ -118,7 +118,7 @@ export class BotClient extends Client {
       const controller = require(file).default as Controller;
       // TODO: Maybe add a runtime validation that controller matches the
       // Controller schema. Maybe use a library like Zod?
-      log.debug(`imported controller module '${controller.name}'.`);
+      log.info(`imported controller module '${controller.name}'.`);
 
       this.controllers.set(controller.name, controller);
 
@@ -140,10 +140,10 @@ export class BotClient extends Client {
       for (const listener of controller.listeners) {
         listener.register(this);
       }
-      log.debug(
-        `registered ${controller.listeners.length} event listener specs ` +
-        `from controller '${name}'.`
-      )
+      //   log.debug(
+      //     `registered ${controller.listeners.length} event listener specs ` +
+      //     `from controller '${name}'.`
+      //   )
     }
 
     // Register the global standalone events.
@@ -154,10 +154,10 @@ export class BotClient extends Client {
       const listener = require(filePath).default as Listener<any>;
       listener.register(this);
     }
-    log.info(
-      `registered ${eventFiles.length} global event listener specs ` +
-      `from ${EVENTS_DIR_PATH}.`
-    );
+    // log.info(
+    //   `registered ${eventFiles.length} global event listener specs ` +
+    //   `from ${EVENTS_DIR_PATH}.`
+    // );
   }
 };
 
