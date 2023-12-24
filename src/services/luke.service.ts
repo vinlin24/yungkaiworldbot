@@ -25,13 +25,13 @@ export class LukeService {
     this.meowChance = probability;
   }
 
-  public processDadJoke = async (message: Message): Promise<void> => {
+  public processDadJoke = async (message: Message): Promise<boolean> => {
     // Use .member instead of .author so .displayName works as expected.
     const author = message.member as GuildMember;
 
     const TRIGGER_REGEXP = /^i(?:['’]| a)?m(\s+not)?\s+(.+)/i;
     const matches = TRIGGER_REGEXP.exec(message.content);
-    if (matches === null) return;
+    if (matches === null) return false;
     const [_, notPresent, captured] = matches;
 
     let response: string;
@@ -48,6 +48,7 @@ export class LukeService {
       `${formatContext(message)}: replied with Dad joke ` +
       `(${notPresent ? "negative" : "affirmative"} version).`
     );
+    return true;
   }
 };
 

@@ -16,7 +16,7 @@ const log = getLogger(__filename);
 // discord.js/typings/index.ts to make Client.once and Client.on work with our
 // custom EventSpec type.
 export type ListenerExecuteFunction<Event extends keyof ClientEvents> =
-  (...args: ClientEvents[Event]) => Awaitable<void>;
+  (...args: ClientEvents[Event]) => Awaitable<boolean | void>;
 
 export type ListenerFilter<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<boolean>;
@@ -44,9 +44,9 @@ export class Listener<Event extends keyof ClientEvents> {
   private filters: ListenerFilter<Event>[] = [];
   private callback: ListenerExecuteFunction<Event> | null = null;
 
-  private name: Event;
-  private id: string;
-  private once: boolean;
+  public readonly name: Event;
+  public readonly id: string;
+  public readonly once: boolean;
 
   /**
    * Save one instance of the bound handleEvent callback such that we can remove
@@ -137,8 +137,8 @@ export class Listener<Event extends keyof ClientEvents> {
 
   protected async runCallback(...args: ClientEvents[Event]): Promise<boolean> {
     try {
-      this.callback!(...args);
-      return true;
+      const success = await this.callback!(...args);
+      return success ?? true;
     } catch (error) {
       // TODO: maybe somehow attach some kind of name/ID to Events so debug
       // messages can provide better context.
@@ -183,9 +183,15 @@ export class MessageListener extends Listener<Events.MessageCreate> {
 
   protected override async handleEvent(message: Message) {
     // Filters -> Check Cooldown -> Callback -> Update Cooldown.
-    await super.runFilters(message) &&
-      !this.cooldown.isActive(message) &&
-      await super.runCallback(message) &&
-      this.cooldown.refresh(message);
+
+    const passedFilters = await super.runFilters(message);
+    if (!passedFilters) return;
+
+    if (this.cooldown.isActive(message)) return;
+
+    const success = await super.runCallback(message);
+    if (!success) return;
+
+    this.cooldown.refresh(message);
   }
 }
