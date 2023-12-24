@@ -2,8 +2,14 @@ import { Message } from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
-import { addDateSeconds } from "../utils/dates.utils";
-import { toUserMention } from "../utils/markdown.utils";
+import { addDateSeconds, formatHoursMinsSeconds } from "../utils/dates.utils";
+import {
+  joinUserMentions,
+  toBulletedList,
+  toRelativeTimestampMention,
+  toTimestampMention,
+  toUserMention,
+} from "../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
@@ -205,5 +211,56 @@ export class CooldownManager {
         this.userExpirations.set(authorId, expiration);
         return;
     }
+  };
+
+  public dump = (): string | null => {
+    const now = new Date();
+    let result: string;
+
+    function formatStatus(expiration: Date): string {
+      if (now >= expiration)
+        return "Inactive ✅";
+      const mention = toTimestampMention(expiration);
+      const relativeMention = toRelativeTimestampMention(expiration);
+      return `Active until ${mention} (${relativeMention}) ⌛`;
+    }
+
+    if (this.spec.type === "global") {
+      const bypasserMentions = joinUserMentions(this.spec.bypassers);
+      result = toBulletedList([
+        "**Type:** GLOBAL",
+        `**Status:** ${formatStatus(this.globalExpiration)}`,
+        `**Duration:** ${formatHoursMinsSeconds(this.spec.seconds)}`,
+        `**Bypassers:** ${bypasserMentions || "(none)"}`,
+      ]);
+      return result;
+    }
+
+    if (this.spec.type === "user") {
+      const statuses: string[] = [];
+      for (const [userId, expiration] of this.userExpirations.entries()) {
+        const mention = toUserMention(userId);
+        statuses.push(`${mention}: ${formatStatus(expiration)}`);
+      }
+      const statusesBullets = toBulletedList(statuses, 1);
+
+      const durations: string[] = [];
+      for (const [userId, duration] of this.spec.userSeconds ?? []) {
+        const mention = toUserMention(userId);
+        durations.push(`${mention}: ${formatHoursMinsSeconds(duration)}`);
+      }
+      const durationsBullets = toBulletedList(durations, 1);
+
+      const formattedDefault = formatHoursMinsSeconds(this.spec.defaultSeconds);
+      result = toBulletedList([
+        "**Type:** PER-USER",
+        `**Statuses:**\n${statusesBullets}`,
+        `**Default duration:** ${formattedDefault}`,
+        `**Duration overrides:**\n${durationsBullets}`,
+      ]);
+      return result;
+    }
+
+    return null;
   };
 }
