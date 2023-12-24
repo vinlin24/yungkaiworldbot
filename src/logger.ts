@@ -67,6 +67,7 @@ if (config.NODE_ENV === "development") {
 }
 
 const baseLogger = winston.createLogger({
+  levels: winston.config.syslog.levels,
   level: config.LOGGER_LEVEL ?? "info",
   transports,
 });
