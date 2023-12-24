@@ -1,11 +1,13 @@
 import {
   CommandInteractionOptionResolver,
-  Events,
   SlashCommandBuilder,
 } from "discord.js";
 
 import getLogger from "../../logger";
-import { channelPollutionAllowed } from "../../middleware/filters.middleware";
+import {
+  channelPollutionAllowed,
+  messageFrom,
+} from "../../middleware/filters.middleware";
 import {
   RoleLevel,
   checkPrivilege,
@@ -14,19 +16,30 @@ import lukeService from "../../services/luke.service";
 import {
   Command,
   Controller,
-  Listener,
+  MessageListener,
 } from "../../types/controller.types";
+import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const onMessageCreate = new Listener<Events.MessageCreate>({
-  name: Events.MessageCreate,
-});
+const dadJoker = new MessageListener();
 
-onMessageCreate.filter(channelPollutionAllowed);
-onMessageCreate.execute(async (message) => {
-  await lukeService.processMessage(message);
+dadJoker.filter(channelPollutionAllowed);
+dadJoker.cooldown.set({
+  type: "user",
+  defaultSeconds: 600,
+});
+dadJoker.execute(lukeService.processDadJoke);
+
+const randomMeower = new MessageListener();
+
+randomMeower.filter(channelPollutionAllowed);
+randomMeower.filter(messageFrom("LUKE"));
+randomMeower.filter(_ => Math.random() < lukeService.getMeowChance());
+randomMeower.execute(async (message) => {
+  await replySilently(message, "meow meow");
+  log.debug(`${formatContext(message)}: meowed at Luke.`);
 });
 
 const setMeowChance = new Command(new SlashCommandBuilder()
@@ -42,7 +55,6 @@ const setMeowChance = new Command(new SlashCommandBuilder()
 );
 
 setMeowChance.check(checkPrivilege(RoleLevel.BABY_MOD));
-
 setMeowChance.execute(async (interaction) => {
   const oldProbability = lukeService.getMeowChance();
   const options = interaction.options as CommandInteractionOptionResolver;
@@ -60,7 +72,7 @@ setMeowChance.execute(async (interaction) => {
 const spec: Controller = {
   name: "luke",
   commands: [setMeowChance],
-  listeners: [onMessageCreate],
+  listeners: [dadJoker, randomMeower],
 };
 
 export default spec;
