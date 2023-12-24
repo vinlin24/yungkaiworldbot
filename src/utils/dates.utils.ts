@@ -10,7 +10,7 @@ export function addDateSeconds(date: Date, seconds: number): Date {
 
 export function toUnixSeconds(date: Date): number {
   // The underlying number in JavaScript Dates is in milliseconds.
-  const seconds = Math.floor(Date.now() / 1000);
+  const seconds = Math.floor(date.getTime() / 1000);
   return seconds;
 }
 
