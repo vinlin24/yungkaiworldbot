@@ -34,6 +34,14 @@ export class Listener<Event extends keyof ClientEvents> {
   private name: Event;
   private once: boolean;
 
+  /**
+   * Save one instance of the bound handleEvent callback such that we can remove
+   * it later from the client if needed.
+   *
+   * NOTE: Not sure if this works. Haven't tested.
+   */
+  private boundEventListener = this.handleEvent.bind(this);
+
   constructor(options: ListenerOptions<Event>) {
     this.name = options.name;
     this.once = options.once ?? false;
@@ -69,10 +77,16 @@ export class Listener<Event extends keyof ClientEvents> {
     }
 
     if (this.once) {
-      client.once(this.name, this.handleEvent.bind(this));
+      client.once(this.name, this.boundEventListener);
     } else {
-      client.on(this.name, this.handleEvent.bind(this));
+      client.on(this.name, this.boundEventListener);
     }
+  }
+
+  public unregister(client: Client): void {
+    const callback =
+      (this.boundEventListener as unknown) as (...args: any[]) => void;
+    client.removeListener(this.name, callback);
   }
 
   protected async handleEvent(...args: ClientEvents[Event]) {
