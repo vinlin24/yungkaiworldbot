@@ -23,7 +23,7 @@ onUwu.cooldown.set({
 onUwu.execute(async (message) => {
   await message.react("🤢");
   await message.react("🤮");
-  log.info(`${formatContext(message)}: reacted to uwu.`);
+  log.debug(`${formatContext(message)}: reacted to uwu.`);
 });
 
 const onUff = new MessageListener();
@@ -88,7 +88,7 @@ onLukeReply.execute(async (message) => {
   await message.react("🇴");
   await message.react("🇫");
   await message.react("🇮");
-  log.info(`${formatContext(message)}: reacted with LOFI.`);
+  log.debug(`${formatContext(message)}: reacted with LOFI.`);
 });
 
 const controller: Controller = {
