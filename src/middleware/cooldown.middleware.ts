@@ -254,9 +254,15 @@ export class CooldownManager {
       const formattedDefault = formatHoursMinsSeconds(this.spec.defaultSeconds);
       result = toBulletedList([
         "**Type:** PER-USER",
-        `**Statuses:**\n${statusesBullets}`,
+        "**Statuses:**" + (statusesBullets
+          ? `\n${statusesBullets}`
+          : " (none)"
+        ),
         `**Default duration:** ${formattedDefault}`,
-        `**Duration overrides:**\n${durationsBullets}`,
+        "**Duration overrides:**" + (durationsBullets
+          ? `\n${durationsBullets}`
+          : " (none)"
+        ),
       ]);
       return result;
     }
