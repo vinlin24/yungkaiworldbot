@@ -11,7 +11,12 @@ import {
 
 import config from "./config";
 import getLogger from "./logger";
-import { Command, Controller, Listener } from "./types/controller.types";
+import {
+  Command,
+  Controller,
+  DuplicateListenerIDError,
+  Listener,
+} from "./types/controller.types";
 
 const log = getLogger(__filename);
 
@@ -24,6 +29,8 @@ const CONTROLLERS_DIR_PATH = path.join(__dirname, "controllers");
 export class BotClient extends Client {
   public readonly controllers = new Collection<string, Controller>();
   public readonly commands = new Collection<string, Command>();
+  // `listeners` is already a property (inherited from EventEmitter).
+  public readonly listenerSpecs = new Collection<string, Listener<any>>();
 
   constructor() {
     super({
@@ -37,9 +44,21 @@ export class BotClient extends Client {
     });
   }
 
-  public prepareRuntime(): void {
-    this.loadControllers();
-    this.registerEvents();
+  public prepareRuntime(): boolean {
+    try {
+      this.loadControllers();
+      this.registerEvents();
+      return true;
+    } catch (error) {
+      if (error instanceof DuplicateListenerIDError) {
+        log.error(`duplicate listener ID: ${error.duplicateId}`);
+      }
+      else {
+        log.crit(`unexpected error in registering events: ${error}`);
+        console.error(error);
+      }
+      return false;
+    }
   }
 
   public async deploySlashCommands(): Promise<void> {

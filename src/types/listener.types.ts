@@ -36,6 +36,10 @@ export type ListenerOptions<Event extends keyof ClientEvents> = {
   once?: boolean,
 };
 
+export class DuplicateListenerIDError extends Error {
+  constructor(public readonly duplicateId: string) { super(duplicateId); }
+}
+
 export class Listener<Event extends keyof ClientEvents> {
   private filters: ListenerFilter<Event>[] = [];
   private callback: ListenerExecuteFunction<Event> | null = null;
@@ -87,6 +91,13 @@ export class Listener<Event extends keyof ClientEvents> {
       (this.filters as ListenerFilter<Events.MessageCreate>[]).push(ignoreSelf);
     }
 
+    // Add to listeners collection for easy retrieval later.
+    if (client.listenerSpecs.get(this.id)) {
+      throw new DuplicateListenerIDError(this.id);
+    }
+    client.listenerSpecs.set(this.id, this);
+
+    // The actual registration.
     if (this.once) {
       client.once(this.name, this.boundEventListener);
     } else {

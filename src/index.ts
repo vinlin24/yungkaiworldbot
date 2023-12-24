@@ -12,7 +12,8 @@ async function main() {
     await client.deploySlashCommands();
   } else {
     log.info("preparing bot runtime...");
-    client.prepareRuntime();
+    const success = client.prepareRuntime();
+    if (!success) process.exit(1);
     log.info("starting bot runtime...");
     await client.login(config.BOT_TOKEN);
   }
