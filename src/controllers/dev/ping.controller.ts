@@ -12,7 +12,7 @@ function getCurrentBranchName(): string | null {
   const process = child_process.spawnSync(command, { shell: true });
   if (process.status !== 0) {
     const stderr = process.stderr?.toString().trim();
-    log.warn(
+    log.warning(
       `\`${command}\` failed with exit code ${process.status}` +
       (stderr ? `: ${stderr}` : "")
     );

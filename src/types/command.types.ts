@@ -141,7 +141,9 @@ export class Command {
     const context = formatContext(interaction);
 
     if (!this.callback) {
-      log.warn(`${context}: no \`execute\` provided, using generic response.`);
+      log.warning(
+        `${context}: no \`execute\` provided, using generic response.`
+      );
       await interaction.reply({ content: "👍", ephemeral: true });
       return;
     }

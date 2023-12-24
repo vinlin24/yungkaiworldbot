@@ -19,7 +19,7 @@ onDab.cooldown.set({
 });
 
 if (uids.KLEE === undefined) {
-  log.warn("klee UID not found.");
+  log.warning("klee UID not found.");
 } else {
   onDab.cooldown.setBypass(true, uids.KLEE);
 }

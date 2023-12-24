@@ -13,7 +13,7 @@ export class LukeService {
 
   constructor() {
     if (uids.LUKE === undefined) {
-      log.warn("luke UID not found.");
+      log.warning("luke UID not found.");
     }
   }
 

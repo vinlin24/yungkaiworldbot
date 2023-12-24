@@ -157,12 +157,12 @@ export class CooldownManager {
         "with user cooldown type."
       );
     } else if (currentCooldown === undefined) {
-      log.warn(
+      log.warning(
         `${mention} is already using default cooldown duration for ` +
         "listener with user cooldown type, revoking bypass does nothing."
       );
     } else { // currentCooldown > 0
-      log.warn(
+      log.warning(
         `${mention} already has a nonzero cooldown duration override for ` +
         "listener with user cooldown type, revoking bypass does nothing."
       );

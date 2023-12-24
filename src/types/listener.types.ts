@@ -80,7 +80,7 @@ export class Listener<Event extends keyof ClientEvents> {
 
   public register(client: BotClient): void {
     if (!this.callback) {
-      log.warn(
+      log.warning(
         `no \`execute\` provided for event spec ${this}, registration ignored.`
       );
       return;

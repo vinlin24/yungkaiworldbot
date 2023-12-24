@@ -8,7 +8,7 @@ const log = getLogger(__filename);
 
 async function main() {
   if (process.argv.includes("--sync")) {
-    log.warn("deploying slash commands only...");
+    log.warning("deploying slash commands only...");
     await client.deploySlashCommands();
   } else {
     log.info("preparing bot runtime...");
