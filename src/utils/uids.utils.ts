@@ -15,6 +15,7 @@ const NAME_TO_UID = {
   "KLEE": config.KLEE_UID,
   "COFFEE": config.COFFEE_UID,
   "CXTIE": config.CXTIE_UID,
+  "TACO": config.TACO_UID,
 };
 
 export default NAME_TO_UID;
