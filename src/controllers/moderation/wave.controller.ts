@@ -9,6 +9,7 @@ const log = getLogger(__filename);
 
 const onIntroduction = new Listener<Events.MessageCreate>({
   name: Events.MessageCreate,
+  id: "introduction-wave",
 });
 
 onIntroduction.filter(ignoreBots);

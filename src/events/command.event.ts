@@ -9,6 +9,7 @@ const log = getLogger(__filename);
 
 const commandDispatcher = new Listener<Events.InteractionCreate>({
   name: Events.InteractionCreate,
+  id: "COMMAND-DISPATCH", // Uppercase convention for global listeners I guess.
 });
 
 commandDispatcher.execute(async (interaction) => {

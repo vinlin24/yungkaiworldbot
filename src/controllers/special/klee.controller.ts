@@ -11,7 +11,7 @@ import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
-const onDab = new MessageListener();
+const onDab = new MessageListener("dab");
 
 onDab.cooldown.set({
   type: "global",

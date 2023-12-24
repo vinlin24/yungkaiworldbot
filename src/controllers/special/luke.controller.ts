@@ -23,7 +23,7 @@ import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const dadJoker = new MessageListener();
+const dadJoker = new MessageListener("dad-joke");
 
 dadJoker.filter(channelPollutionAllowed);
 dadJoker.cooldown.set({
@@ -32,7 +32,7 @@ dadJoker.cooldown.set({
 });
 dadJoker.execute(lukeService.processDadJoke);
 
-const randomMeower = new MessageListener();
+const randomMeower = new MessageListener("meow");
 
 randomMeower.filter(channelPollutionAllowed);
 randomMeower.filter(messageFrom("LUKE"));

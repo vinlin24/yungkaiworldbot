@@ -6,7 +6,7 @@ import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const onSniffs = new MessageListener()
+const onSniffs = new MessageListener("sniffs");
 
 onSniffs.filter(messageFrom("CXTIE"));
 onSniffs.filter(message => {

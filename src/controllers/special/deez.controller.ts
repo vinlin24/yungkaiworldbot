@@ -6,7 +6,7 @@ import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const onDeez = new MessageListener();
+const onDeez = new MessageListener("deez");
 
 onDeez.filter(channelPollutionAllowed);
 onDeez.filter(contentMatching(/^deez$/i));

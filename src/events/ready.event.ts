@@ -7,6 +7,7 @@ const log = getLogger(__filename);
 
 const onReady = new Listener<Events.ClientReady>({
   name: Events.ClientReady,
+  id: "READY",
   once: true,
 });
 

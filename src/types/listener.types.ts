@@ -6,6 +6,7 @@ import {
   Message,
 } from "discord.js";
 
+import { BotClient } from "../client";
 import getLogger from "../logger";
 import { CooldownManager } from "../middleware/cooldown.middleware";
 
@@ -21,7 +22,17 @@ export type ListenerFilter<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<boolean>;
 
 export type ListenerOptions<Event extends keyof ClientEvents> = {
+  /** Type of events to listen to. */
   name: Event,
+  /**
+   * Unique name to identify this listener instance. This name will be used to
+   * retrieve listeners and what is displayed for debugging purposes.
+   */
+  id: string,
+  /**
+   * Whether this listener should only listen once. Defaults to false
+   * (continuously listen to events).
+   */
   once?: boolean,
 };
 
@@ -30,6 +41,7 @@ export class Listener<Event extends keyof ClientEvents> {
   private callback: ListenerExecuteFunction<Event> | null = null;
 
   private name: Event;
+  private id: string;
   private once: boolean;
 
   /**
@@ -42,6 +54,7 @@ export class Listener<Event extends keyof ClientEvents> {
 
   constructor(options: ListenerOptions<Event>) {
     this.name = options.name;
+    this.id = options.id;
     this.once = options.once ?? false;
   }
 
@@ -55,7 +68,7 @@ export class Listener<Event extends keyof ClientEvents> {
     return this;
   }
 
-  public register(client: Client): void {
+  public register(client: BotClient): void {
     if (!this.callback) {
       log.warn(
         `no \`execute\` provided for event spec (name='${this.name}'), ` +
@@ -147,8 +160,8 @@ export type CooldownSpec = {
 export class MessageListener extends Listener<Events.MessageCreate> {
   public readonly cooldown = new CooldownManager();
 
-  constructor() {
-    super({ name: Events.MessageCreate, once: false });
+  constructor(id: string) {
+    super({ name: Events.MessageCreate, id, once: false });
   }
 
   protected override async handleEvent(message: Message) {

@@ -12,7 +12,7 @@ import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
-const onUwu = new MessageListener();
+const onUwu = new MessageListener("uwu");
 
 onUwu.filter(messageFrom("COFFEE"));
 onUwu.filter(contentMatching(/^uwu$/i));
@@ -26,7 +26,7 @@ onUwu.execute(async (message) => {
   log.debug(`${formatContext(message)}: reacted to uwu.`);
 });
 
-const onUff = new MessageListener();
+const onUff = new MessageListener("uff");
 
 onUff.filter(messageFrom("COFFEE"));
 onUff.filter(contentMatching(/^uff$/i));
@@ -38,7 +38,7 @@ onUff.execute(async (message) => {
   await replySilently(message, "woof");
 });
 
-const onCrazy = new MessageListener();
+const onCrazy = new MessageListener("crazy");
 
 onCrazy.filter(ignoreBots);
 onCrazy.filter(channelPollutionAllowed);
@@ -67,9 +67,9 @@ onCrazy.execute(async (message) => {
 });
 
 
-const onLukeReply = new MessageListener();
+const lofiReacter = new MessageListener("lofi");
 
-onLukeReply.filter(async (message) => {
+lofiReacter.filter(async (message) => {
   if (!message.reference)
     return false;
 
@@ -83,7 +83,7 @@ onLukeReply.filter(async (message) => {
     (authorId === uids.LUKE && repliedId === uids.COFFEE)
   );
 });
-onLukeReply.execute(async (message) => {
+lofiReacter.execute(async (message) => {
   await message.react("🇱");
   await message.react("🇴");
   await message.react("🇫");
@@ -94,7 +94,7 @@ onLukeReply.execute(async (message) => {
 const controller: Controller = {
   name: "coffee",
   commands: [],
-  listeners: [onUwu, onUff, onCrazy, onLukeReply],
+  listeners: [onUwu, onUff, onCrazy, lofiReacter],
 };
 
 export default controller;
