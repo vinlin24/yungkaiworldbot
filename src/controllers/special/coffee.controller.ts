@@ -1,25 +1,100 @@
-import { Events } from "discord.js";
 import getLogger from "../../logger";
-import { ignoreBots } from "../../middleware/filters.middleware";
-import coffeeService from "../../services/coffee.service";
-import { Controller, Listener } from "../../types/controller.types";
+import {
+  channelPollutionAllowed,
+  contentMatching,
+  ignoreBots,
+  messageFrom,
+} from "../../middleware/filters.middleware";
+import { Controller, MessageListener } from "../../types/controller.types";
+import { replySilently } from "../../utils/interaction.utils";
+import { formatContext } from "../../utils/logging.utils";
+import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
-const onMessage = new Listener<Events.MessageCreate>({
-  name: Events.MessageCreate,
+const onUwu = new MessageListener();
+
+onUwu.filter(messageFrom("COFFEE"));
+onUwu.filter(contentMatching(/^uwu$/i));
+onUwu.cooldown.set({
+  type: "global",
+  seconds: 600,
+});
+onUwu.execute(async (message) => {
+  await message.react("🤢");
+  await message.react("🤮");
+  log.info(`${formatContext(message)}: reacted to uwu.`);
 });
 
-onMessage.filter(ignoreBots);
+const onUff = new MessageListener();
 
-onMessage.execute(async (message) => {
-  await coffeeService.processMessage(message);
+onUff.filter(messageFrom("COFFEE"));
+onUff.filter(contentMatching(/^uff$/i));
+onUff.cooldown.set({
+  type: "global",
+  seconds: 600,
+});
+onUff.execute(async (message) => {
+  await replySilently(message, "woof");
+});
+
+const onCrazy = new MessageListener();
+
+onCrazy.filter(ignoreBots);
+onCrazy.filter(channelPollutionAllowed);
+onCrazy.execute(async (message) => {
+  const chars = message.content.toLowerCase();
+  const withoutEndPunct = chars.replace(/[.!?~-]$/, "");
+
+  let response: string;
+  if (chars.endsWith("crazy?"))
+    response = "I was crazy once.";
+  else if (/.*crazy[.!~-]*$/i.exec(message.content))
+    response = "Crazy?";
+  else if (withoutEndPunct === "i was crazy once")
+    response = "They locked me in a room";
+  else if (withoutEndPunct === "they locked me in a room")
+    response = "A rubber room";
+  else if (withoutEndPunct === "a rubber room")
+    response = "A rubber room with rats";
+  else if (withoutEndPunct === "a rubber room with rats")
+    response = "And rats make me crazy";
+  else
+    return
+
+  await replySilently(message, response);
+  log.debug(`${formatContext(message)}: replied with '${response}'.`);
+});
+
+
+const onLukeReply = new MessageListener();
+
+onLukeReply.filter(async (message) => {
+  if (!message.reference)
+    return false;
+
+  const referenceId = message.reference.messageId!;
+  const referencedMessage = await message.channel.messages.fetch(referenceId);
+
+  const authorId = message.author.id;
+  const repliedId = referencedMessage.author.id;
+  return (
+    (authorId === uids.COFFEE && repliedId === uids.LUKE) ||
+    (authorId === uids.LUKE && repliedId === uids.COFFEE)
+  );
+});
+onLukeReply.execute(async (message) => {
+  await message.react("🇱");
+  await message.react("🇴");
+  await message.react("🇫");
+  await message.react("🇮");
+  log.info(`${formatContext(message)}: reacted with LOFI.`);
 });
 
 const controller: Controller = {
   name: "coffee",
   commands: [],
-  listeners: [onMessage],
+  listeners: [onUwu, onUff, onCrazy, onLukeReply],
 };
 
 export default controller;

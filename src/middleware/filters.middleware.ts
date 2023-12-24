@@ -13,13 +13,13 @@ export const ignoreBots: ListenerFilter<Events.MessageCreate> =
   message => !message.author.bot;
 
 /**
- * Only listen to messages created by a specific user available in our Discord
- * UID mapping.
+ * Only listen to messages created by a specific user(s) available in our
+ * Discord UID mapping.
  */
 export function messageFrom(
-  key: keyof typeof uids,
+  ...names: (keyof typeof uids)[]
 ): ListenerFilter<Events.MessageCreate> {
-  return message => message.author.id === uids[key];
+  return message => names.some(name => message.author.id === uids[name]);
 }
 
 /**
@@ -46,3 +46,9 @@ export const channelPollutionAllowed: ListenerFilter<Events.MessageCreate> =
 
     return true;
   };
+
+export function contentMatching(
+  pattern: string | RegExp,
+): ListenerFilter<Events.MessageCreate> {
+  return message => !!message.content.match(pattern);
+}
