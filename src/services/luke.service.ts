@@ -10,11 +10,9 @@ const log = getLogger(__filename);
 
 export class LukeService {
   public static DAD_COOLDOWN_SEC = 600;
-  public static DEEZ_COOLDOWN_SEC = 600;
   public static INIT_MEOW_CHANCE = 0.05;
 
   private dadCooldowns = new Map<string, Date>();
-  private deezCooldown = new Date(0);
   private meowChance = LukeService.INIT_MEOW_CHANCE;
 
   constructor() {
@@ -25,7 +23,6 @@ export class LukeService {
 
   public async processMessage(message: Message) {
     await this.processDadJoke(message);
-    await this.processDeez(message);
     await this.processMeow(message);
   }
 
@@ -70,21 +67,6 @@ export class LukeService {
       `${context}: replied with Dad joke ` +
       `(${notPresent ? "negative" : "affirmative"} version).`
     );
-  }
-
-  private async processDeez(message: Message) {
-    if (message.content.toLowerCase() !== "deez")
-      return;
-
-    const now = new Date();
-    if (this.deezCooldown >= now)
-      return;
-
-    await replySilently(message, "deez");
-    this.deezCooldown = addDateSeconds(now, LukeService.DEEZ_COOLDOWN_SEC);
-
-    const context = formatContext(message);
-    log.debug(`${context}: replied with deez.`);
   }
 
   private async processMeow(message: Message) {
