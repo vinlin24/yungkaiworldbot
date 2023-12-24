@@ -13,7 +13,7 @@ const log = getLogger(__filename);
 
 const onDab = new MessageListener();
 
-onDab.cooldown({
+onDab.cooldown.set({
   type: "global",
   seconds: 600,
 });
@@ -21,7 +21,7 @@ onDab.cooldown({
 if (uids.KLEE === undefined) {
   log.warn("klee UID not found.");
 } else {
-  onDab.setCooldownBypass(true, uids.KLEE);
+  onDab.cooldown.setBypass(true, uids.KLEE);
 }
 
 onDab.filter(ignoreBots);

@@ -5,11 +5,9 @@ import {
   Events,
   Message,
 } from "discord.js";
-import lodash from "lodash";
 
 import getLogger from "../logger";
-import { addDateSeconds } from "../utils/dates.utils";
-import { toUserMention } from "../utils/markdown.utils";
+import { CooldownManager } from "../middleware/cooldown.middleware";
 
 const log = getLogger(__filename);
 
@@ -120,7 +118,7 @@ export class Listener<Event extends keyof ClientEvents> {
     }
   }
 
-  protected async handleEvent(...args: ClientEvents[Event]) {
+  protected async handleEvent(...args: ClientEvents[Event]): Promise<void> {
     await this.runFilters(...args) && await this.runCallback(...args);
   };
 
@@ -146,204 +144,18 @@ export type CooldownSpec = {
  * automatically handling cooldowns of different types. The listener will ignore
  * messages (all messages or messages from specific users) during cooldown.
  */
-export class MessageListener
-  extends Listener<Events.MessageCreate>
-{
-  private cooldownSpec: CooldownSpec = { type: "disabled" };
-  // Used for global cooldown type.
-  private globalCooldownExpiration = new Date(0);
-  // Used for user and dynamic cooldown type.
-  private cooldownExpirations = new Map<string, Date>();
+export class MessageListener extends Listener<Events.MessageCreate> {
+  public readonly cooldown = new CooldownManager();
 
   constructor() {
     super({ name: Events.MessageCreate, once: false });
   }
 
-  public get cooldownType(): CooldownSpec["type"] {
-    return this.cooldownSpec.type;
-  }
-
-  public cooldown = (spec: CooldownSpec): MessageListener => {
-    // Copy to allow support for changing properties of the spec later. NOTE:
-    // native support for structuredClone() requires Node 17+.
-    this.cooldownSpec = lodash.cloneDeep(spec);
-    // When switching specs, invalidate current expirations.
-    this.globalCooldownExpiration = new Date(0);
-    this.cooldownExpirations.clear();
-    return this;
-  };
-
-  public setCooldown(seconds: number): void;
-  public setCooldown(seconds: number, userId: string): void;
-  public setCooldown(seconds: number, userId?: string): void {
-    if (userId === undefined) {
-      this.setGlobalCooldown(seconds);
-    } else {
-      this.setUserCooldown(seconds, userId);
-    }
-  }
-
-  public setCooldownBypass(bypass: boolean, userId: string): void {
-    if (this.cooldownSpec.type === "disabled") {
-      const message = (
-        "attempted to set cooldown bypass on listener with disabled cooldown"
-      );
-      log.error(`${message}.`);
-      throw new Error(message);
-    }
-
-    if (this.cooldownSpec.type === "global") {
-      this.setGlobalCooldownBypass(bypass, userId);
-    } else { // === "user"
-      this.setUserCooldownBypass(bypass, userId);
-    }
-  }
-
-  private setUserCooldown = (seconds: number, userId: string) => {
-    if (this.cooldownSpec.type !== "user") {
-      const message = (
-        "attempted to set user cooldown duration on non-user " +
-        `cooldown type (type=${this.cooldownSpec.type})`
-      );
-      log.error(`${message}.`);
-      throw new Error(message);
-    }
-
-    if (!this.cooldownSpec.userSeconds)
-      this.cooldownSpec.userSeconds = new Map();
-    this.cooldownSpec.userSeconds.set(userId, seconds);
-    log.info(
-      "set user cooldown duration for " +
-      `${toUserMention(userId)} to ${seconds}.`
-    );
-  };
-
-  private setGlobalCooldown = (seconds: number) => {
-    if (this.cooldownSpec.type === "disabled") {
-      const message = (
-        "attempted to set cooldown duration on listener with disabled cooldown"
-      );
-      log.error(`${message}.`);
-      throw new Error(message);
-    }
-
-    if (this.cooldownSpec.type === "user") {
-      this.cooldownSpec.defaultSeconds = seconds;
-      log.info(`set DEFAULT user cooldown duration to ${seconds}.`);
-    } else { // === "global"
-      this.cooldownSpec.seconds = seconds;
-      log.info(`set global cooldown duration to ${seconds}.`);
-    }
-  };
-
-  private setGlobalCooldownBypass = (bypass: boolean, userId: string) => {
-    if (this.cooldownSpec.type !== "global") // Pacify TS.
-      throw new Error("unexpected call to setGlobalCooldownBypass");
-
-    if (!this.cooldownSpec.bypassers)
-      this.cooldownSpec.bypassers = new Set();
-
-    if (bypass) {
-      this.cooldownSpec.bypassers.add(userId);
-      log.debug(
-        `added ${toUserMention(userId)} to bypassers for listener ` +
-        "with global cooldown type."
-      );
-    } else {
-      this.cooldownSpec.bypassers.delete(userId);
-      log.debug(
-        `removed ${toUserMention(userId)} from bypassers for listener ` +
-        "with global cooldown type."
-      );
-    }
-  };
-
-  private setUserCooldownBypass = (bypass: boolean, userId: string) => {
-    if (this.cooldownSpec.type !== "user") // Pacify TS.
-      throw new Error("unexpected call to setUserCooldownBypass");
-
-    if (!this.cooldownSpec.userSeconds)
-      this.cooldownSpec.userSeconds = new Map();
-
-    if (bypass) {
-      this.setUserCooldown(0, userId);
-      return;
-    }
-
-    const mention = toUserMention(userId);
-    const currentCooldown = this.cooldownSpec.userSeconds?.get(userId);
-    // "Revoking bypass" only makes sense if the user already has a duration
-    // associated with them and the duration is 0. In this case, just delete
-    // them from the mapping overrides to effectively revert them to the
-    // default duration.
-    if (currentCooldown === 0) {
-      this.cooldownSpec.userSeconds?.delete(userId);
-      log.debug(
-        `revoked bypass from ${mention} for listener ` +
-        "with user cooldown type."
-      );
-    } else if (currentCooldown === undefined) {
-      log.warn(
-        `${mention} is already using default cooldown duration for ` +
-        "listener with user cooldown type, revoking bypass does nothing."
-      );
-    } else { // currentCooldown > 0
-      log.warn(
-        `${mention} already has a nonzero cooldown duration override for ` +
-        "listener with user cooldown type, revoking bypass does nothing."
-      );
-    }
-  };
-
-  private cooldownActive = (message: Message): boolean => {
-    const now = new Date();
-    const authorId = message.author.id;
-
-    switch (this.cooldownSpec.type) {
-      case "disabled":
-        return false;
-      case "global":
-        // Bypass cooldown, proceed to handling event.
-        if (this.cooldownSpec.bypassers?.has(authorId)) return false;
-        // Listener on cooldown.
-        if (now < this.globalCooldownExpiration) return true;;
-        return false;
-      case "user":
-        const expiration = this.cooldownExpirations.get(authorId);
-        if (expiration && now < expiration) return true;
-        return false;
-    }
-  }
-
-  private updateCooldown = (message: Message): void => {
-    const now = new Date();
-    const authorId = message.author.id;
-
-    let expiration: Date;
-    switch (this.cooldownSpec.type) {
-      case "disabled":
-        return;
-      case "global":
-        // Bypassers shouldn't interfere with the ongoing cooldown for others.
-        if (this.cooldownSpec.bypassers?.has(authorId)) return;
-        expiration = addDateSeconds(now, this.cooldownSpec.seconds);
-        this.globalCooldownExpiration = expiration;
-        return;
-      case "user":
-        const duration =
-          this.cooldownSpec.userSeconds?.get(authorId)
-          ?? this.cooldownSpec.defaultSeconds;
-        expiration = addDateSeconds(now, duration);
-        this.cooldownExpirations.set(authorId, expiration);
-        return;
-    }
-  }
-
   protected override async handleEvent(message: Message) {
     // Filters -> Check Cooldown -> Callback -> Update Cooldown.
     await super.runFilters(message) &&
-      !this.cooldownActive(message) &&
+      !this.cooldown.isActive(message) &&
       await super.runCallback(message) &&
-      this.updateCooldown(message);
+      this.cooldown.refresh(message);
   }
 }
