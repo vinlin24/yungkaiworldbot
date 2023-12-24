@@ -14,14 +14,14 @@ const log = getLogger(__filename);
 const onDab = new MessageListener();
 
 onDab.cooldown({
-  type: "dynamic",
-  defaultSeconds: 600,
+  type: "global",
+  seconds: 600,
 });
 
 if (uids.KLEE === undefined) {
   log.warn("klee UID not found.");
 } else {
-  onDab.setCooldown(0, uids.KLEE); // Klee dab can bypass cooldown.
+  onDab.setCooldownBypass(true, uids.KLEE);
 }
 
 onDab.filter(ignoreBots);
