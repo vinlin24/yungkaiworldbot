@@ -89,31 +89,39 @@ export class Listener<Event extends keyof ClientEvents> {
     client.removeListener(this.name, callback);
   }
 
-  protected async handleEvent(...args: ClientEvents[Event]) {
-    // Filters -> Execute.
+  protected async runFilters(...args: ClientEvents[Event]): Promise<boolean> {
     for (const [index, predicate] of this.filters.entries()) {
       try {
         const passed = await predicate(...args);
         if (!passed)
-          return;
+          return false;
       } catch (error) {
         log.error(
           `error in ${this.name} listener filter (position ${index}), ` +
           "counting as failure."
         );
         this.handleListenerError(error as Error);
-        return;
+        return false;
       }
     }
+    return true;
+  }
+
+  protected async runCallback(...args: ClientEvents[Event]): Promise<boolean> {
     try {
       this.callback!(...args);
+      return true;
     } catch (error) {
       // TODO: maybe somehow attach some kind of name/ID to Events so debug
       // messages can provide better context.
       log.error(`error in ${this.name} listener callback.`);
       this.handleListenerError(error as Error);
-      return;
+      return false;
     }
+  }
+
+  protected async handleEvent(...args: ClientEvents[Event]) {
+    await this.runFilters(...args) && await this.runCallback(...args);
   };
 
   protected handleListenerError(error: Error): void {
@@ -287,36 +295,30 @@ export class MessageListener
     }
   };
 
-  protected override async handleEvent(message: Message) {
-    // Return (don't handle the event) if we're currently on cooldown.
+  private cooldownActive = (message: Message): boolean => {
     const now = new Date();
     const authorId = message.author.id;
+
     switch (this.cooldownSpec.type) {
       case "disabled":
-        break;
+        return false;
       case "global":
         // Bypass cooldown, proceed to handling event.
-        if (this.cooldownSpec.bypassers?.has(authorId)) break;
+        if (this.cooldownSpec.bypassers?.has(authorId)) return false;
         // Listener on cooldown.
-        if (now < this.globalCooldownExpiration) return;
-        break;
+        if (now < this.globalCooldownExpiration) return true;;
+        return false;
       case "user":
         const expiration = this.cooldownExpirations.get(authorId);
-        if (expiration && now < expiration) return;
-        break;
+        if (expiration && now < expiration) return true;
+        return false;
     }
+  }
 
-    // NOTE: THIS DOESN'T WORK AS EXPECTED SOMETIMES. Cooldown checking should
-    // be part of the filter process and not necessarily before all the other
-    // filters (which are encapsulated inside handleEvent). For example, the
-    // Klee dab listener should only care about cooldowns if all the filters
-    // passed e.g. message is actually a dab, but since right now we check
-    // cooldowns before any filters, there can be a case where a non-related
-    // message updates the cooldown for a user without them even dabbing.
+  private updateCooldown = (message: Message): void => {
+    const now = new Date();
+    const authorId = message.author.id;
 
-    super.handleEvent(message);
-
-    // Update cooldowns appropriately.
     let expiration: Date;
     switch (this.cooldownSpec.type) {
       case "disabled":
@@ -335,5 +337,13 @@ export class MessageListener
         this.cooldownExpirations.set(authorId, expiration);
         return;
     }
+  }
+
+  protected override async handleEvent(message: Message) {
+    // Filters -> Check Cooldown -> Callback -> Update Cooldown.
+    await super.runFilters(message) &&
+      !this.cooldownActive(message) &&
+      await super.runCallback(message) &&
+      this.updateCooldown(message);
   }
 }
