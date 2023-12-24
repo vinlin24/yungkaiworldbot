@@ -52,3 +52,14 @@ export function contentMatching(
 ): ListenerFilter<Events.MessageCreate> {
   return message => !!message.content.match(pattern);
 }
+
+export function randomly(
+  successChance: number,
+): ListenerFilter<Events.MessageCreate> {
+  if (successChance < 0 || successChance > 1) {
+    throw new Error(
+      `successChance must be in range [0, 1] but received ${successChance}`
+    );
+  }
+  return _ => Math.random() < successChance;
+}
