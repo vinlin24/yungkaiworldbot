@@ -7,7 +7,7 @@ import { Message, MessageFlags } from "discord.js";
 export async function replySilently(message: Message, content: string) {
   await message.reply({
     content,
-    allowedMentions: { repliedUser: false },
+    allowedMentions: { repliedUser: false, parse: [] },
     flags: MessageFlags.SuppressNotifications,
   });
 }
