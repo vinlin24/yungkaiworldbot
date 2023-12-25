@@ -3,7 +3,6 @@ import { Events } from "discord.js";
 import { BotClient } from "../client";
 import getLogger from "../logger";
 import { Listener } from "../types/controller.types";
-import { formatContext } from "../utils/logging.utils";
 
 const log = getLogger(__filename);
 
@@ -13,25 +12,31 @@ const commandDispatcher = new Listener<Events.InteractionCreate>({
 });
 
 commandDispatcher.execute(async (interaction) => {
-  if (!interaction.isChatInputCommand())
+  if (!interaction.isChatInputCommand() && !interaction.isAutocomplete())
     return;
 
   const client = interaction.client as BotClient;
   const commandName = interaction.commandName;
   const command = client.commands.get(commandName);
 
-  const context = formatContext(interaction);
-
   if (!command) {
-    log.error(`${context}: no command found.`);
+    log.error(`no command named '${commandName}' found.`);
     return;
   }
 
-  try {
-    await command.run(interaction);
-  } catch (error) {
-    log.crit("unexpected error in command dispatch pipeline.");
-    console.error(error);
+  if (interaction.isChatInputCommand()) {
+    try {
+      await command.run(interaction);
+    } catch (error) {
+      log.crit("unexpected error in command dispatch pipeline.");
+      console.error(error);
+    }
+  } else if (interaction.isAutocomplete()) {
+    try {
+      await command.resolveAutocomplete(interaction);
+    } catch (error) {
+      log.crit("unexpected error in autocomplete dispatch pipeline.");
+    }
   }
 });
 

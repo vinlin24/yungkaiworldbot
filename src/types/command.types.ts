@@ -1,4 +1,5 @@
 import {
+  AutocompleteInteraction,
   Awaitable,
   CommandInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
@@ -25,6 +26,9 @@ export type CommandExecuteFunction =
 export type CommandErrorHandler =
   (interaction: CommandInteraction, error: Error) => Awaitable<void>;
 
+export type CommandAutocompleteHandler =
+  (interaction: AutocompleteInteraction) => Awaitable<void>;
+
 export type CommandCheck = {
   predicate: CommandCheckFunction;
   onFail?: CommandCheckFailHandler;
@@ -35,24 +39,30 @@ export class Command {
   private checks: CommandCheck[] = [];
   private callback: CommandExecuteFunction | null = null;
   private errorHandler: CommandErrorHandler | null = null;
+  private autocompleteHandler: CommandAutocompleteHandler | null = null;
   constructor(private slashCommandData: Partial<SlashCommandBuilder>) { }
 
   public get commandName(): string {
     return this.slashCommandData.name!;
   }
 
-  public check(check: CommandCheck): Command {
+  public check(check: CommandCheck): this {
     this.checks.push(check);
     return this;
   }
 
-  public execute(func: CommandExecuteFunction): Command {
+  public execute(func: CommandExecuteFunction): this {
     this.callback = func;
     return this;
   }
 
-  public catch(handler: CommandErrorHandler): Command {
+  public catch(handler: CommandErrorHandler): this {
     this.errorHandler = handler;
+    return this;
+  }
+
+  public autocomplete(handler: CommandAutocompleteHandler): this {
+    this.autocompleteHandler = handler;
     return this;
   }
 
@@ -80,6 +90,17 @@ export class Command {
       return;
     await this.runCallback(interaction);
     log.debug(`${context}: finished processing command.`);
+  }
+
+  public async resolveAutocomplete(interaction: AutocompleteInteraction) {
+    const context = formatContext(interaction);
+    if (!this.autocompleteHandler) {
+      log.warning(`${context}: no handler to resolve autocomplete.`);
+      return;
+    }
+    log.debug(`${context}: processing autocomplete.`);
+    await this.autocompleteHandler(interaction); // TODO: error handling.
+    log.debug(`${context}: finished processing autocomplete.`);
   }
 
   private async runChecks(interaction: CommandInteraction): Promise<boolean> {
