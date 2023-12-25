@@ -42,6 +42,7 @@ export class BotClient extends Client {
         GatewayIntentBits.MessageContent,
       ],
     });
+    this.setMaxListeners(Infinity); // Pacify warning.
   }
 
   public prepareRuntime(): boolean {
