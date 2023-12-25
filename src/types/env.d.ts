@@ -17,7 +17,7 @@ declare global {
      * Also see:
      * https://github.com/winstonjs/winston?tab=readme-ov-file#logging-levels
      * */
-    LOGGER_LEVEL?: "error" | "warn" | "info" | "debug";
+    LOGGER_LEVEL?: "error" | "warning" | "info" | "debug";
 
     /////////////////////////
     //     Bot Related     //
