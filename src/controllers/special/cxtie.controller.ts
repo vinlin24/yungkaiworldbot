@@ -3,6 +3,7 @@ import { messageFrom } from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
+import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
@@ -25,10 +26,30 @@ onSniffs.execute(async (message) => {
   log.info(`${context}: echoed sniffs.`);
 });
 
+const onChatRevive = new MessageListener("chat-revive");
+
+onChatRevive.filter(message => {
+  const chatReviveWithPossibleMD = /^(?:#+ )?chat revive[.!?~]*$/i;
+  return !!message.content.match(chatReviveWithPossibleMD);
+});
+onChatRevive.cooldown.set({
+  type: "user",
+  defaultSeconds: 600,
+});
+if (uids.CXTIE === undefined) {
+  log.warning("cxtie UID not found.");
+} else {
+  onChatRevive.cooldown.setBypass(true, uids.CXTIE);
+}
+
+onChatRevive.execute(async (message) => {
+  await replySilently(message, "no");
+});
+
 const controller: Controller = {
   name: "cxtie",
   commands: [],
-  listeners: [onSniffs],
+  listeners: [onSniffs, onChatRevive],
 };
 
 export default controller;
