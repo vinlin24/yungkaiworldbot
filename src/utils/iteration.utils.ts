@@ -10,6 +10,9 @@
  *      // member is typed as SomeEnum instead of string.
  *    }
  *    ```
+ *
+ * NOTE: This doesn't seem to work as expected! When iterating over a numeric
+ * enum, the numbers seem to be included as part of the keys.
  */
 export function iterateEnum<T extends {}>(enumerable: T)
   : [keyof T, T[keyof T]][] {
