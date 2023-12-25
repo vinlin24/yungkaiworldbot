@@ -1,7 +1,7 @@
 {
   "name": "tempbot",
   "version": "0.0.0",
-  "description": "yung kai world's Moderation & Misc Bot",
+  "description": "yung kai world's Misc Bot",
   "main": "dist/index.js",
   "scripts": {
     "dev": "LOGGER_LEVEL=debug ts-node src/index.ts",
