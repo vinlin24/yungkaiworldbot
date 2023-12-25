@@ -1,4 +1,5 @@
 import {
+  AutocompleteInteraction,
   CommandInteraction,
   GuildTextBasedChannel,
   Message,
@@ -6,6 +7,7 @@ import {
 
 export function formatContext(message: Message): string;
 export function formatContext(interaction: CommandInteraction): string;
+export function formatContext(interaction: AutocompleteInteraction): string;
 
 /**
  * Return a formatted string containing the relevant information about a
@@ -18,16 +20,18 @@ export function formatContext(interaction: CommandInteraction): string;
  *
  * TODO: Not sure if there's a way to automate this through Winston.
  */
-export function formatContext(obj: Message | CommandInteraction): string {
-  if (obj instanceof CommandInteraction) {
-    const interaction = obj;
-    const commandName = interaction.commandName;
-    const callerName = interaction.user.username;
-    const channelName = (interaction.channel as GuildTextBasedChannel).name;
-    return `@${callerName} /${commandName} #${channelName}`;
+export function formatContext(
+  obj: Message | CommandInteraction | AutocompleteInteraction,
+): string {
+  if (obj instanceof Message) {
+    const message = obj;
+    const authorName = message.author.username;
+    const channelName = (message.channel as GuildTextBasedChannel).name;
+    return `@${authorName} <MSG> #${channelName}`;
   }
-  const message = obj;
-  const authorName = message.author.username;
-  const channelName = (message.channel as GuildTextBasedChannel).name;
-  return `@${authorName} <MSG> #${channelName}`;
+  const interaction = obj;
+  const commandName = interaction.commandName;
+  const callerName = interaction.user.username;
+  const channelName = (interaction.channel as GuildTextBasedChannel).name;
+  return `@${callerName} /${commandName} #${channelName}`;
 }
