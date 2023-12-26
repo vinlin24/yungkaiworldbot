@@ -14,12 +14,18 @@ const log = getLogger(__filename);
 
 const onUwu = new MessageListener("uwu");
 
-onUwu.filter(messageFrom("COFFEE"));
 onUwu.filter(contentMatching(/^uwu$/i));
 onUwu.cooldown.set({
   type: "global",
-  seconds: 600,
+  seconds: 10,
 });
+
+if (uids.COFFEE === undefined) {
+  log.warning("coffee UID not found");
+} else {
+  onUwu.cooldown.setBypass(true, uids.COFFEE);
+}
+
 onUwu.execute(async (message) => {
   await message.react("🤢");
   await message.react("🤮");
