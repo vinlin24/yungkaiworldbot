@@ -67,6 +67,12 @@ declare global {
     COFFEE_UID?: string;
     CXTIE_UID?: string;
     TACO_UID?: string;
+
+    /////////////////////////////
+    //     Discord Bot IDs     //
+    /////////////////////////////
+
+    MUDAE_UID?: string;
   };
 
   namespace NodeJS {
