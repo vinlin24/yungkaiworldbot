@@ -20,6 +20,7 @@ import {
   Controller,
   MessageListener,
 } from "../../types/controller.types";
+import { GUILD_EMOJIS } from "../../utils/emojis.utils";
 import { reactCustomEmoji, replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 import uids from "../../utils/uids.utils";
@@ -65,14 +66,12 @@ onChatRevive.execute(async (message) => {
   await replySilently(message, "no");
 });
 
-const HMM_EMOJI_NAME = "hmm";
-
 const randomReacter = new MessageListener("anti-cxtie");
 
 randomReacter.filter(messageFrom("CXTIE"));
 randomReacter.filter(_ => Math.random() < cxtieService.reactChance);
 randomReacter.execute(async (message) => {
-  await reactCustomEmoji(message, HMM_EMOJI_NAME);
+  await reactCustomEmoji(message, GUILD_EMOJIS.HMM);
   await message.react("⏲️");
   await message.react("❓");
   log.debug(`${formatContext(message)}: reacted with anti-Cxtie emojis.`);
@@ -106,14 +105,12 @@ setReactChance.execute(async (interaction) => {
   );
 });
 
-const NEKO_GUN_EMOJI_NAME = "kzNekogun";
-
 const onCringeEmoji = new MessageListener("cringe-emoji");
 
 onCringeEmoji.filter(messageFrom("CXTIE"));
 onCringeEmoji.filter(cxtieService.containsCringeEmojis);
 onCringeEmoji.execute(async (message) => {
-  await reactCustomEmoji(message, NEKO_GUN_EMOJI_NAME);
+  await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_GUN);
 });
 
 const onTempyWempy = new MessageListener("tempy-wempy");

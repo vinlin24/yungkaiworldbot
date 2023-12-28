@@ -7,11 +7,11 @@ import {
 import { Message } from "discord.js";
 import getLogger from "../../logger";
 import { Controller, MessageListener } from "../../types/controller.types";
+import { GUILD_EMOJIS } from "../../utils/emojis.utils";
+import { reactCustomEmoji } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
-
-const NEKO_GUN_EMOJI_NAME = "kzNekogun";
 
 const profanityMatcher = new RegExpMatcher({
   ...englishDataset.build(),
@@ -45,18 +45,12 @@ const onProfanity = new MessageListener("profanity");
 
 onProfanity.filter(checkAndLogProfanityMatches);
 onProfanity.execute(async (message) => {
-  const context = formatContext(message);
-  const emojiCache = message.guild!.emojis.cache;
-  const gunEmoji = emojiCache.find(emoji => emoji.name === NEKO_GUN_EMOJI_NAME);
-  if (!gunEmoji) {
-    log.warning(
-      `${context}: no guild emoji with name '${NEKO_GUN_EMOJI_NAME}' found.`
-    );
-    return false;
+  const success = await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_GUN);
+  if (success) {
+    const context = formatContext(message);
+    log.debug(`${context}: detected profanity, reacted with gun emoji.`);
   }
-  await message.react(gunEmoji);
-  log.debug(`${context}: detected profanity, reacted with gun emoji.`);
-  return true;
+  return success;
 });
 
 const controller: Controller = {
