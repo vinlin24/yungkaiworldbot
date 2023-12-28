@@ -1,3 +1,5 @@
+import { Embed } from "discord.js";
+
 import getLogger from "../../logger";
 import { messageFrom } from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
@@ -6,23 +8,32 @@ import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const onAkko = new MessageListener("akko");
+/** Mapping from name on character card to string to use when appreciating. */
+const NAMES_TO_APPRECIATE = new Map<string, string>([
+  ["Atsuko Kagari", "akko"],
+  ["Saber", "saber"],
+]);
 
-onAkko.filter(messageFrom("MUDAE"));
-onAkko.filter(message => {
-  if (message.embeds.length === 0) return false;
-  const [embed] = message.embeds;
-  return embed.author?.name === "Atsuko Kagari";
-});
-onAkko.execute(async (message) => {
-  await replySilently(message, "daily akko appreciation");
-  log.debug(`${formatContext(message)}: appreciated Akko.`);
+const onAppreciatedChar = new MessageListener("mudae-appreciation");
+
+onAppreciatedChar.filter(messageFrom("MUDAE"));
+onAppreciatedChar.execute(async (message) => {
+  const embed: Embed | undefined = message.embeds[0];
+  const charName = embed?.author?.name;
+  if (charName === undefined) return false;
+
+  const appreciateName = NAMES_TO_APPRECIATE.get(charName);
+  if (appreciateName === undefined) return false;
+
+  await replySilently(message, `daily ${appreciateName} appreciation`);
+  log.debug(`${formatContext(message)}: appreciated ${appreciateName}.`);
+  return true;
 });
 
 const controller: Controller = {
   name: "taco",
   commands: [],
-  listeners: [onAkko],
+  listeners: [onAppreciatedChar],
 };
 
 export default controller;
