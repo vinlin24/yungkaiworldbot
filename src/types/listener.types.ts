@@ -9,6 +9,7 @@ import {
 import { BotClient } from "../client";
 import getLogger from "../logger";
 import { CooldownManager } from "../middleware/cooldown.middleware";
+import { formatContext } from "../utils/logging.utils";
 
 const log = getLogger(__filename);
 
@@ -226,7 +227,16 @@ export class MessageListener extends Listener<Events.MessageCreate> {
     const passedFilters = await super.runFilters(message);
     if (!passedFilters) return;
 
-    if (this.cooldown.isActive(message)) return;
+    if (this.cooldown.isActive(message)) {
+      try {
+        await this.cooldown.onCooldown?.(message);
+      } catch (error) {
+        const context = formatContext(message);
+        log.error(`${context}: error in cooldown callback of ${this}.`);
+        super.handleListenerError(error as Error);
+      }
+      return;
+    };
 
     const success = await super.runCallback(message);
     if (!success) return;
