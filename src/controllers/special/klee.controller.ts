@@ -2,20 +2,26 @@
 import getLogger from "../../logger";
 import {
   channelPollutionAllowed,
+  contentMatching,
   ignoreBots,
 } from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
-import { replySilently } from "../../utils/interaction.utils";
+import { reactCustomEmoji, replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
+
+const NEKO_L_EMOJI_NAME = "nekocatL";
 
 const onDab = new MessageListener("dab");
 
 onDab.cooldown.set({
   type: "global",
   seconds: 600,
+  async onCooldown(message) {
+    await reactCustomEmoji(message, NEKO_L_EMOJI_NAME);
+  },
 });
 
 if (uids.KLEE === undefined) {
@@ -25,17 +31,18 @@ if (uids.KLEE === undefined) {
 }
 
 onDab.filter(ignoreBots);
-onDab.filter(message => // Klee's dab can bypass channel restrictions.
-  message.author.id === uids.KLEE || channelPollutionAllowed(message)
-);
-onDab.filter(message =>
-  message.content.toLowerCase() === "dab"
-);
+onDab.filter(contentMatching(/^dab$/i));
+onDab.filter({
+  // Klee's dab can bypass channel restrictions.
+  predicate: (message) =>
+    message.author.id === uids.KLEE || channelPollutionAllowed(message),
+  onFail: async (message) =>
+    await reactCustomEmoji(message, NEKO_L_EMOJI_NAME)
+});
 
 onDab.execute(async (message) => {
   await replySilently(message, "dab");
-  const context = formatContext(message);
-  log.debug(`${context}: dabbed back.`);
+  log.debug(`${formatContext(message)}: dabbed back.`);
 });
 
 const controller: Controller = {
