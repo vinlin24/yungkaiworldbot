@@ -1,6 +1,7 @@
-import { GuildEmoji, Message, MessageFlags } from "discord.js";
+import { Events, GuildEmoji, Message, MessageFlags } from "discord.js";
 
 import getLogger from "../logger";
+import { ListenerExecuteFunction } from "../types/listener.types";
 import { formatContext } from "./logging.utils";
 
 const log = getLogger(__filename);
@@ -15,6 +16,15 @@ export async function replySilently(message: Message, content: string) {
     allowedMentions: { repliedUser: false, parse: [] },
     flags: MessageFlags.SuppressNotifications,
   });
+}
+
+/**
+ * Same as `replySilently` but return a closure that can be passed directly to
+ * `Listener#execute`.
+ */
+export function replySilentlyWith(content: string)
+  : ListenerExecuteFunction<Events.MessageCreate> {
+  return async (message) => await replySilently(message, content);
 }
 
 class CustomEmojiReacter {
