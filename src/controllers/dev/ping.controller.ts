@@ -33,13 +33,17 @@ const pingCommand = new Command(new SlashCommandBuilder()
 pingCommand.execute(async (interaction) => {
   let text = "Hello there!";
 
+  const latency = interaction.client.ws.ping;
   // NOTE: For some reason, this seems to be -1 for a while right after bot
   // startup. Supposedly this is because the client has not sent its first
   // heartbeat yet.
-  const latency = interaction.client.ws.ping;
-  text += `\n* Latency: **${latency}** ms`;
-  if (latency == 69) { // Easter egg.
-    text += " (nice)";
+  if (latency === -1) {
+    text += `\n* Latency: (still being calculated...)`
+  } else {
+    text += `\n* Latency: **${latency}** ms`;
+    if (latency == 69) { // Easter egg.
+      text += " (nice)";
+    }
   }
 
   const branchName = getCurrentBranchName();
