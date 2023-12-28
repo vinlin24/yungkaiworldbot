@@ -1,5 +1,8 @@
 import config from "../config";
 
+// TODO: Maybe we should move all instances of log.warning("<name> UID not
+// found") to this module.
+
 /**
  * Mapping of "name" to Discord user ID, useful for user-specific features and
  * functionality. While the values for the UIDs are provided in the environment
@@ -18,6 +21,8 @@ const NAME_TO_UID = {
   "TACO": config.TACO_UID,
   "WAV": config.WAV_UID,
   "MUDAE": config.MUDAE_UID,
+  "BUNNY": config.BUNNY_UID,
+  "J": config.J_UID,
 };
 
 export default NAME_TO_UID;

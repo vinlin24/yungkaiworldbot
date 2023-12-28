@@ -68,6 +68,8 @@ declare global {
     CXTIE_UID?: string;
     TACO_UID?: string;
     WAV_UID?: string;
+    BUNNY_UID?: string;
+    J_UID?: string;
 
     /////////////////////////////
     //     Discord Bot IDs     //
