@@ -52,9 +52,9 @@ export function getAllMembers(mentionable: GuildMember | Role): GuildMember[] {
  * Return just the `MessageListener` instances within an array of `Listener`s.
  */
 export function filterMessageListeners(
-  listeners: readonly Listener<any>[],
+  listeners: Iterable<Listener<any>>,
 ): MessageListener[] {
-  return listeners
+  return Array.from(listeners)
     .filter(listener => listener instanceof MessageListener)
     .map(listener => listener as MessageListener);
 }
