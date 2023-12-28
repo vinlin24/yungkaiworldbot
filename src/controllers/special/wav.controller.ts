@@ -36,6 +36,6 @@ const controller = new Controller({
   name: "wav",
   commands: [],
   listeners: [onPookie],
-}).withCooldownCommands();
+});
 
 export default controller;

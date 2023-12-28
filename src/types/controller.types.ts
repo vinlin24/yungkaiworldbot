@@ -1,5 +1,4 @@
 
-import { filterMessageListeners } from "../utils/iteration.utils";
 import { Command } from "./command.types";
 import { Listener } from "./listener.types";
 
@@ -25,18 +24,4 @@ export class Controller {
     this.commands = [...options.commands];
     this.listeners = [...options.listeners];
   }
-
-  /**
-   * Automatically generate setter and override commands for the
-   * `MessageListener`s currently tracked.
-   */
-  public withCooldownCommands = (): this => {
-    const messageListeners = filterMessageListeners(this.listeners);
-    for (const listener of messageListeners) {
-      const setterCommand = listener.getCooldownSetter();
-      const overriderCommand = listener.getCooldownOverrider();
-      this.commands.push(setterCommand, overriderCommand);
-    }
-    return this;
-  };
 }

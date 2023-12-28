@@ -48,6 +48,6 @@ const controller = new Controller({
   name: "klee",
   commands: [],
   listeners: [onDab],
-}).withCooldownCommands();
+});
 
 export default controller;

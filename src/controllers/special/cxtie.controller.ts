@@ -149,6 +149,6 @@ const controller = new Controller({
     onCringeEmoji,
     onTempyWempy,
   ],
-}).withCooldownCommands();
+});
 
 export default controller;

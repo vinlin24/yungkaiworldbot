@@ -26,6 +26,6 @@ const controller = new Controller({
   name: "deez",
   commands: [],
   listeners: [onDeez],
-}).withCooldownCommands();
+});
 
 export default controller;

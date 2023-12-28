@@ -10,7 +10,6 @@ import { BotClient } from "../client";
 import getLogger from "../logger";
 import { CooldownManager } from "../middleware/cooldown.middleware";
 import { formatContext } from "../utils/logging.utils";
-import { Command } from "./command.types";
 
 const log = getLogger(__filename);
 
@@ -231,13 +230,5 @@ export class MessageListener extends Listener<Events.MessageCreate> {
     if (!success) return;
 
     this.cooldown.refresh(message);
-  }
-
-  public getCooldownSetter = (): Command => {
-    return this.cooldown.getCooldownSetterCommand(this.id);
-  }
-
-  public getCooldownOverrider = (): Command => {
-    return this.cooldown.getCooldownOverriderCommand(this.id);
   }
 }

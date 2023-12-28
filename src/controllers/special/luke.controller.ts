@@ -73,6 +73,6 @@ const spec = new Controller({
   name: "luke",
   commands: [setMeowChance],
   listeners: [dadJoker, randomMeower],
-}).withCooldownCommands();
+});
 
 export default spec;

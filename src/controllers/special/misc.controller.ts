@@ -29,6 +29,6 @@ const controller = new Controller({
   name: "misc",
   commands: [],
   listeners: [onGulp, onMwah],
-}).withCooldownCommands();
+});
 
 export default controller;

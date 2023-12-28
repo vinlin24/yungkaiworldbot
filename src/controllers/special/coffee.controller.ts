@@ -101,6 +101,6 @@ const controller = new Controller({
   name: "coffee",
   commands: [],
   listeners: [onUwu, onUff, onCrazy, lofiReacter],
-}).withCooldownCommands();
+});
 
 export default controller;
