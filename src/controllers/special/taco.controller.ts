@@ -10,8 +10,10 @@ const log = getLogger(__filename);
 
 /** Mapping from name on character card to string to use when appreciating. */
 const NAMES_TO_APPRECIATE = new Map<string, string>([
-  ["Atsuko Kagari", "akko"],
-  ["Saber", "saber"],
+  ["Atsuko Kagari", "akko"],  // Taco.
+  ["Saber", "saber"],         // Luke.
+  ["Hua Cheng", "hua cheng"], // Coffee.
+  ["Nana Osaki", "nana"],     // Coffee.
 ]);
 
 const onAppreciatedChar = new MessageListener("mudae-appreciation");
