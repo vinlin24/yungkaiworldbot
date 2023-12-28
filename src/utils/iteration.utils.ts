@@ -1,4 +1,5 @@
 import { GuildMember, Role } from "discord.js";
+import { Listener, MessageListener } from "../types/listener.types";
 
 /**
  * Wrapper of `Object.entries(enumerable)` that preserves the key type of
@@ -45,4 +46,15 @@ export function zip<T, U>(array1: T[], array2: U[]): [T, U][] {
 export function getAllMembers(mentionable: GuildMember | Role): GuildMember[] {
   if (mentionable instanceof GuildMember) return [mentionable];
   return Array.from(mentionable.members.values());
+}
+
+/**
+ * Return just the `MessageListener` instances within an array of `Listener`s.
+ */
+export function filterMessageListeners(
+  listeners: readonly Listener<any>[],
+): MessageListener[] {
+  return listeners
+    .filter(listener => listener instanceof MessageListener)
+    .map(listener => listener as MessageListener);
 }

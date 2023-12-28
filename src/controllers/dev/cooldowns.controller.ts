@@ -94,10 +94,10 @@ listCooldowns.autocomplete(async (interaction) => {
   await interaction.respond(choiceObjs);
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "cooldowns",
   commands: [listCooldowns],
   listeners: [],
-};
+});
 
 export default controller;

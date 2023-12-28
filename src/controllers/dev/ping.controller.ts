@@ -53,10 +53,10 @@ pingCommand.execute(async (interaction) => {
   await interaction.reply({ content: text, ephemeral: !broadcast });
 });
 
-const spec: Controller = {
+const spec = new Controller({
   name: "ping",
   commands: [pingCommand],
   listeners: [],
-};
+});
 
 export default spec;

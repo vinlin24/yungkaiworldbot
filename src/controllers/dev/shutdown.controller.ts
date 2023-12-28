@@ -21,10 +21,10 @@ shutdownCommand.execute(async (interaction) => {
   log.info(`${context}: terminated bot runtime.`);
 });
 
-const spec: Controller = {
+const spec = new Controller({
   name: "shutdown",
   commands: [shutdownCommand],
   listeners: [],
-};
+});
 
 export default spec;

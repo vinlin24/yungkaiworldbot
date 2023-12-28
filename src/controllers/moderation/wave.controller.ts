@@ -28,10 +28,10 @@ onIntroduction.execute(async (message) => {
   log.info(`${context}: waved at user's introduction.`);
 });
 
-const spec: Controller = {
+const spec = new Controller({
   name: "wave",
   commands: [],
   listeners: [onIntroduction],
-};
+});
 
 export default spec;

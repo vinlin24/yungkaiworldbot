@@ -97,10 +97,10 @@ lofiReacter.execute(async (message) => {
   log.debug(`${formatContext(message)}: reacted with LOFI.`);
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "coffee",
   commands: [],
   listeners: [onUwu, onUff, onCrazy, lofiReacter],
-};
+}).withCooldownCommands();
 
 export default controller;
