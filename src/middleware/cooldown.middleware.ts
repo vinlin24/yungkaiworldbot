@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Awaitable, Message } from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
@@ -13,14 +13,18 @@ import {
 
 const log = getLogger(__filename);
 
+export type OnCooldownFunction = (message: Message) => Awaitable<void>;
+
 export type CooldownSpec = {
   type: "global";
   seconds: number;
   bypassers?: Set<string>;
+  onCooldown?: OnCooldownFunction;
 } | {
   type: "user";
   defaultSeconds: number;
   userSeconds?: Map<string, number>;
+  onCooldown?: OnCooldownFunction;
 } | {
   type: "disabled";
 };
@@ -34,6 +38,15 @@ export class CooldownManager {
   /** Per-user timestamps of cooldown expiration for user type cooldowns. */
   private userExpirations = new Map<string, Date>();
 
+  /**
+   * Callback to run if the manager is queried and revealed to be on cooldown.
+   */
+  public get onCooldown(): OnCooldownFunction | null {
+    if (this.spec.type === "disabled") return null;
+    return this.spec.onCooldown ?? null;
+  }
+
+  /** The type of cooldown the manager is currently observing. */
   public get type(): CooldownSpec["type"] {
     return this.spec.type;
   }

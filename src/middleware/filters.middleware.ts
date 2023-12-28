@@ -1,6 +1,6 @@
 import { Events, GuildTextBasedChannel } from "discord.js";
 
-import { ListenerFilter } from "../types/listener.types";
+import { ListenerFilterFunction } from "../types/listener.types";
 import uids from "../utils/uids.utils";
 
 /**
@@ -9,7 +9,7 @@ import uids from "../utils/uids.utils";
  * NOTE: This includes ALL bot users, not just our client's user. The latter
  * should always be ignored anyway as enforced by the event handler dispatcher.
  */
-export const ignoreBots: ListenerFilter<Events.MessageCreate> =
+export const ignoreBots: ListenerFilterFunction<Events.MessageCreate> =
   message => !message.author.bot;
 
 /**
@@ -18,7 +18,7 @@ export const ignoreBots: ListenerFilter<Events.MessageCreate> =
  */
 export function messageFrom(
   ...names: (keyof typeof uids)[]
-): ListenerFilter<Events.MessageCreate> {
+): ListenerFilterFunction<Events.MessageCreate> {
   return message => names.some(name => message.author.id === uids[name]);
 }
 
@@ -27,8 +27,9 @@ export function messageFrom(
  * That is, the predicate should fail on "important" channels such as
  * #announcements as well as central hubs like #general.
  */
-export const channelPollutionAllowed: ListenerFilter<Events.MessageCreate> =
-  message => {
+export const channelPollutionAllowed
+  : ListenerFilterFunction<Events.MessageCreate>
+  = message => {
     const channel = message.channel as GuildTextBasedChannel;
     const channelName = channel.name.toLowerCase();
 
@@ -49,13 +50,13 @@ export const channelPollutionAllowed: ListenerFilter<Events.MessageCreate> =
 
 export function contentMatching(
   pattern: string | RegExp,
-): ListenerFilter<Events.MessageCreate> {
+): ListenerFilterFunction<Events.MessageCreate> {
   return message => !!message.content.match(pattern);
 }
 
 export function randomly(
   successChance: number,
-): ListenerFilter<Events.MessageCreate> {
+): ListenerFilterFunction<Events.MessageCreate> {
   if (successChance < 0 || successChance > 1) {
     throw new Error(
       `successChance must be in range [0, 1] but received ${successChance}`
