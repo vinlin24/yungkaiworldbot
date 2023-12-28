@@ -23,7 +23,7 @@ onMwah.execute(replySilentlyWith("mwah"));
 const controller: Controller = {
   name: "misc",
   commands: [],
-  listeners: [onMwah],
+  listeners: [onGulp, onMwah],
 };
 
 export default controller;
