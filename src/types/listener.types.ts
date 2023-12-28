@@ -18,8 +18,26 @@ const log = getLogger(__filename);
 export type ListenerExecuteFunction<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<boolean | void>;
 
-export type ListenerFilter<Event extends keyof ClientEvents> =
+export type ListenerFilterFunction<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<boolean>;
+
+export type ListenerFilterFailHandler<Event extends keyof ClientEvents> =
+  (...args: ClientEvents[Event]) => Awaitable<void>;
+
+export type ListenerFilter<Event extends keyof ClientEvents> = {
+  predicate: ListenerFilterFunction<Event>,
+  onFail?: ListenerFilterFailHandler<Event>,
+};
+
+type ListenerFilterType<Event extends keyof ClientEvents>
+  = ListenerFilterFunction<Event> | ListenerFilter<Event>;
+
+/** Type guard for `ListenerOptions#filter` overload. */
+function isLonePredicate<Event extends keyof ClientEvents>(
+  value: ListenerFilterType<Event>,
+): value is ListenerFilterFunction<Event> {
+  return typeof value === "function";
+}
 
 export type ListenerOptions<Event extends keyof ClientEvents> = {
   /** Type of events to listen to. */
@@ -68,8 +86,14 @@ export class Listener<Event extends keyof ClientEvents> {
     return `${className}(${properties})`;
   };
 
-  public filter(predicate: ListenerFilter<Event>): Listener<Event> {
-    this.filters.push(predicate);
+  public filter(spec: ListenerFilter<Event>): this;
+  public filter(predicate: ListenerFilterFunction<Event>): this;
+  public filter(spec: ListenerFilterType<Event>): this {
+    if (isLonePredicate(spec)) {
+      this.filters.push({ predicate: spec });
+    } else {
+      this.filters.push(spec);
+    }
     return this;
   }
 
@@ -91,8 +115,9 @@ export class Listener<Event extends keyof ClientEvents> {
     // prevent accidental recursive spam without having to explicitly filter
     // by message author in every event listener implementation.
     if (this.name === Events.MessageCreate) {
-      const ignoreSelf: ListenerFilter<Events.MessageCreate> =
-        message => message.author.id !== client.user!.id;
+      const ignoreSelf: ListenerFilter<Events.MessageCreate> = {
+        predicate: message => message.author.id !== client.user!.id,
+      };
       (this.filters as ListenerFilter<Events.MessageCreate>[]).push(ignoreSelf);
     }
 
@@ -118,19 +143,33 @@ export class Listener<Event extends keyof ClientEvents> {
   }
 
   protected async runFilters(...args: ClientEvents[Event]): Promise<boolean> {
-    for (const [index, predicate] of this.filters.entries()) {
+    for (const [index, { predicate, onFail }] of this.filters.entries()) {
+      // Run the provided predicate and keep looping if no failures/errors.
       try {
         const passed = await predicate(...args);
-        if (!passed)
-          return false;
+        if (passed) continue;
       } catch (error) {
         log.error(
-          `error in ${this.name} listener filter (position ${index}), ` +
-          "counting as failure."
+          `error in predicate of ${this.name} listener filter` +
+          `(position ${index}), counting as failure.`
         );
         this.handleListenerError(error as Error);
         return false;
       }
+
+      // Otherwise, run the fail handler if provided and return false.
+      if (onFail) {
+        try {
+          await onFail(...args);
+        } catch (error) {
+          log.error(
+            `error in fail handler of ${this.name} listener filter ` +
+            `(position ${index}).`
+          );
+          this.handleListenerError(error as Error);
+        }
+      }
+      return false;
     }
     return true;
   }
