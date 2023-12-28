@@ -61,13 +61,46 @@ export class CooldownManager {
     return this.spec.type;
   }
 
+  /**
+   * Return the IDs of the members that bypass cooldown.
+   *
+   * - This is empty if the cooldown type is disabled.
+   * - This is simply the bypassers from the spec if the type is global.
+   * - This is the members with duration override = 0 if the type is per-user.
+   */
+  public getBypassers = (): ReadonlySet<string> => {
+    const emptySet = new Set<string>();
+    switch (this.spec.type) {
+      case "disabled":
+        return emptySet;
+      case "global":
+        return this.spec.bypassers ?? emptySet;
+      case "user":
+        if (!this.spec.userSeconds) return emptySet;
+        const idsWithDurationZero = Array
+          .from(this.spec.userSeconds)
+          .filter(([_, duration]) => duration === 0)
+          .map(([memberId, _]) => memberId);
+        return new Set(idsWithDurationZero);
+    }
+  }
+
   public set = (spec: CooldownSpec): void => {
+    // Save bypassers. We can transfer them between cooldown types.
+    const bypassers = this.getBypassers();
+
     // Copy to allow support for changing properties of the spec later. NOTE:
     // native support for structuredClone() requires Node 17+.
     this.spec = lodash.cloneDeep(spec);
+
     // When switching specs, invalidate current expirations.
     this.globalExpiration = new Date(0);
     this.userExpirations.clear();
+
+    // Transfer bypassers.
+    for (const memberId of bypassers) {
+      this.setBypass(true, memberId);
+    }
   };
 
   public setDuration(seconds: number): void;
