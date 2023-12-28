@@ -139,7 +139,7 @@ onTempyWempy.execute(async (message) => {
   );
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "cxtie",
   commands: [setReactChance],
   listeners: [
@@ -149,6 +149,6 @@ const controller: Controller = {
     onCringeEmoji,
     onTempyWempy,
   ],
-};
+});
 
 export default controller;

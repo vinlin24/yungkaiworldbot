@@ -25,10 +25,10 @@ onMwah.cooldown.set({
 });
 onMwah.execute(replySilentlyWith("mwah"));
 
-const controller: Controller = {
+const controller = new Controller({
   name: "misc",
   commands: [],
   listeners: [onGulp, onMwah],
-};
+});
 
 export default controller;

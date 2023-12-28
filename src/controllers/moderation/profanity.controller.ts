@@ -53,10 +53,10 @@ onProfanity.execute(async (message) => {
   return success;
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "profanity",
   commands: [],
   listeners: [onProfanity],
-};
+});
 
 export default controller;

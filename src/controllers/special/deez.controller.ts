@@ -1,5 +1,8 @@
 import getLogger from "../../logger";
-import { channelPollutionAllowed, contentMatching } from "../../middleware/filters.middleware";
+import {
+  channelPollutionAllowed,
+  contentMatching,
+} from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
@@ -19,10 +22,10 @@ onDeez.execute(async (message) => {
   log.debug(`${formatContext(message)}: replied with deez.`);
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "deez",
   commands: [],
   listeners: [onDeez],
-};
+});
 
 export default controller;

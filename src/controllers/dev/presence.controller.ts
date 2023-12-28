@@ -112,10 +112,10 @@ changePresence.execute(async (interaction) => {
   await interaction.reply("👍");
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "presence",
   commands: [changePresence],
   listeners: [],
-};
+});
 
 export default controller;

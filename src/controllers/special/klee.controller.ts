@@ -44,10 +44,10 @@ onDab.execute(async (message) => {
   log.debug(`${formatContext(message)}: dabbed back.`);
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "klee",
   commands: [],
   listeners: [onDab],
-};
+});
 
 export default controller;

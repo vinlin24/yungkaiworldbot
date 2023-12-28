@@ -32,10 +32,10 @@ onAppreciatedChar.execute(async (message) => {
   return true;
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "taco",
   commands: [],
   listeners: [onAppreciatedChar],
-};
+});
 
 export default controller;

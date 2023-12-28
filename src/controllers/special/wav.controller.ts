@@ -32,10 +32,10 @@ onPookie.execute(async (message) => {
   await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_UWU);
 });
 
-const controller: Controller = {
+const controller = new Controller({
   name: "wav",
   commands: [],
   listeners: [onPookie],
-};
+});
 
 export default controller;

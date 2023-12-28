@@ -69,10 +69,10 @@ setMeowChance.execute(async (interaction) => {
   );
 })
 
-const spec: Controller = {
+const spec = new Controller({
   name: "luke",
   commands: [setMeowChance],
   listeners: [dadJoker, randomMeower],
-};
+});
 
 export default spec;

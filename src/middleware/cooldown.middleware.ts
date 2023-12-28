@@ -1,4 +1,7 @@
-import { Awaitable, Message } from "discord.js";
+import {
+  Awaitable,
+  Message
+} from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
@@ -51,14 +54,59 @@ export class CooldownManager {
     return this.spec.type;
   }
 
+  /**
+   * Return the IDs of the members that bypass cooldown.
+   *
+   * - This is empty if the cooldown type is disabled.
+   * - This is simply the bypassers from the spec if the type is global.
+   * - This is the members with duration override = 0 if the type is per-user.
+   */
+  public getBypassers = (): ReadonlySet<string> => {
+    const emptySet = new Set<string>();
+    switch (this.spec.type) {
+      case "disabled":
+        return emptySet;
+      case "global":
+        return this.spec.bypassers ?? emptySet;
+      case "user":
+        if (!this.spec.userSeconds) return emptySet;
+        const idsWithDurationZero = Array
+          .from(this.spec.userSeconds)
+          .filter(([_, duration]) => duration === 0)
+          .map(([memberId, _]) => memberId);
+        return new Set(idsWithDurationZero);
+    }
+  }
+
   public set = (spec: CooldownSpec): void => {
+    // Save bypassers. We can transfer them between cooldown types.
+    const bypassers = this.getBypassers();
+
     // Copy to allow support for changing properties of the spec later. NOTE:
     // native support for structuredClone() requires Node 17+.
     this.spec = lodash.cloneDeep(spec);
+
     // When switching specs, invalidate current expirations.
     this.globalExpiration = new Date(0);
     this.userExpirations.clear();
+
+    // Transfer bypassers.
+    for (const memberId of bypassers) {
+      this.setBypass(true, memberId);
+    }
   };
+
+  public update = (spec: Partial<CooldownSpec>): void => {
+    if (!this.spec) {
+      const message = "attempted to update a spec that hasn't been set yet";
+      log.error(`${message}.`);
+      throw new Error(message);
+    }
+
+    // Overwrite only the keys that are provided in the new spec.
+    const updatedCompleteSpec = { ...this.spec, ...spec } as CooldownSpec;
+    this.set(updatedCompleteSpec);
+  }
 
   public setDuration(seconds: number): void;
   public setDuration(seconds: number, userId: string): void;
@@ -154,6 +202,7 @@ export class CooldownManager {
 
     if (bypass) {
       this.setUserDuration(0, userId);
+      this.userExpirations.delete(userId); // Invalidate current expiration.
       return;
     }
 
