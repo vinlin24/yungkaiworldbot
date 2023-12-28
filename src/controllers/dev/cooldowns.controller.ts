@@ -19,15 +19,12 @@ const listCooldowns = new Command(new SlashCommandBuilder()
   .setDescription(
     "List current cooldowns associated with message creation events."
   )
-  .addBooleanOption(input => input
-    .setName("broadcast")
-    .setDescription("Whether to respond publicly instead of ephemerally.")
-  )
   .addStringOption(input => input
     .setName("listener")
     .setDescription("ID of the listener (omit to list ALL cooldowns).")
     .setAutocomplete(true)
-  )
+  ),
+  { broadcastOption: true },
 );
 
 listCooldowns.check(checkPrivilege(RoleLevel.DEV)); // TEMP.
