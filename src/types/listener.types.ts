@@ -236,4 +236,8 @@ export class MessageListener extends Listener<Events.MessageCreate> {
   public getCooldownSetter = (): Command => {
     return this.cooldown.getCooldownSetterCommand(this.id);
   }
+
+  public getCooldownOverrider = (): Command => {
+    return this.cooldown.getCooldownOverriderCommand(this.id);
+  }
 }

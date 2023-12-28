@@ -1,7 +1,9 @@
 import {
   Awaitable,
   CommandInteractionOptionResolver,
+  GuildMember,
   Message,
+  Role,
   SlashCommandBuilder,
 } from "discord.js";
 import lodash from "lodash";
@@ -9,6 +11,7 @@ import lodash from "lodash";
 import getLogger from "../logger";
 import { Command } from "../types/command.types";
 import { addDateSeconds, formatHoursMinsSeconds } from "../utils/dates.utils";
+import { getAllMembers } from "../utils/iteration.utils";
 import {
   joinUserMentions,
   toBulletedList,
@@ -161,6 +164,7 @@ export class CooldownManager {
 
     if (bypass) {
       this.setUserDuration(0, userId);
+      this.userExpirations.delete(userId); // Invalidate current expiration.
       return;
     }
 
@@ -348,6 +352,105 @@ export class CooldownManager {
           `Default duration: ${formatHoursMinsSeconds(seconds)}`,
         ]);
       await interaction.reply({ content: response, ephemeral: !broadcast });
+    });
+
+    return command;
+  };
+
+  public getCooldownOverriderCommand = (listenerId: string): Command => {
+    const command = new Command(new SlashCommandBuilder()
+      .setName(`override-${listenerId}-cooldown`)
+      .setDescription(`Set cooldown duration overrides for ${listenerId}.`)
+      .addMentionableOption(input => input
+        .setName("mentionable")
+        // TODO: supporting roles mean that the underlying list of members with
+        // overrides can easily explode in size, likely making the current
+        // implementation of /cooldowns (which returns an unpaginated text
+        // response) error out from exceeded message length limit.
+        .setDescription("Member or role to set overrides for.")
+        .setRequired(true)
+      )
+      .addNumberOption(input => input
+        .setName("duration")
+        .setDescription(
+          "User-specific cooldown duration override " +
+          "(in seconds) (USER type cooldown only)."
+        )
+        .setMinValue(0)
+      )
+      .addBooleanOption(input => input
+        .setName("bypass")
+        .setDescription("Allow this user to bypass cooldown duration.")
+      ),
+      { broadcastOption: true },
+    );
+
+    command.check(checkPrivilege(RoleLevel.DEV));
+    command.execute(async (interaction) => {
+      const options = interaction.options as CommandInteractionOptionResolver;
+      const broadcast = options.getBoolean("broadcast") ?? false;
+
+      if (this.spec.type === "disabled") {
+        await interaction.reply({
+          content: `Cooldown for **${listenerId}** is currently disabled!`,
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const mentionable
+        = options.getMentionable("mentionable", true) as GuildMember | Role;
+      const members = getAllMembers(mentionable);
+
+      const duration = options.getNumber("duration");
+      const bypass = options.getBoolean("bypass");
+
+      if (duration !== null && bypass !== null) {
+        await interaction.reply({
+          content: "Provide a duration or bypass value but not both!",
+          ephemeral: true,
+        });
+        return;
+      }
+
+      if (duration !== null) {
+        if (this.spec.type !== "user") {
+          await interaction.reply({
+            content: "`duration` is only compatible with `user` cooldown type.",
+            ephemeral: true,
+          });
+          return;
+        }
+        for (const member of members)
+          this.setDuration(duration, member.id);
+        await interaction.reply({
+          content:
+            `Set **${listenerId}** cooldown duration override for ` +
+            `${mentionable}: ${formatHoursMinsSeconds(duration)}.`,
+          ephemeral: !broadcast,
+          // TODO: Maybe make a replySilently overload for interactions.
+          allowedMentions: { parse: [] },
+        });
+        return;
+      }
+
+      if (bypass !== null) {
+        for (const member of members)
+          this.setBypass(bypass, member.id);
+        await interaction.reply({
+          content:
+            `${bypass ? "Enabled" : "Disabled"} **${listenerId}** bypass ` +
+            `for ${mentionable}.`,
+          ephemeral: !broadcast,
+          allowedMentions: { parse: [] },
+        });
+        return;
+      }
+
+      await interaction.reply({
+        content: "Missing argument(s)!",
+        ephemeral: true,
+      });
     });
 
     return command;
