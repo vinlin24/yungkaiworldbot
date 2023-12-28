@@ -35,12 +35,27 @@ export type CommandCheck = {
   onError?: CommandCheckErrorHandler;
 };
 
+export type CommandOptions = {
+  /** Whether to insert a broadcast flag in the options for this command. */
+  broadcastOption: boolean,
+};
+
 export class Command {
   private checks: CommandCheck[] = [];
   private callback: CommandExecuteFunction | null = null;
   private errorHandler: CommandErrorHandler | null = null;
   private autocompleteHandler: CommandAutocompleteHandler | null = null;
-  constructor(private slashCommandData: Partial<SlashCommandBuilder>) { }
+  constructor(
+    private slashCommandData: Partial<SlashCommandBuilder>,
+    private options?: CommandOptions,
+  ) {
+    if (this.options?.broadcastOption) {
+      this.slashCommandData.addBooleanOption?.(input => input
+        .setName("broadcast")
+        .setDescription("Whether to respond publicly instead of ephemerally")
+      );
+    }
+  }
 
   public get commandName(): string {
     return this.slashCommandData.name!;

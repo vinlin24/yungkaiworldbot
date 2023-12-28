@@ -23,11 +23,8 @@ function getCurrentBranchName(): string | null {
 
 const pingCommand = new Command(new SlashCommandBuilder()
   .setName("ping")
-  .setDescription("Basic sanity check command.")
-  .addBooleanOption(option => option
-    .setName("broadcast")
-    .setDescription("Whether to respond publicly instead of ephemerally")
-  )
+  .setDescription("Basic sanity check command."),
+  { broadcastOption: true },
 );
 
 pingCommand.execute(async (interaction) => {
