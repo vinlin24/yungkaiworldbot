@@ -197,18 +197,6 @@ export class Listener<Event extends keyof ClientEvents> {
   }
 }
 
-export type CooldownSpec = {
-  type: "global";
-  seconds: number;
-  bypassers?: Set<string>;
-} | {
-  type: "user";
-  defaultSeconds: number;
-  userSeconds?: Map<string, number>;
-} | {
-  type: "disabled";
-};
-
 /**
  * Specialized listener for message creations. This listener also supports
  * automatically handling cooldowns of different types. The listener will ignore
