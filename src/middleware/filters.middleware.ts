@@ -23,30 +23,35 @@ export function messageFrom(
 }
 
 /**
+ * Return whether this channel is one of the channels that should be immune to
+ * "pollution".
+ */
+export function isPollutionImmuneChannel(
+  channel: GuildTextBasedChannel,
+): boolean {
+  // Might be best to not annoy the kiddos too much.
+  if (channel.name.indexOf("general") !== -1)
+    return true;
+
+  // Don't pollute important channels.
+  const importantSubstrings = ["introductions", "announcements", "welcome"];
+  if (importantSubstrings.some(s => channel.name.indexOf(s) !== -1))
+    return true;
+
+  // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
+  // tagged with Mental Health).
+
+  return false;
+}
+
+/**
  * Only listen to messages created in a channel where pollution is "acceptable".
  * That is, the predicate should fail on "important" channels such as
  * #announcements as well as central hubs like #general.
  */
 export const channelPollutionAllowed
   : ListenerFilterFunction<Events.MessageCreate>
-  = message => {
-    const channel = message.channel as GuildTextBasedChannel;
-    const channelName = channel.name.toLowerCase();
-
-    // Might be best to not annoy the kiddos too much.
-    if (channelName.indexOf("general") !== -1)
-      return false;
-
-    // Don't pollute important channels.
-    const importantSubstrings = ["introductions", "announcements", "welcome"];
-    if (importantSubstrings.some(s => channelName.indexOf(s) !== -1))
-      return false;
-
-    // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
-    // tagged with Mental Health).
-
-    return true;
-  };
+  = message => !isPollutionImmuneChannel(message.channel as GuildTextBasedChannel);
 
 export function contentMatching(
   pattern: string | RegExp,
