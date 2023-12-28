@@ -1,3 +1,5 @@
+import { Embed } from "discord.js";
+
 import getLogger from "../../logger";
 import { messageFrom } from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
@@ -15,13 +17,14 @@ const NAMES_TO_APPRECIATE = new Map<string, string>([
 const onAppreciatedChar = new MessageListener("mudae-appreciation");
 
 onAppreciatedChar.filter(messageFrom("MUDAE"));
-onAppreciatedChar.filter(message => message.embeds.length > 0);
 onAppreciatedChar.execute(async (message) => {
-  const [embed] = message.embeds;
-  const charName = embed.author?.name;
+  const embed: Embed | undefined = message.embeds[0];
+  const charName = embed?.author?.name;
   if (charName === undefined) return false;
+
   const appreciateName = NAMES_TO_APPRECIATE.get(charName);
   if (appreciateName === undefined) return false;
+
   await replySilently(message, `daily ${appreciateName} appreciation`);
   log.debug(`${formatContext(message)}: appreciated ${appreciateName}.`);
   return true;
