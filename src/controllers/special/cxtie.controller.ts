@@ -101,10 +101,20 @@ setReactChance.execute(async (interaction) => {
   );
 });
 
+const NEKO_GUN_EMOJI_NAME = "kzNekogun";
+
+const onCringeEmoji = new MessageListener("cringe-emoji");
+
+onCringeEmoji.filter(messageFrom("CXTIE"));
+onCringeEmoji.filter(cxtieService.containsCringeEmojis);
+onCringeEmoji.execute(async (message) => {
+  await reactCustomEmoji(message, NEKO_GUN_EMOJI_NAME);
+});
+
 const controller: Controller = {
   name: "cxtie",
   commands: [setReactChance],
-  listeners: [onSniffs, onChatRevive, randomReacter],
+  listeners: [onSniffs, onChatRevive, randomReacter, onCringeEmoji],
 };
 
 export default controller;

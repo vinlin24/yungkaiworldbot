@@ -63,3 +63,19 @@ export function toBulletedList(lines: string[], level: number = 0): string {
   const indent = "  ".repeat(level);
   return lines.map(line => `${indent}* ${line}`).join("\n");
 }
+
+export type CustomEmoji = {
+  name: string;
+  id: string;
+};
+
+export function parseCustomEmojis(content: string): CustomEmoji[] {
+  const CUSTOM_EMOJI_REGEXP = /<:(.+?):(\d+?)>/g;
+  const matches = content.matchAll(CUSTOM_EMOJI_REGEXP);
+  const emojis: CustomEmoji[] = [];
+  for (const match of matches) {
+    const [_, name, id] = match;
+    emojis.push({ name, id });
+  }
+  return emojis;
+}
