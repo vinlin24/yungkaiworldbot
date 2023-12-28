@@ -1,7 +1,13 @@
-import { Awaitable, Message } from "discord.js";
+import {
+  Awaitable,
+  CommandInteractionOptionResolver,
+  Message,
+  SlashCommandBuilder,
+} from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
+import { Command } from "../types/command.types";
 import { addDateSeconds, formatHoursMinsSeconds } from "../utils/dates.utils";
 import {
   joinUserMentions,
@@ -10,6 +16,7 @@ import {
   toTimestampMention,
   toUserMention,
 } from "../utils/markdown.utils";
+import { RoleLevel, checkPrivilege } from "./privilege.middleware";
 
 const log = getLogger(__filename);
 
@@ -281,5 +288,68 @@ export class CooldownManager {
     }
 
     return null;
+  };
+
+  public getCooldownSetterCommand = (listenerId: string): Command => {
+    const command = new Command(new SlashCommandBuilder()
+      .setName(`set-${listenerId}-cooldown`)
+      .setDescription(`Set the cooldown spec for the ${listenerId} listener.`)
+      .addStringOption(input => input
+        .setName("type")
+        .setDescription("Cooldown type.")
+        .setRequired(true)
+        .addChoices(
+          { name: "Global", value: "global" },
+          { name: "Per-user", value: "user" },
+          { name: "Disabled", value: "disabled" },
+        )
+      )
+      .addNumberOption(input => input
+        .setName("seconds")
+        .setDescription("Default duration of cooldown (in seconds).")
+        .setMinValue(0)
+      ),
+      { broadcastOption: true },
+    );
+
+    command.check(checkPrivilege(RoleLevel.DEV));
+    command.execute(async (interaction) => {
+      const options = interaction.options as CommandInteractionOptionResolver;
+      const broadcast = options.getBoolean("broadcast") ?? false;
+      const type = options.getString("type", true) as CooldownSpec["type"];
+
+      if (type === "disabled") {
+        this.set({ type: "disabled" });
+        await interaction.reply({
+          content: `Disabled cooldown for **${listenerId}**!`,
+          ephemeral: !broadcast,
+        });
+        return;
+      }
+
+      const seconds = options.getNumber("seconds");
+      if (seconds === null) {
+        await interaction.reply({
+          content: "Specify a value for the default cooldown duration!",
+          ephemeral: true,
+        });
+        return;
+      }
+
+      if (type === "global") {
+        this.set({ type: "global", seconds });
+      } else if (type === "user") {
+        this.set({ type: "user", defaultSeconds: seconds });
+      }
+
+      const response = `Updated **${listenerId}** cooldown spec:\n` +
+        toBulletedList([
+          `Type: \`${type}\``,
+          `Default duration: ${formatHoursMinsSeconds(seconds)}`,
+        ]);
+      await interaction.reply({ content: response, ephemeral: !broadcast });
+    });
+
+    return command;
   };
 }
