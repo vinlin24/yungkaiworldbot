@@ -30,13 +30,15 @@ const countdown = new Command(new SlashCommandBuilder()
     .setName("duration")
     .setDescription("Duration to count down from e.g. \"10s\".")
     .setRequired(true)
-  )
+  ),
+  { ephemeralOption: true },
 );
 
 countdown.execute(async (interaction) => {
   const context = formatContext(interaction);
 
   const options = interaction.options as CommandInteractionOptionResolver;
+  const ephemeral = !!options.getBoolean("ephemeral");
   const duration = options.getString("duration", true);
 
   const seconds = durationToSeconds(duration);
@@ -72,7 +74,7 @@ countdown.execute(async (interaction) => {
   const response =
     `Counting down to ${formatHoursMinsSeconds(seconds)} from now. ` +
     `Expiring ${toRelativeTimestampMention(endTimestamp)}...`
-  await interaction.reply(response);
+  await interaction.reply({ content: response, ephemeral });
 });
 
 const timeController = new Controller({

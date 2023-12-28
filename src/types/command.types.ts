@@ -36,8 +36,19 @@ export type CommandCheck = {
 };
 
 export type CommandOptions = {
-  /** Whether to insert a broadcast flag in the options for this command. */
-  broadcastOption: boolean,
+  /**
+   * Whether to insert a broadcast flag in the options for this command.
+   * Commands with this option are expected to default to responding
+   * ephemerally, with the broadcast option providing the choice to make
+   * responses public.
+   */
+  broadcastOption?: boolean,
+  /**
+   * Whether to insert an ephemeral flag in the options for this command.
+   * Commands with this option are expected to default to responding publicly,
+   * with the ephemeral option providing the choice to make responses ephemeral.
+   */
+  ephemeralOption?: boolean;
 };
 
 export class Command {
@@ -49,10 +60,34 @@ export class Command {
     private slashCommandData: Partial<SlashCommandBuilder>,
     private options?: CommandOptions,
   ) {
-    if (this.options?.broadcastOption) {
+    this.processOptions();
+  }
+
+  private processOptions(): void {
+    const broadcast = !!this.options?.broadcastOption;
+    const ephemeral = !!this.options?.ephemeralOption;
+
+    if (broadcast && ephemeral) {
+      const message = "broadcast and ephemeral options are mutually exclusive";
+      log.error(`${message}.`);
+      throw new Error(message);
+    }
+
+    if (broadcast) {
       this.slashCommandData.addBooleanOption?.(input => input
         .setName("broadcast")
-        .setDescription("Whether to respond publicly instead of ephemerally")
+        .setDescription(
+          "Whether to respond publicly instead of ephemerally."
+        )
+      );
+    }
+
+    if (ephemeral) {
+      this.slashCommandData.addBooleanOption?.(input => input
+        .setName("ephemeral")
+        .setDescription(
+          "Whether to make the response ephemeral instead of public."
+        )
       );
     }
   }
