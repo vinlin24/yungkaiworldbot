@@ -1,12 +1,11 @@
 import getLogger from "../../logger";
 import { contentMatching } from "../../middleware/filters.middleware";
 import { Controller, MessageListener } from "../../types/controller.types";
+import { GUILD_EMOJIS } from "../../utils/emojis.utils";
 import { reactCustomEmoji } from "../../utils/interaction.utils";
 import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
-
-const NEKO_UWU_EMOJI_NAME = "7482uwucat1";
 
 const onPookie = new MessageListener("pookie");
 
@@ -30,7 +29,7 @@ if (uids.COFFEE === undefined) {
 }
 
 onPookie.execute(async (message) => {
-  await reactCustomEmoji(message, NEKO_UWU_EMOJI_NAME);
+  await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_UWU);
 });
 
 const controller: Controller = {

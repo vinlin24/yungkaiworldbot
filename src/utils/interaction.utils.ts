@@ -27,10 +27,17 @@ export function replySilentlyWith(content: string)
   return async (message) => await replySilently(message, content);
 }
 
+/**
+ * Singleton class for managing custom emoji reactions. Custom emojis are
+ * retrieved by and memoized by name.
+ */
 class CustomEmojiReacter {
   private namesToEmojiCache: Record<string, GuildEmoji> = {};
 
-  public react = async (message: Message, emojiName: string): Promise<void> => {
+  public react = async (
+    message: Message,
+    emojiName: string,
+  ): Promise<boolean> => {
     let emoji: GuildEmoji;
     if (emojiName in this.namesToEmojiCache) {
       emoji = this.namesToEmojiCache[emojiName];
@@ -40,17 +47,22 @@ class CustomEmojiReacter {
       if (!maybeEmoji) {
         const context = formatContext(message);
         log.warning(`${context}: no emoji with name '${emojiName}' found.`);
-        return;
+        return false;
       }
       emoji = maybeEmoji;
       this.namesToEmojiCache[emojiName] = emoji;
     }
 
     await message.react(emoji);
+    return true;
   }
 }
 
 const customEmojiReacter = new CustomEmojiReacter();
 
-export const reactCustomEmoji
-  = customEmojiReacter.react.bind(customEmojiReacter);
+export async function reactCustomEmoji(
+  message: Message,
+  emojiName: string,
+): Promise<boolean> {
+  return await customEmojiReacter.react(message, emojiName);
+}

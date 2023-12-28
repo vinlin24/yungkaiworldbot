@@ -23,7 +23,7 @@ export type ListenerFilterFunction<Event extends keyof ClientEvents> =
   (...args: ClientEvents[Event]) => Awaitable<boolean>;
 
 export type ListenerFilterFailHandler<Event extends keyof ClientEvents> =
-  (...args: ClientEvents[Event]) => Awaitable<void>;
+  (...args: ClientEvents[Event]) => Awaitable<any>;
 
 export type ListenerFilter<Event extends keyof ClientEvents> = {
   predicate: ListenerFilterFunction<Event>,
