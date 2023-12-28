@@ -1,10 +1,15 @@
 import {
   CommandInteractionOptionResolver,
-  SlashCommandBuilder
+  GuildTextBasedChannel,
+  SlashCommandBuilder,
 } from "discord.js";
 
 import getLogger from "../../logger";
-import { messageFrom } from "../../middleware/filters.middleware";
+import {
+  contentMatching,
+  isPollutionImmuneChannel,
+  messageFrom,
+} from "../../middleware/filters.middleware";
 import {
   RoleLevel,
   checkPrivilege,
@@ -111,10 +116,42 @@ onCringeEmoji.execute(async (message) => {
   await reactCustomEmoji(message, NEKO_GUN_EMOJI_NAME);
 });
 
+const onTempyWempy = new MessageListener("tempy-wempy");
+
+onTempyWempy.filter(contentMatching(/tempy wempy/i));
+onTempyWempy.cooldown.set({
+  type: "global",
+  seconds: 60,
+});
+onTempyWempy.execute(async (message) => {
+  const channel = message.channel as GuildTextBasedChannel;
+  let reacted: boolean;
+  if (isPollutionImmuneChannel(channel)) {
+    await message.react("🇸");
+    await message.react("🇹");
+    await message.react("🇴");
+    await message.react("🇵");
+    reacted = true;
+  } else {
+    await replySilently(message, "Stop calling me that.");
+    reacted = false;
+  }
+  log.debug(
+    `${formatContext(message)}: protested being called "tempy wempy" ` +
+    `(${reacted ? "reacted" : "replied"}).`
+  );
+});
+
 const controller: Controller = {
   name: "cxtie",
   commands: [setReactChance],
-  listeners: [onSniffs, onChatRevive, randomReacter, onCringeEmoji],
+  listeners: [
+    onSniffs,
+    onChatRevive,
+    randomReacter,
+    onCringeEmoji,
+    onTempyWempy,
+  ],
 };
 
 export default controller;
