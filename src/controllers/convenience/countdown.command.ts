@@ -5,7 +5,7 @@ import {
 import parseDuration from "parse-duration";
 
 import getLogger from "../../logger";
-import { Command, Controller } from "../../types/controller.types";
+import { CommandExecuteFunction, CommandOptions, CommandSpec } from "../../types/command.types";
 import {
   addDateSeconds,
   formatHoursMinsSeconds,
@@ -23,18 +23,22 @@ function durationToSeconds(humanReadableDuration: string): number | null {
   return seconds ?? null;
 }
 
-const countdown = new Command(new SlashCommandBuilder()
+
+const data = new SlashCommandBuilder()
   .setName("countdown")
   .setDescription("Start a countdown.")
   .addStringOption(input => input
     .setName("duration")
     .setDescription("Duration to count down from e.g. \"10s\".")
     .setRequired(true)
-  ),
-  { ephemeralOption: true },
-);
+  )
+  .toJSON();
 
-countdown.execute(async (interaction) => {
+const options: CommandOptions = {
+  ephemeralOption: true,
+};
+
+const execute: CommandExecuteFunction = async (interaction) => {
   const context = formatContext(interaction);
 
   const options = interaction.options as CommandInteractionOptionResolver;
@@ -75,12 +79,8 @@ countdown.execute(async (interaction) => {
     `Counting down to ${formatHoursMinsSeconds(seconds)} from now. ` +
     `Expiring ${toRelativeTimestampMention(endTimestamp)}...`
   await interaction.reply({ content: response, ephemeral });
-});
+};
 
-const timeController = new Controller({
-  name: "time",
-  commands: [countdown],
-  listeners: [],
-});
+const countdownSpec: CommandSpec = { data, execute };
 
-export default timeController;
+export default countdownSpec;
