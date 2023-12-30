@@ -2,7 +2,7 @@ import { CommandInteraction, GuildMember } from "discord.js";
 
 import config from "../config";
 import getLogger from "../logger";
-import { CommandCheck } from "../types/controller.types";
+import { CommandCheck } from "../types/command.types";
 import { iterateEnum } from "../utils/iteration.utils";
 import { formatContext } from "../utils/logging.utils";
 import { toRoleMention } from "../utils/markdown.utils";
