@@ -1,7 +1,7 @@
 import {
   APIApplicationCommandOptionChoice,
   ActivityType,
-  CommandInteractionOptionResolver,
+  ChatInputCommandInteraction,
   PresenceUpdateStatus,
   SlashCommandBuilder,
 } from "discord.js";
@@ -11,10 +11,7 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../middleware/privilege.middleware";
-import {
-  CommandExecuteFunction,
-  CommandSpec,
-} from "../../types/command.types";
+import { CommandBuilder, CommandSpec } from "../../types/command.types";
 import { iterateEnum } from "../../utils/iteration.utils";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -38,7 +35,7 @@ const statusTypeNames: PresenceUpdateStatusName[]
 const statusChoices: Choice<PresenceUpdateStatusName>[]
   = statusTypeNames.map(name => ({ name, value: name }));
 
-const data = new SlashCommandBuilder()
+const slashCommandDefinition = new SlashCommandBuilder()
   .setName("presence")
   .setDescription("Update bot presence.")
   .addStringOption(input => input
@@ -58,14 +55,14 @@ const data = new SlashCommandBuilder()
   .addBooleanOption(input => input
     .setName("clear_activity")
     .setDescription("Clear current activity (ignores other activity options)")
-  )
-  .toJSON();
+  );
 
-const execute: CommandExecuteFunction = async (interaction) => {
+async function updateBotPresence(
+  interaction: ChatInputCommandInteraction,
+): Promise<boolean> {
   const context = formatContext(interaction);
-  const { client } = interaction;
+  const { client, options } = interaction;
 
-  const options = interaction.options as CommandInteractionOptionResolver;
   const activityName
     = options.getString("activity_name") as string | null;
   const activityType
@@ -87,7 +84,7 @@ const execute: CommandExecuteFunction = async (interaction) => {
         content: "Activity requires a name!",
         ephemeral: true,
       });
-      return;
+      return false;
     }
 
     if (activityName) {
@@ -112,12 +109,13 @@ const execute: CommandExecuteFunction = async (interaction) => {
   }
 
   await interaction.reply("👍");
-};
+  return true;
+}
 
-const presenceSpec: CommandSpec = {
-  data,
-  execute,
-  checks: [checkPrivilege(RoleLevel.DEV)],
-};
+const presenceSpec: CommandSpec = new CommandBuilder()
+  .define(slashCommandDefinition)
+  .check(checkPrivilege(RoleLevel.DEV))
+  .execute(updateBotPresence)
+  .toSpec();
 
 export default presenceSpec;

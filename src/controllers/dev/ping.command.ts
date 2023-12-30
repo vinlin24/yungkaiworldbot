@@ -1,17 +1,16 @@
 import child_process from "node:child_process";
 
 import {
-  CommandInteractionOptionResolver,
-  SlashCommandBuilder,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder
 } from "discord.js";
 
 import {
-  CommandExecuteFunction,
-  CommandOptions,
-  CommandSpec,
+  CommandBuilder, CommandSpec
 } from "../../types/command.types";
 
 import getLogger from "../../logger";
+import { addBroadcastOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
 
@@ -29,16 +28,14 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-const data = new SlashCommandBuilder()
+const slashCommandDefinition = new SlashCommandBuilder()
   .setName("ping")
-  .setDescription("Basic sanity check command.")
-  .toJSON();
+  .setDescription("Basic sanity check command.");
+addBroadcastOption(slashCommandDefinition);
 
-const options: CommandOptions = {
-  broadcastOption: true,
-};
-
-const execute: CommandExecuteFunction = async (interaction) => {
+async function respondWithDevDetails(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
   let text = "Hello there!";
 
   const latency = interaction.client.ws.ping;
@@ -59,11 +56,13 @@ const execute: CommandExecuteFunction = async (interaction) => {
     text += `\n* Branch: \`${branchName}\``;
   }
 
-  const options = interaction.options as CommandInteractionOptionResolver;
-  const broadcast = options.getBoolean("broadcast");
+  const broadcast = interaction.options.getBoolean("broadcast");
   await interaction.reply({ content: text, ephemeral: !broadcast });
-};
+}
 
-const pingSpec: CommandSpec = { data, execute, options };
+const pingSpec: CommandSpec = new CommandBuilder()
+  .define(slashCommandDefinition)
+  .execute(respondWithDevDetails)
+  .toSpec();
 
 export default pingSpec;

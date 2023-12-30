@@ -1,13 +1,13 @@
-import { SlashCommandBuilder } from "discord.js";
+import { AnySlashCommandBuilder } from "../types/command.types";
 
-export function addBroadcastOption(builder: SlashCommandBuilder): void {
+export function addBroadcastOption(builder: AnySlashCommandBuilder): void {
   builder.addBooleanOption(input => input
     .setName("broadcast")
     .setDescription("Whether to respond publicly instead of ephemerally.")
   );
 }
 
-export function addEphemeralOption(builder: SlashCommandBuilder): void {
+export function addEphemeralOption(builder: AnySlashCommandBuilder): void {
   builder.addBooleanOption(input => input
     .setName("ephemeral")
     .setDescription("Whether to make the response ephemeral instead of public.")

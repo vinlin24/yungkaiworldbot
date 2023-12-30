@@ -314,7 +314,7 @@ import { CommandSpec } from "../../types/command.types";
 
 // TEMP.
 const cooldownSpec: CommandSpec = {
-  data: new SlashCommandBuilder().setName("TEMP").toJSON(),
+  definition: new SlashCommandBuilder().setName("TEMP").toJSON(),
   execute: async (interaction) => console.log("WIP"),
 };
 

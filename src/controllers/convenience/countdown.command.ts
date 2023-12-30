@@ -1,11 +1,8 @@
-import {
-  CommandInteractionOptionResolver,
-  SlashCommandBuilder,
-} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import parseDuration from "parse-duration";
 
 import getLogger from "../../logger";
-import { CommandExecuteFunction, CommandOptions, CommandSpec } from "../../types/command.types";
+import { CommandBuilder, CommandSpec } from "../../types/command.types";
 import {
   addDateSeconds,
   formatHoursMinsSeconds,
@@ -15,6 +12,7 @@ import {
   toRelativeTimestampMention,
   toUserMention,
 } from "../../utils/markdown.utils";
+import { addEphemeralOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
 
@@ -23,27 +21,23 @@ function durationToSeconds(humanReadableDuration: string): number | null {
   return seconds ?? null;
 }
 
-
-const data = new SlashCommandBuilder()
+const slashCommandDefinition = new SlashCommandBuilder()
   .setName("countdown")
   .setDescription("Start a countdown.")
   .addStringOption(input => input
     .setName("duration")
     .setDescription("Duration to count down from e.g. \"10s\".")
     .setRequired(true)
-  )
-  .toJSON();
+  );
+addEphemeralOption(slashCommandDefinition);
 
-const options: CommandOptions = {
-  ephemeralOption: true,
-};
-
-const execute: CommandExecuteFunction = async (interaction) => {
+async function startCountdown(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
   const context = formatContext(interaction);
 
-  const options = interaction.options as CommandInteractionOptionResolver;
-  const ephemeral = !!options.getBoolean("ephemeral");
-  const duration = options.getString("duration", true);
+  const ephemeral = !!interaction.options.getBoolean("ephemeral");
+  const duration = interaction.options.getString("duration", true);
 
   const seconds = durationToSeconds(duration);
   if (seconds === null) {
@@ -79,8 +73,11 @@ const execute: CommandExecuteFunction = async (interaction) => {
     `Counting down to ${formatHoursMinsSeconds(seconds)} from now. ` +
     `Expiring ${toRelativeTimestampMention(endTimestamp)}...`
   await interaction.reply({ content: response, ephemeral });
-};
+}
 
-const countdownSpec: CommandSpec = { data, execute };
+const countdownSpec: CommandSpec = new CommandBuilder()
+  .define(slashCommandDefinition)
+  .execute(startCountdown)
+  .toSpec();
 
 export default countdownSpec;
