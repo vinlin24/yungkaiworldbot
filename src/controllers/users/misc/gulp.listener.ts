@@ -1,13 +1,13 @@
 import {
   CooldownManager,
   useCooldown,
-} from "../../middleware/cooldown.middleware";
+} from "../../../middleware/cooldown.middleware";
 import {
   contentMatching,
   messageFrom,
-} from "../../middleware/filters.middleware";
-import { MessageListenerBuilder } from "../../types/listener.types";
-import { replySilentlyWith } from "../../utils/interaction.utils";
+} from "../../../middleware/filters.middleware";
+import { MessageListenerBuilder } from "../../../types/listener.types";
+import { replySilentlyWith } from "../../../utils/interaction.utils";
 
 const onGulp = new MessageListenerBuilder().setId("gulp");
 

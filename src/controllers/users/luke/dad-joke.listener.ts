@@ -1,10 +1,10 @@
 
-import { CooldownManager, useCooldown } from "../../middleware/cooldown.middleware";
+import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed
-} from "../../middleware/filters.middleware";
-import lukeService from "../../services/luke.service";
-import { MessageListenerBuilder } from "../../types/listener.types";
+} from "../../../middleware/filters.middleware";
+import lukeService from "../../../services/luke.service";
+import { MessageListenerBuilder } from "../../../types/listener.types";
 
 const dadJoker = new MessageListenerBuilder().setId("dad-joke");
 

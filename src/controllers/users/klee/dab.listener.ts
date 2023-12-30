@@ -1,16 +1,16 @@
 
-import getLogger from "../../logger";
-import { CooldownManager } from "../../middleware/cooldown.middleware";
+import getLogger from "../../../logger";
+import { CooldownManager } from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed,
   contentMatching,
   ignoreBots,
-} from "../../middleware/filters.middleware";
-import { MessageListenerBuilder } from "../../types/listener.types";
-import { GUILD_EMOJIS } from "../../utils/emojis.utils";
-import { reactCustomEmoji, replySilently } from "../../utils/interaction.utils";
-import { formatContext } from "../../utils/logging.utils";
-import uids from "../../utils/uids.utils";
+} from "../../../middleware/filters.middleware";
+import { MessageListenerBuilder } from "../../../types/listener.types";
+import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
+import { reactCustomEmoji, replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
+import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
 

@@ -1,17 +1,17 @@
 import { GuildTextBasedChannel } from "discord.js";
 
-import getLogger from "../../logger";
+import getLogger from "../../../logger";
 import {
   CooldownManager,
   useCooldown,
-} from "../../middleware/cooldown.middleware";
+} from "../../../middleware/cooldown.middleware";
 import {
   contentMatching,
   isPollutionImmuneChannel,
-} from "../../middleware/filters.middleware";
-import { MessageListenerBuilder } from "../../types/listener.types";
-import { replySilently } from "../../utils/interaction.utils";
-import { formatContext } from "../../utils/logging.utils";
+} from "../../../middleware/filters.middleware";
+import { MessageListenerBuilder } from "../../../types/listener.types";
+import { replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 

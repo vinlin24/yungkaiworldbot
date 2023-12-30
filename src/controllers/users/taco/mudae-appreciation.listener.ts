@@ -1,10 +1,10 @@
 import { Embed } from "discord.js";
 
-import getLogger from "../../logger";
-import { messageFrom } from "../../middleware/filters.middleware";
-import { MessageListenerBuilder } from "../../types/listener.types";
-import { replySilently } from "../../utils/interaction.utils";
-import { formatContext } from "../../utils/logging.utils";
+import getLogger from "../../../logger";
+import { messageFrom } from "../../../middleware/filters.middleware";
+import { MessageListenerBuilder } from "../../../types/listener.types";
+import { replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 

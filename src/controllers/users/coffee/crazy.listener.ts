@@ -1,16 +1,16 @@
 import { Events, Message } from "discord.js";
 
-import getLogger from "../../logger";
+import getLogger from "../../../logger";
 import {
   channelPollutionAllowed,
   ignoreBots,
-} from "../../middleware/filters.middleware";
+} from "../../../middleware/filters.middleware";
 import {
   ListenerSpec,
   MessageListenerBuilder,
-} from "../../types/listener.types";
-import { replySilently } from "../../utils/interaction.utils";
-import { formatContext } from "../../utils/logging.utils";
+} from "../../../types/listener.types";
+import { replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 

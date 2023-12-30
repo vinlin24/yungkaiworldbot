@@ -1,14 +1,14 @@
 import { Events, Message } from "discord.js";
 
-import getLogger from "../../logger";
-import { CooldownManager, useCooldown } from "../../middleware/cooldown.middleware";
+import getLogger from "../../../logger";
+import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed,
   contentMatching,
-} from "../../middleware/filters.middleware";
-import { ListenerSpec, MessageListenerBuilder } from "../../types/listener.types";
-import { replySilently } from "../../utils/interaction.utils";
-import { formatContext } from "../../utils/logging.utils";
+} from "../../../middleware/filters.middleware";
+import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
+import { replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 

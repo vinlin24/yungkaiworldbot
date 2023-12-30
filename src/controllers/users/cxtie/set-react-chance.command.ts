@@ -3,14 +3,14 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-import getLogger from "../../logger";
+import getLogger from "../../../logger";
 import {
   RoleLevel,
   checkPrivilege,
-} from "../../middleware/privilege.middleware";
-import cxtieService from "../../services/cxtie.service";
-import { CommandBuilder } from "../../types/command.types";
-import { formatContext } from "../../utils/logging.utils";
+} from "../../../middleware/privilege.middleware";
+import cxtieService from "../../../services/cxtie.service";
+import { CommandBuilder } from "../../../types/command.types";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 

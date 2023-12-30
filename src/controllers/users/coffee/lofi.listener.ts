@@ -1,9 +1,9 @@
 import { Events, Message } from "discord.js";
 
-import getLogger from "../../logger";
-import { ListenerSpec, MessageListenerBuilder } from "../../types/listener.types";
-import { formatContext } from "../../utils/logging.utils";
-import uids from "../../utils/uids.utils";
+import getLogger from "../../../logger";
+import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
+import { formatContext } from "../../../utils/logging.utils";
+import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
