@@ -6,10 +6,10 @@ export type ListenerFilterFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean>;
 
 export type ListenerFilterFailHandler<Type extends keyof ClientEvents>
-  = (...args: ClientEvents[Type]) => Awaitable<void>;
+  = (...args: ClientEvents[Type]) => Awaitable<any>;
 
 export type ListenerFilterAfterHandler<Type extends keyof ClientEvents>
-  = (...args: ClientEvents[Type]) => Awaitable<void>;
+  = (...args: ClientEvents[Type]) => Awaitable<any>;
 
 export type ListenerExecuteFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean | void>;

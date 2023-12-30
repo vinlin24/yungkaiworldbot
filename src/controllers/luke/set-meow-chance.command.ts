@@ -5,44 +5,18 @@ import {
 
 import getLogger from "../../logger";
 import {
-  channelPollutionAllowed,
-  messageFrom,
-} from "../../middleware/filters.middleware";
-import {
   RoleLevel,
   checkPrivilege,
 } from "../../middleware/privilege.middleware";
 import lukeService from "../../services/luke.service";
-import {
-  Command,
-  Controller,
-  MessageListener,
-} from "../../types/controller.types";
-import { replySilently } from "../../utils/interaction.utils";
+import { CommandBuilder } from "../../types/command.types";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const dadJoker = new MessageListener("dad-joke");
+const setMeowChance = new CommandBuilder();
 
-dadJoker.filter(channelPollutionAllowed);
-dadJoker.cooldown.set({
-  type: "user",
-  defaultSeconds: 600,
-});
-dadJoker.execute(lukeService.processDadJoke);
-
-const randomMeower = new MessageListener("meow");
-
-randomMeower.filter(channelPollutionAllowed);
-randomMeower.filter(messageFrom("LUKE"));
-randomMeower.filter(_ => Math.random() < lukeService.getMeowChance());
-randomMeower.execute(async (message) => {
-  await replySilently(message, "meow meow");
-  log.debug(`${formatContext(message)}: meowed at Luke.`);
-});
-
-const setMeowChance = new Command(new SlashCommandBuilder()
+setMeowChance.define(new SlashCommandBuilder()
   .setName("set-meow-chance")
   .setDescription("Set probability of meowing at Luke's message.")
   .addNumberOption(option =>
@@ -67,12 +41,7 @@ setMeowChance.execute(async (interaction) => {
   interaction.reply(
     `Updated Luke meow chance from ${oldProbability} to ${newProbability}.`
   );
-})
-
-const spec = new Controller({
-  name: "luke",
-  commands: [setMeowChance],
-  listeners: [dadJoker, randomMeower],
 });
 
-export default spec;
+const setMeowChanceSpec = setMeowChance.toSpec();
+export default setMeowChanceSpec;

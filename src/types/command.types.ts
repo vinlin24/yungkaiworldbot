@@ -10,13 +10,13 @@ export type CommandCheckFunction
   = (interaction: ChatInputCommandInteraction) => Awaitable<boolean>;
 
 export type CommandCheckFailHandler
-  = (interaction: ChatInputCommandInteraction) => Awaitable<void>;
+  = (interaction: ChatInputCommandInteraction) => Awaitable<any>;
 
 export type CommandCheckAfterHandler
-  = (interaction: ChatInputCommandInteraction) => Awaitable<void>;
+  = (interaction: ChatInputCommandInteraction) => Awaitable<any>;
 
 export type CommandAutocompleteHandler
-  = (interaction: AutocompleteInteraction) => Awaitable<void>;
+  = (interaction: AutocompleteInteraction) => Awaitable<any>;
 
 export type CommandExecuteFunction
   = (interaction: ChatInputCommandInteraction) => Awaitable<boolean | void>;

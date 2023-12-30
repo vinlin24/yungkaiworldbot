@@ -2,7 +2,7 @@ import { Embed } from "discord.js";
 
 import getLogger from "../../logger";
 import { messageFrom } from "../../middleware/filters.middleware";
-import { Controller, MessageListener } from "../../types/controller.types";
+import { MessageListenerBuilder } from "../../types/listener.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -16,7 +16,8 @@ const NAMES_TO_APPRECIATE = new Map<string, string>([
   ["Nana Osaki", "nana"],     // Coffee.
 ]);
 
-const onAppreciatedChar = new MessageListener("mudae-appreciation");
+const onAppreciatedChar = new MessageListenerBuilder()
+  .setId("mudae-appreciation");
 
 onAppreciatedChar.filter(messageFrom("MUDAE"));
 onAppreciatedChar.execute(async (message) => {
@@ -32,10 +33,5 @@ onAppreciatedChar.execute(async (message) => {
   return true;
 });
 
-const controller = new Controller({
-  name: "taco",
-  commands: [],
-  listeners: [onAppreciatedChar],
-});
-
-export default controller;
+const onAppreciatedCharSpec = onAppreciatedChar.toSpec();
+export default onAppreciatedCharSpec;
