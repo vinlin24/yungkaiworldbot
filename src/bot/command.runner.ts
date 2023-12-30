@@ -1,63 +1,41 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord.js";
+import {
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+} from "discord.js";
+
 import getLogger from "../logger";
-import { CommandCheckFailHandler, CommandSpec, toCompleteCheck } from "../types/command.types";
+import { CommandCheckFailHandler, CommandSpec } from "../types/command.types";
 import { formatContext } from "../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-export class CommandDispatcher {
-  constructor(public readonly spec: CommandSpec) {
-    this.processOptions();
-  }
-
-  private processOptions(): void {
-    const broadcast = !!this.spec.options?.broadcastOption;
-    const ephemeral = !!this.spec.options?.ephemeralOption;
-
-    if (broadcast && ephemeral) {
-      const message = "broadcast and ephemeral options are mutually exclusive";
-      log.error(`${message}.`);
-      throw new Error(message);
-    }
-
-    if (broadcast) {
-      this.spec.data.addBooleanOption?.(input => input
-        .setName("broadcast")
-        .setDescription(
-          "Whether to respond publicly instead of ephemerally."
-        )
-      );
-    }
-
-    if (ephemeral) {
-      this.spec.data.addBooleanOption?.(input => input
-        .setName("ephemeral")
-        .setDescription(
-          "Whether to make the response ephemeral instead of public."
-        )
-      );
-    }
-  }
+export class CommandRunner {
+  constructor(public readonly spec: CommandSpec) { }
 
   public getDeployJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody {
-    return this.spec.data.toJSON();
+    return this.spec.definition;
   }
 
   public async run(interaction: ChatInputCommandInteraction): Promise<void> {
     const context = formatContext(interaction);
     log.debug(`${context}: processing command.`);
 
-    // Checks: run predicate
-    //    -> success: move onto Execute
-    //    -> fail: onFail ?? handleCommandError, short-circuit
-    //        -> error: handleCommandError
-    //    -> error: handleCommandError, short-circuit
-    // Execute: run callback
-    //    -> success: move onto Cleanup
-    //    -> error: handleCommandError
-    // Cleanup: run all afterExecute hooks of checks
-    //    -> success: return
-    //    -> error: handleCommandError, DON'T short-circuit
+    /**
+     * COMMAND EXECUTION PIPELINE
+     * --------------------------
+     * Checks: run predicate
+     *    -> success: move onto Execute
+     *    -> fail: run onFail if provided, short-circuit
+     *        -> error: handleCommandError, short-circuit
+     *    -> error: handleCommandError, short-circuit
+     * Execute: run execute
+     *    -> success: move onto Cleanup
+     *    -> error: handleCommandError, return
+     * Cleanup: run all afterExecute hooks of checks
+     *    -> success: return
+     *    -> error: handleCommandError, DON'T short-circuit
+     */
 
     const passedChecks = await this.runChecks(interaction);
     if (!passedChecks) return;
@@ -66,7 +44,9 @@ export class CommandDispatcher {
     log.debug(`${context}: finished executing command.`);
   }
 
-  public async resolveAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
+  public async resolveAutocomplete(
+    interaction: AutocompleteInteraction,
+  ): Promise<void> {
     const context = formatContext(interaction);
     if (!this.spec.autocomplete) {
       log.warning(`${context}: no handler to resolve autocomplete.`);
@@ -77,7 +57,9 @@ export class CommandDispatcher {
     log.debug(`${context}: finished processing autocomplete.`);
   }
 
-  protected async runChecks(interaction: ChatInputCommandInteraction): Promise<boolean> {
+  protected async runChecks(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<boolean> {
     if (!this.spec.checks) return true;
     const context = formatContext(interaction);
 
@@ -91,7 +73,7 @@ export class CommandDispatcher {
     };
 
     for (const [index, check] of this.spec.checks.entries()) {
-      const { predicate, onFail } = toCompleteCheck(check);
+      const { predicate, onFail } = check;
 
       let checkPassed;
       try {
@@ -112,7 +94,9 @@ export class CommandDispatcher {
     return true;
   }
 
-  protected async runExecute(interaction: ChatInputCommandInteraction): Promise<boolean> {
+  protected async runExecute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<boolean> {
     const context = formatContext(interaction);
 
     let success: boolean;
@@ -137,12 +121,14 @@ export class CommandDispatcher {
     return success;
   }
 
-  protected async runCleanups(interaction: ChatInputCommandInteraction): Promise<void> {
+  protected async runCleanups(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     if (!this.spec.checks) return;
     const context = formatContext(interaction);
 
     for (const [index, check] of this.spec.checks.entries()) {
-      const { afterExecute } = toCompleteCheck(check);
+      const { afterExecute } = check;
       if (!afterExecute) continue;
       try {
         await afterExecute(interaction);
