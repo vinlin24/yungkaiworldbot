@@ -1,9 +1,17 @@
 import child_process from "node:child_process";
 
-import { CommandInteractionOptionResolver, SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteractionOptionResolver,
+  SlashCommandBuilder,
+} from "discord.js";
+
+import {
+  CommandExecuteFunction,
+  CommandOptions,
+  CommandSpec,
+} from "../../types/command.types";
 
 import getLogger from "../../logger";
-import { Command, Controller } from "../../types/controller.types";
 
 const log = getLogger(__filename);
 
@@ -21,13 +29,16 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-const pingCommand = new Command(new SlashCommandBuilder()
+const data = new SlashCommandBuilder()
   .setName("ping")
-  .setDescription("Basic sanity check command."),
-  { broadcastOption: true },
-);
+  .setDescription("Basic sanity check command.")
+  .toJSON();
 
-pingCommand.execute(async (interaction) => {
+const options: CommandOptions = {
+  broadcastOption: true,
+};
+
+const execute: CommandExecuteFunction = async (interaction) => {
   let text = "Hello there!";
 
   const latency = interaction.client.ws.ping;
@@ -51,12 +62,8 @@ pingCommand.execute(async (interaction) => {
   const options = interaction.options as CommandInteractionOptionResolver;
   const broadcast = options.getBoolean("broadcast");
   await interaction.reply({ content: text, ephemeral: !broadcast });
-});
+};
 
-const spec = new Controller({
-  name: "ping",
-  commands: [pingCommand],
-  listeners: [],
-});
+const pingSpec: CommandSpec = { data, execute, options };
 
-export default spec;
+export default pingSpec;

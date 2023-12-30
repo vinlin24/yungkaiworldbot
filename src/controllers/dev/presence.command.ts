@@ -11,7 +11,10 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../middleware/privilege.middleware";
-import { Command, Controller } from "../../types/controller.types";
+import {
+  CommandExecuteFunction,
+  CommandSpec,
+} from "../../types/command.types";
 import { iterateEnum } from "../../utils/iteration.utils";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -35,7 +38,7 @@ const statusTypeNames: PresenceUpdateStatusName[]
 const statusChoices: Choice<PresenceUpdateStatusName>[]
   = statusTypeNames.map(name => ({ name, value: name }));
 
-const changePresence = new Command(new SlashCommandBuilder()
+const data = new SlashCommandBuilder()
   .setName("presence")
   .setDescription("Update bot presence.")
   .addStringOption(input => input
@@ -56,10 +59,9 @@ const changePresence = new Command(new SlashCommandBuilder()
     .setName("clear_activity")
     .setDescription("Clear current activity (ignores other activity options)")
   )
-);
+  .toJSON();
 
-changePresence.check(checkPrivilege(RoleLevel.DEV));
-changePresence.execute(async (interaction) => {
+const execute: CommandExecuteFunction = async (interaction) => {
   const context = formatContext(interaction);
   const { client } = interaction;
 
@@ -110,12 +112,12 @@ changePresence.execute(async (interaction) => {
   }
 
   await interaction.reply("👍");
-});
+};
 
-const controller = new Controller({
-  name: "presence",
-  commands: [changePresence],
-  listeners: [],
-});
+const presenceSpec: CommandSpec = {
+  data,
+  execute,
+  checks: [checkPrivilege(RoleLevel.DEV)],
+};
 
-export default controller;
+export default presenceSpec;
