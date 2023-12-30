@@ -1,10 +1,12 @@
 import {
   Awaitable,
+  Events,
   Message
 } from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
+import { ListenerFilter } from "../types/listener.types";
 import { addDateSeconds, formatHoursMinsSeconds } from "../utils/dates.utils";
 import {
   joinUserMentions,
@@ -40,6 +42,10 @@ export class CooldownManager {
 
   /** Per-user timestamps of cooldown expiration for user type cooldowns. */
   private userExpirations = new Map<string, Date>();
+
+  constructor(initialSpec?: CooldownSpec) {
+    if (initialSpec) this.set(initialSpec);
+  }
 
   /**
    * Callback to run if the manager is queried and revealed to be on cooldown.
@@ -330,5 +336,29 @@ export class CooldownManager {
     }
 
     return null;
+  };
+}
+
+export function useCooldown(
+  manager: CooldownManager,
+): ListenerFilter<Events.MessageCreate>;
+export function useCooldown(
+  spec: CooldownSpec,
+): ListenerFilter<Events.MessageCreate>;
+export function useCooldown(
+  value: CooldownManager | CooldownSpec,
+): ListenerFilter<Events.MessageCreate> {
+  let manager: CooldownManager;
+  if (value instanceof CooldownManager) {
+    manager = value;
+  } else {
+    manager = new CooldownManager();
+    manager.set(value);
+  }
+
+  return {
+    predicate: message => manager.isActive(message),
+    onFail: async (message) => await manager.onCooldown?.(message),
+    afterExecute: message => manager.refresh(message),
   };
 }

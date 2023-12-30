@@ -1,4 +1,6 @@
-import { Awaitable, ClientEvents } from "discord.js";
+import { Awaitable, ClientEvents, Events } from "discord.js";
+
+import { CooldownManager } from "../middleware/cooldown.middleware";
 
 export type ListenerFilterFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean>;
@@ -68,6 +70,12 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    * Main callback.
    */
   execute: ListenerExecuteFunction<Type>;
+  /**
+   * Dynamic cooldown manager for message creation listeners. If you want to be
+   * able to change this listener's cooldown spec at runtime (such as through
+   * commands), then you should include this property.
+   */
+  cooldown?: Type extends Events.MessageCreate ? CooldownManager : never;
 };
 
 export class DuplicateListenerIDError extends Error {
