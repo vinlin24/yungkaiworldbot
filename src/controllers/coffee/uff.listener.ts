@@ -1,4 +1,4 @@
-import { Events, Message } from "discord.js";
+import { Events } from "discord.js";
 
 import {
   CooldownManager,
@@ -8,25 +8,22 @@ import {
   contentMatching,
   messageFrom,
 } from "../../middleware/filters.middleware";
-import { ListenerSpec } from "../../types/listener.types";
+import {
+  ListenerSpec,
+  MessageListenerBuilder,
+} from "../../types/listener.types";
 import { replySilently } from "../../utils/interaction.utils";
-
-async function execute(message: Message) {
-  await replySilently(message, "woof");
-};
 
 const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 
-const uffSpec: ListenerSpec<Events.MessageCreate> = {
-  type: Events.MessageCreate,
-  id: "uff",
-  execute,
-  filters: [
-    messageFrom("COFFEE"),
-    contentMatching(/^uff$/i),
-    useCooldown(cooldown),
-  ],
-  cooldown,
-};
+const uffSpec: ListenerSpec<Events.MessageCreate>
+  = new MessageListenerBuilder()
+    .setId("uff")
+    .filter(messageFrom("COFFEE"))
+    .filter(contentMatching(/^uff$/i))
+    .execute(async (message) => await replySilently(message, "woof"))
+    .filter(useCooldown(cooldown))
+    .saveCooldown(cooldown)
+    .toSpec();
 
 export default uffSpec;

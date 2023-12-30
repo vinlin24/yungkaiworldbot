@@ -6,7 +6,7 @@ import {
   channelPollutionAllowed,
   contentMatching,
 } from "../../middleware/filters.middleware";
-import { ListenerSpec } from "../../types/listener.types";
+import { ListenerSpec, MessageListenerBuilder } from "../../types/listener.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -19,16 +19,14 @@ async function execute(message: Message) {
 
 const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 
-const deezSpec: ListenerSpec<Events.MessageCreate> = {
-  type: Events.MessageCreate,
-  id: "deez",
-  execute,
-  filters: [
-    channelPollutionAllowed,
-    contentMatching(/^deez$/i),
-    useCooldown(cooldown),
-  ],
-  cooldown,
-};
+const deezSpec: ListenerSpec<Events.MessageCreate>
+  = new MessageListenerBuilder()
+    .setId("deez")
+    .filter(channelPollutionAllowed)
+    .filter(contentMatching(/^deez$/i))
+    .execute(execute)
+    .filter(useCooldown(cooldown))
+    .saveCooldown(cooldown)
+    .toSpec();
 
 export default deezSpec;

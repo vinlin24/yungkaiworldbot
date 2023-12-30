@@ -6,13 +6,13 @@ import {
   useCooldown,
 } from "../../middleware/cooldown.middleware";
 import { contentMatching } from "../../middleware/filters.middleware";
-import { ListenerSpec } from "../../types/listener.types";
+import { ListenerSpec, MessageListenerBuilder } from "../../types/listener.types";
 import { formatContext } from "../../utils/logging.utils";
 import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
-async function execute(message: Message) {
+async function reactWithVomit(message: Message) {
   await message.react("🤢");
   await message.react("🤮");
   log.debug(`${formatContext(message)}: reacted to uwu.`);
@@ -26,12 +26,13 @@ if (uids.COFFEE === undefined) {
   cooldown.setBypass(true, uids.COFFEE);
 }
 
-const uwuSpec: ListenerSpec<Events.MessageCreate> = {
-  type: Events.MessageCreate,
-  id: "uwu",
-  execute,
-  filters: [contentMatching(/^uwu$/i), useCooldown(cooldown)],
-  cooldown,
-};
+const uwuSpec: ListenerSpec<Events.MessageCreate>
+  = new MessageListenerBuilder()
+    .setId("uwu")
+    .filter(contentMatching(/^uwu$/i))
+    .execute(reactWithVomit)
+    .filter(useCooldown(cooldown))
+    .saveCooldown(cooldown)
+    .toSpec();
 
 export default uwuSpec;

@@ -5,13 +5,16 @@ import {
   channelPollutionAllowed,
   ignoreBots,
 } from "../../middleware/filters.middleware";
-import { ListenerSpec } from "../../types/listener.types";
+import {
+  ListenerSpec,
+  MessageListenerBuilder,
+} from "../../types/listener.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-async function execute(message: Message) {
+async function replyWithNextLineInCrazyCopypasta(message: Message) {
   const chars = message.content.toLowerCase();
   const withoutEndPunct = chars.replace(/[.!?~-]$/, "");
 
@@ -35,11 +38,12 @@ async function execute(message: Message) {
   log.debug(`${formatContext(message)}: replied with '${response}'.`);
 }
 
-const crazySpec: ListenerSpec<Events.MessageCreate> = {
-  type: Events.MessageCreate,
-  id: "crazy",
-  execute,
-  filters: [ignoreBots, channelPollutionAllowed],
-};
+const crazySpec: ListenerSpec<Events.MessageCreate>
+  = new MessageListenerBuilder()
+    .setId("crazy")
+    .filter(ignoreBots)
+    .filter(channelPollutionAllowed)
+    .execute(replyWithNextLineInCrazyCopypasta)
+    .toSpec();
 
 export default crazySpec;

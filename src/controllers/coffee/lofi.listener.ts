@@ -1,13 +1,13 @@
 import { Events, Message } from "discord.js";
 
 import getLogger from "../../logger";
-import { ListenerSpec } from "../../types/listener.types";
+import { ListenerSpec, MessageListenerBuilder } from "../../types/listener.types";
 import { formatContext } from "../../utils/logging.utils";
 import uids from "../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
-async function execute(message: Message) {
+async function reactWithLOFI(message: Message) {
   await message.react("🇱");
   await message.react("🇴");
   await message.react("🇫");
@@ -30,11 +30,11 @@ async function isLukeOrCoffeeReplyingToEachOther(message: Message) {
   );
 }
 
-const lofiSpec: ListenerSpec<Events.MessageCreate> = {
-  type: Events.MessageCreate,
-  id: "lofi",
-  execute,
-  filters: [isLukeOrCoffeeReplyingToEachOther],
-};
+const lofiSpec: ListenerSpec<Events.MessageCreate>
+  = new MessageListenerBuilder()
+    .setId("lofi")
+    .filter(isLukeOrCoffeeReplyingToEachOther)
+    .execute(reactWithLOFI)
+    .toSpec();
 
 export default lofiSpec;
