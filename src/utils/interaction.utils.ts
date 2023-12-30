@@ -24,7 +24,10 @@ export async function replySilently(message: Message, content: string) {
  */
 export function replySilentlyWith(content: string)
   : ListenerExecuteFunction<Events.MessageCreate> {
-  return async (message) => await replySilently(message, content);
+  return async (message) => {
+    await replySilently(message, content);
+    log.debug(`${formatContext(message)}: replied with '${content}'.`);
+  };
 }
 
 /**
