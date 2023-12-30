@@ -2,7 +2,7 @@ import {
   AutocompleteInteraction,
   Awaitable,
   ChatInputCommandInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
   SlashCommandBuilder,
 } from "discord.js";
 
@@ -52,7 +52,7 @@ export type CommandSpec = {
    * Slash command definition detailing how it appears to the end user (name,
    * description, options, etc.) on the Discord application.
    */
-  definition: RESTPostAPIApplicationCommandsJSONBody,
+  definition: RESTPostAPIChatInputApplicationCommandsJSONBody,
   /**
    * Prehooks for the `execute` callback.
    *
@@ -112,18 +112,20 @@ function isAnySlashCommandBuilder(builder: any)
  *    ```
  */
 export class CommandBuilder {
-  private definition?: RESTPostAPIApplicationCommandsJSONBody;
+  private definition?: RESTPostAPIChatInputApplicationCommandsJSONBody;
   private checks: CommandCheck[] = [];
   private executeCallback?: CommandExecuteFunction;
   private autocompleteCallback?: CommandAutocompleteHandler;
 
   public define(definition: SlashCommandBuilder): this;
   public define(definition: SlashCommandBuilderWithoutSubcommand): this;
-  public define(definition: RESTPostAPIApplicationCommandsJSONBody): this;
+  public define(definition:
+    | RESTPostAPIChatInputApplicationCommandsJSONBody,
+  ): this;
   public define(definition:
     | SlashCommandBuilder
     | SlashCommandBuilderWithoutSubcommand
-    | RESTPostAPIApplicationCommandsJSONBody,
+    | RESTPostAPIChatInputApplicationCommandsJSONBody,
   ): this {
     if (isAnySlashCommandBuilder(definition)) {
       this.definition = definition.toJSON();
