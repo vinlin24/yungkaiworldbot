@@ -14,41 +14,32 @@ export type ListenerFilterAfterHandler<Type extends keyof ClientEvents>
 export type ListenerExecuteFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean | void>;
 
+/**
+ * A prehook for the listener callback.
+ */
 export type ListenerFilter<Type extends keyof ClientEvents> = {
+  /**
+   * Callback computing whether this filter should pass.
+   */
   predicate: ListenerFilterFunction<Type>;
+  /**
+   * Callback to run if the filter fails.
+   *
+   * NOTE: Uncaught exceptions count as filter failures but will NOT invoke this
+   * callback.
+   */
   onFail?: ListenerFilterFailHandler<Type>;
+  /**
+   * Callback to run after the main execute callback completes successfully.
+   */
   afterExecute?: ListenerFilterAfterHandler<Type>;
 };
 
 /**
- * For the convenience of controller modules, a listener can be specified as a
- * lone predicate or as a complete `ListenerFilter` object.
+ * Fully defines an event listener. Every listener module is expected to `export
+ * default` this type such that the listener is properly discovered and
+ * registered on bot startup.
  */
-export type ListenerFilterType<Type extends keyof ClientEvents>
-  = ListenerFilterFunction<Type> | ListenerFilter<Type>;
-
-/**
- * Type guard to determine if a listener filter was specified as a lone
- * predicate (shorthand).
- */
-export function isLoneFilterPredicate<Type extends keyof ClientEvents>(
-  value: ListenerFilterType<Type>,
-): value is ListenerFilterFunction<Type> {
-  return typeof value === "function";
-}
-
-/**
- * Resolve a `ListenerFilterType` union to a full `ListenerFilter` object.
- */
-export function toCompleteFilter<Type extends keyof ClientEvents>(
-  filter: ListenerFilterType<Type>,
-): ListenerFilter<Type> {
-  if (isLoneFilterPredicate(filter)) {
-    return { predicate: filter };
-  }
-  return filter;
-}
-
 export type ListenerSpec<Type extends keyof ClientEvents> = {
   /** Type of events to listen to. */
   type: Type;
@@ -63,11 +54,20 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    */
   once?: boolean;
   /**
-   * Sequential filters to determine if the main callback should execute.
+   * Filters to determine if the main callback should execute.
+   *
+   * NOTE: Filters are evaluated in the order they are defined in the listener
+   * spec and **short-circuit** upon failure or error.
    */
-  filters?: ListenerFilterType<Type>[];
+  filters?: ListenerFilter<Type>[];
   /**
-   * Main callback.
+   * Main callback to run when the event is emitted. The body can choose to
+   * return a boolean flag to convey success status:
+   *
+   * - `true`: The handler "succeeded".
+   * - `false`: The handler "failed".
+   * - No return value (returning `undefined`/`void`) is treated as "succeeded".
+   * - Uncaught exceptions count as "failed".
    */
   execute: ListenerExecuteFunction<Type>;
   /**
@@ -77,6 +77,105 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    */
   cooldown?: Type extends Events.MessageCreate ? CooldownManager : never;
 };
+
+/**
+ * Utility class for constructing a `ListenerSpec` in a more readable way.
+ * Usage:
+ *
+ *    ```
+ *    export default new ListenerBuilder(Events.ClientReady)
+ *      .setId("unique-name-for-listener") // required
+ *      .filter(someCustomFilter)
+ *      .filter(somePredefinedFilter)
+ *      .execute(mainActionOfListener) // required
+ *      .toSpec();
+ *    ```
+ */
+export class ListenerBuilder<Type extends keyof ClientEvents> {
+  private id?: string;
+  private once: boolean = false;
+  private filters: ListenerFilter<Type>[] = [];
+  private executeCallback?: ListenerExecuteFunction<Type>;
+  constructor(private type: Type) { }
+
+  public setId(id: string): this {
+    this.id = id;
+    return this;
+  }
+
+  public setOnce(): this {
+    this.once = true;
+    return this;
+  }
+
+  public filter(filter: ListenerFilter<Type>): this;
+  public filter(callback: ListenerFilterFunction<Type>): this;
+  public filter(filter:
+    | ListenerFilter<Type>
+    | ListenerFilterFunction<Type>,
+  ): this {
+    // For the convenience of controller modules, a listener can be specified as
+    // a lone predicate or as a complete `ListenerFilter` object.
+    if (typeof filter === "function") {
+      this.filters.push({ predicate: filter });
+    } else {
+      this.filters.push(filter);
+    }
+    return this;
+  }
+
+  public execute(callback: ListenerExecuteFunction<Type>): this {
+    this.executeCallback = callback;
+    return this;
+  }
+
+  public toSpec(): ListenerSpec<Type> {
+    if (this.id === undefined) {
+      throw new Error("missing ID to uniquely identify the listener");
+    }
+    if (!this.executeCallback) {
+      throw new Error("missing listener execute callback");
+    }
+    return {
+      type: this.type,
+      id: this.id,
+      once: this.once,
+      execute: this.executeCallback,
+      filters: this.filters,
+    };
+  }
+}
+
+/**
+ * Utility class for constructing a `ListenerSpec` in a more readable way,
+ * specialized for message creation events. Such listeners support a cooldown
+ * mechanism that can be defined with this builder.
+ */
+export class MessageListenerBuilder
+  extends ListenerBuilder<Events.MessageCreate> {
+
+  private cooldown?: CooldownManager;
+
+  constructor() { super(Events.MessageCreate); }
+
+  /**
+   * Save the dynamic cooldown manager for message creation listeners. If you
+   * want to be able to change this listener's cooldown spec at runtime (such as
+   * through commands), then you should include this call in addition to the
+   * middleware passed to the filters.
+   */
+  public saveCooldown(manager: CooldownManager): this {
+    this.cooldown = manager;
+    return this;
+  }
+
+  public override toSpec(): ListenerSpec<Events.MessageCreate> {
+    return {
+      ...super.toSpec(),
+      cooldown: this.cooldown,
+    };
+  }
+}
 
 export class DuplicateListenerIDError extends Error {
   constructor(public readonly duplicateId: string) { super(duplicateId); }
