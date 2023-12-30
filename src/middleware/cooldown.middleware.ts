@@ -357,7 +357,7 @@ export function useCooldown(
   }
 
   return {
-    predicate: message => manager.isActive(message),
+    predicate: message => !manager.isActive(message),
     onFail: async (message) => await manager.onCooldown?.(message),
     afterExecute: message => manager.refresh(message),
   };
