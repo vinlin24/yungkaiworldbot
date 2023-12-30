@@ -1,234 +1,75 @@
-import {
-  Awaitable,
-  Client,
-  ClientEvents,
-  Events,
-  Message,
-} from "discord.js";
+import { Awaitable, ClientEvents } from "discord.js";
 
-import { BotClient } from "../client";
-import getLogger from "../logger";
-import { CooldownManager } from "../middleware/cooldown.middleware";
-import { formatContext } from "../utils/logging.utils";
+export type ListenerFilterFunction<Type extends keyof ClientEvents>
+  = (...args: ClientEvents[Type]) => Awaitable<boolean>;
 
-const log = getLogger(__filename);
+export type ListenerFilterFailHandler<Type extends keyof ClientEvents>
+  = (...args: ClientEvents[Type]) => Awaitable<void>;
 
-// NOTE: This type parameter magic is to imitate what's done in
-// discord.js/typings/index.ts to make Client.once and Client.on work with our
-// custom EventSpec type.
-export type ListenerExecuteFunction<Event extends keyof ClientEvents> =
-  (...args: ClientEvents[Event]) => Awaitable<boolean | void>;
+export type ListenerFilterAfterHandler<Type extends keyof ClientEvents>
+  = (...args: ClientEvents[Type]) => Awaitable<void>;
 
-export type ListenerFilterFunction<Event extends keyof ClientEvents> =
-  (...args: ClientEvents[Event]) => Awaitable<boolean>;
+export type ListenerExecuteFunction<Type extends keyof ClientEvents>
+  = (...args: ClientEvents[Type]) => Awaitable<boolean | void>;
 
-export type ListenerFilterFailHandler<Event extends keyof ClientEvents> =
-  (...args: ClientEvents[Event]) => Awaitable<any>;
-
-export type ListenerFilter<Event extends keyof ClientEvents> = {
-  predicate: ListenerFilterFunction<Event>,
-  onFail?: ListenerFilterFailHandler<Event>,
+export type ListenerFilter<Type extends keyof ClientEvents> = {
+  predicate: ListenerFilterFunction<Type>;
+  onFail?: ListenerFilterFailHandler<Type>;
+  afterExecute?: ListenerFilterAfterHandler<Type>;
 };
 
-type ListenerFilterType<Event extends keyof ClientEvents>
-  = ListenerFilterFunction<Event> | ListenerFilter<Event>;
+/**
+ * For the convenience of controller modules, a listener can be specified as a
+ * lone predicate or as a complete `ListenerFilter` object.
+ */
+export type ListenerFilterType<Type extends keyof ClientEvents>
+  = ListenerFilterFunction<Type> | ListenerFilter<Type>;
 
-/** Type guard for `ListenerOptions#filter` overload. */
-function isLonePredicate<Event extends keyof ClientEvents>(
-  value: ListenerFilterType<Event>,
-): value is ListenerFilterFunction<Event> {
+/**
+ * Type guard to determine if a listener filter was specified as a lone
+ * predicate (shorthand).
+ */
+export function isLoneFilterPredicate<Type extends keyof ClientEvents>(
+  value: ListenerFilterType<Type>,
+): value is ListenerFilterFunction<Type> {
   return typeof value === "function";
 }
 
-export type ListenerOptions<Event extends keyof ClientEvents> = {
+/**
+ * Resolve a `ListenerFilterType` union to a full `ListenerFilter` object.
+ */
+export function toCompleteFilter<Type extends keyof ClientEvents>(
+  filter: ListenerFilterType<Type>,
+): ListenerFilter<Type> {
+  if (isLoneFilterPredicate(filter)) {
+    return { predicate: filter };
+  }
+  return filter;
+}
+
+export type ListenerSpec<Type extends keyof ClientEvents> = {
   /** Type of events to listen to. */
-  name: Event,
+  type: Type;
   /**
    * Unique name to identify this listener instance. This name will be used to
    * retrieve listeners and what is displayed for debugging purposes.
    */
-  id: string,
+  id: string;
   /**
    * Whether this listener should only listen once. Defaults to false
    * (continuously listen to events).
    */
-  once?: boolean,
+  once?: boolean;
+  /**
+   * Sequential filters to determine if the main callback should execute.
+   */
+  filters?: ListenerFilterType<Type>[];
+  /**
+   * Main callback.
+   */
+  execute: ListenerExecuteFunction<Type>;
 };
 
 export class DuplicateListenerIDError extends Error {
   constructor(public readonly duplicateId: string) { super(duplicateId); }
-}
-
-export class Listener<Event extends keyof ClientEvents> {
-  private filters: ListenerFilter<Event>[] = [];
-  private callback: ListenerExecuteFunction<Event> | null = null;
-
-  public readonly name: Event;
-  public readonly id: string;
-  public readonly once: boolean;
-
-  /**
-   * Save one instance of the bound handleEvent callback such that we can remove
-   * it later from the client if needed.
-   *
-   * NOTE: Not sure if this works. Haven't tested.
-   */
-  private boundEventListener = this.handleEvent.bind(this);
-
-  constructor(options: ListenerOptions<Event>) {
-    this.name = options.name;
-    this.id = options.id;
-    this.once = options.once ?? false;
-  }
-
-  public toString = (): string => {
-    const className = `${this.constructor.name}<'${this.name}'>`;
-    const properties = `id='${this.id}', once=${this.once}`;
-    return `${className}(${properties})`;
-  };
-
-  public filter(spec: ListenerFilter<Event>): this;
-  public filter(predicate: ListenerFilterFunction<Event>): this;
-  public filter(spec: ListenerFilterType<Event>): this {
-    if (isLonePredicate(spec)) {
-      this.filters.push({ predicate: spec });
-    } else {
-      this.filters.push(spec);
-    }
-    return this;
-  }
-
-  public execute(func: ListenerExecuteFunction<Event>): Listener<Event> {
-    this.callback = func;
-    return this;
-  }
-
-  public register(client: BotClient): void {
-    if (!this.callback) {
-      log.warning(
-        `no \`execute\` provided for event spec ${this}, registration ignored.`
-      );
-      return;
-    }
-
-    // Specially enforce this policy: the bot is under no circumstances
-    // allowed to listen to its own message creations. This is a simple way to
-    // prevent accidental recursive spam without having to explicitly filter
-    // by message author in every event listener implementation.
-    if (this.name === Events.MessageCreate) {
-      const ignoreSelf: ListenerFilter<Events.MessageCreate> = {
-        predicate: message => message.author.id !== client.user!.id,
-      };
-      (this.filters as ListenerFilter<Events.MessageCreate>[]).push(ignoreSelf);
-    }
-
-    // Add to listeners collection for easy retrieval later.
-    if (client.listenerSpecs.get(this.id)) {
-      throw new DuplicateListenerIDError(this.id);
-    }
-    client.listenerSpecs.set(this.id, this);
-
-    // The actual registration.
-    if (this.once) {
-      client.once(this.name, this.boundEventListener);
-    } else {
-      client.on(this.name, this.boundEventListener);
-    }
-    log.info(`registered event spec ${this}.`);
-  }
-
-  public unregister(client: Client): void {
-    const callback =
-      (this.boundEventListener as unknown) as (...args: any[]) => void;
-    client.removeListener(this.name, callback);
-  }
-
-  protected async runFilters(...args: ClientEvents[Event]): Promise<boolean> {
-    for (const [index, { predicate, onFail }] of this.filters.entries()) {
-      // Run the provided predicate and keep looping if no failures/errors.
-      try {
-        const passed = await predicate(...args);
-        if (passed) continue;
-      } catch (error) {
-        log.error(
-          `error in predicate of ${this.name} listener filter` +
-          `(position ${index}), counting as failure.`
-        );
-        this.handleListenerError(error as Error);
-        return false;
-      }
-
-      // Otherwise, run the fail handler if provided and return false.
-      if (onFail) {
-        try {
-          await onFail(...args);
-        } catch (error) {
-          log.error(
-            `error in fail handler of ${this.name} listener filter ` +
-            `(position ${index}).`
-          );
-          this.handleListenerError(error as Error);
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
-  protected async runCallback(...args: ClientEvents[Event]): Promise<boolean> {
-    try {
-      const success = await this.callback!(...args);
-      return success ?? true;
-    } catch (error) {
-      // TODO: maybe somehow attach some kind of name/ID to Events so debug
-      // messages can provide better context.
-      log.error(`error in ${this.name} listener callback.`);
-      this.handleListenerError(error as Error);
-      return false;
-    }
-  }
-
-  protected async handleEvent(...args: ClientEvents[Event]): Promise<void> {
-    await this.runFilters(...args) && await this.runCallback(...args);
-  };
-
-  protected handleListenerError(error: Error): void {
-    console.error(error);
-  }
-}
-
-/**
- * Specialized listener for message creations. This listener also supports
- * automatically handling cooldowns of different types. The listener will ignore
- * messages (all messages or messages from specific users) during cooldown.
- */
-export class MessageListener extends Listener<Events.MessageCreate> {
-  public readonly cooldown = new CooldownManager();
-
-  constructor(id: string) {
-    super({ name: Events.MessageCreate, id, once: false });
-  }
-
-  protected override async handleEvent(message: Message) {
-    // Filters -> Check Cooldown -> Callback -> Update Cooldown.
-
-    const passedFilters = await super.runFilters(message);
-    if (!passedFilters) return;
-
-    if (this.cooldown.isActive(message)) {
-      try {
-        await this.cooldown.onCooldown?.(message);
-      } catch (error) {
-        const context = formatContext(message);
-        log.error(`${context}: error in cooldown callback of ${this}.`);
-        super.handleListenerError(error as Error);
-      }
-      return;
-    };
-
-    const success = await super.runCallback(message);
-    if (!success) return;
-
-    this.cooldown.refresh(message);
-  }
 }
