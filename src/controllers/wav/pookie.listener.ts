@@ -12,7 +12,7 @@ const onPookie = new MessageListenerBuilder().setId("pookie");
 
 onPookie.filter(contentMatching(/^pookie$/i));
 onPookie.execute(async (message) => {
-  await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_UWU);
+  return await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_UWU);
 });
 
 const cooldown = new CooldownManager({ type: "user", defaultSeconds: 300 });
