@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { Collection, REST, Routes } from "discord.js";
+import { ClientEvents, Collection, REST, Routes } from "discord.js";
 
 import config from "../config";
 import getLogger from "../logger";
@@ -163,6 +163,13 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
 
     return [commandPaths, listenerPaths];
+  }
+
+  public getListenerSpecs<Type extends keyof ClientEvents>(type?: Type)
+    : Collection<string, ListenerSpec<Type>> {
+    const asSpecs = this.listenerRunners.mapValues(runner => runner.spec);
+    if (!type) return asSpecs;
+    return asSpecs.filter(spec => spec.type === type);
   }
 }
 
