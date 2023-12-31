@@ -243,32 +243,6 @@ export class MockMessage {
   /**
    * ASSERT.
    *
-   * Shorthand for expecting that the message has been reacted to with the
-   * specified custom guild emojis. `customReacter` is the mock for the function
-   * resolving emoji name to `GuildEmoji`.
-   *
-   * NOTE: The caller has to be the one to pass in the mock of the `GuildEmoji`
-   * resolver since this helper module used by multiple test files shouldn't be
-   * the one mocking modules.
-   */
-  public expectReactedWithCustom(
-    // Have the caller pass in the mock of reactCustomEmoji (or equivalent
-    // interfaces) since a helper module used by multiple test files shouldn't
-    // be the one mocking modules.
-    customReacter: jest.MockedFunctionDeep<
-      (message: Message, emojiName: string) => Promise<any>
-    >,
-    ...emojiNames: string[]
-  ): void {
-    for (const [index, emojiName] of emojiNames.entries()) {
-      const n = index + 1; // "nth call" counts from 1.
-      expect(customReacter).toHaveBeenNthCalledWith(n, this.message, emojiName);
-    }
-  }
-
-  /**
-   * ASSERT.
-   *
    * Similar to `expectRepliedWith` but expect that the reply was done so
    * "silently" (no pinging).
    */
