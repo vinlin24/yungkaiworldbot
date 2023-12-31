@@ -23,6 +23,7 @@ const NAME_TO_UID = {
   "MUDAE": config.MUDAE_UID,
   "BUNNY": config.BUNNY_UID,
   "J": config.J_UID,
+  "KAI": config.KAI_UID,
 };
 
 export default NAME_TO_UID;
