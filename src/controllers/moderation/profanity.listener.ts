@@ -11,7 +11,6 @@ import {
   MessageListenerBuilder,
 } from "../../types/listener.types";
 import { GUILD_EMOJIS } from "../../utils/emojis.utils";
-import { reactCustomEmoji } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
@@ -21,13 +20,10 @@ const profanityMatcher = new RegExpMatcher({
   ...englishRecommendedTransformers,
 });
 
-async function reactWithNekoGun(message: Message): Promise<boolean> {
-  const success = await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_GUN);
-  if (success) {
-    const context = formatContext(message);
-    log.debug(`${context}: detected profanity, reacted with gun emoji.`);
-  }
-  return success;
+async function reactWithNekoGun(message: Message): Promise<void> {
+  await message.react(GUILD_EMOJIS.NEKO_GUN);
+  const context = formatContext(message);
+  log.debug(`${context}: detected profanity, reacted with gun emoji.`);
 }
 
 function checkAndLogProfanityMatches(message: Message): boolean {
