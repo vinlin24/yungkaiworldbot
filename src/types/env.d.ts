@@ -70,6 +70,7 @@ declare global {
     WAV_UID?: string;
     BUNNY_UID?: string;
     J_UID?: string;
+    KAI_UID?: string;
 
     /////////////////////////////
     //     Discord Bot IDs     //
