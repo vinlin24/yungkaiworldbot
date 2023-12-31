@@ -14,10 +14,10 @@ export function parseCustomEmojis(content: string): CustomEmoji[] {
   return emojis;
 }
 
-/** Partial database of yung kai world's custom emoji names. */
+/** Partial database of yung kai world's custom emoji IDs. */
 export const GUILD_EMOJIS = {
-  NEKO_GUN: "kzNekogun",
-  HMM: "hmm",
-  NEKO_L: "nekocatL",
-  NEKO_UWU: "7482uwucat1",
+  NEKO_GUN: "1164956284760633364",
+  HMM: "1163463196275900547",
+  NEKO_L: "1164956350351167540",
+  NEKO_UWU: "1164956184277680129",
 };

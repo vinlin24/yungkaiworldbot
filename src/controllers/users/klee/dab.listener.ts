@@ -10,10 +10,7 @@ import {
 } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
-import {
-  reactCustomEmoji,
-  replySilently,
-} from "../../../utils/interaction.utils";
+import { replySilently } from "../../../utils/interaction.utils";
 import { formatContext } from "../../../utils/logging.utils";
 import uids from "../../../utils/uids.utils";
 
@@ -28,7 +25,7 @@ onDab.filter({
   predicate: (message) =>
     message.author.id === uids.KLEE || channelPollutionAllowed(message),
   onFail: async (message) =>
-    await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_L)
+    await message.react(GUILD_EMOJIS.NEKO_L),
 });
 
 onDab.execute(async (message) => {
@@ -40,7 +37,7 @@ const cooldown = new CooldownManager({
   type: "global",
   seconds: 600,
   async onCooldown(message) {
-    await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_L);
+    await message.react(GUILD_EMOJIS.NEKO_L);
   },
 });
 

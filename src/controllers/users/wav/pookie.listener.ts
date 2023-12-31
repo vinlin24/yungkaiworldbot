@@ -6,7 +6,6 @@ import {
 import { contentMatching } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
-import { reactCustomEmoji } from "../../../utils/interaction.utils";
 import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
@@ -15,7 +14,7 @@ const onPookie = new MessageListenerBuilder().setId("pookie");
 
 onPookie.filter(contentMatching(/^pookie$/i));
 onPookie.execute(async (message) => {
-  return await reactCustomEmoji(message, GUILD_EMOJIS.NEKO_UWU);
+  await message.react(GUILD_EMOJIS.NEKO_UWU);
 });
 
 const cooldown = new CooldownManager({ type: "user", defaultSeconds: 300 });
