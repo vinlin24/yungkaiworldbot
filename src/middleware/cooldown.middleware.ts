@@ -60,6 +60,11 @@ export class CooldownManager {
     return this.spec.type;
   }
 
+  public clearCooldowns = (): void => {
+    this.globalExpiration = new Date(0);
+    this.userExpirations.clear();
+  };
+
   /**
    * Return the IDs of the members that bypass cooldown.
    *
@@ -93,8 +98,7 @@ export class CooldownManager {
     this.spec = lodash.cloneDeep(spec);
 
     // When switching specs, invalidate current expirations.
-    this.globalExpiration = new Date(0);
-    this.userExpirations.clear();
+    this.clearCooldowns();
 
     // Transfer bypassers.
     for (const memberId of bypassers) {
