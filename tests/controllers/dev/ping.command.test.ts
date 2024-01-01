@@ -5,9 +5,12 @@ import {
   addMockGetter
 } from "../../test-utils";
 
-const mock = new MockInteraction(pingSpec);
-
 describe("/ping command", () => {
+  let mock: MockInteraction;
+  beforeEach(() => {
+    mock = new MockInteraction(pingSpec);
+  });
+
   it("should respond with a message, latency, and branch details", async () => {
     const dummyPing = 42;
     addMockGetter(mock.interaction.client.ws, "ping", dummyPing);
@@ -42,5 +45,5 @@ describe("/ping command", () => {
     });
   });
 
-  mock.testBroadcastOptionSupport();
+  new MockInteraction(pingSpec).testBroadcastOptionSupport();
 });

@@ -9,14 +9,14 @@ import {
   InteractionReplyOptions,
   Message,
   MessageFlags,
-  MessageReplyOptions
+  MessageReplyOptions,
 } from "discord.js";
 import {
   DeepMockProxy,
   Matcher,
   mockDeep,
-  mockReset,
 } from "jest-mock-extended";
+import lodash from "lodash";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
@@ -54,9 +54,7 @@ export class MockInteraction {
 
   constructor(spec: CommandSpec) {
     this.interaction = mockDeep<ChatInputCommandInteraction>();
-    this.command = new CommandRunner(spec);
-    // Automatically handle resetting this instance before every test.
-    beforeEach(() => mockReset(this.interaction));
+    this.command = new CommandRunner(lodash.cloneDeep(spec));
   }
 
   /**
@@ -185,13 +183,14 @@ export class MockMessage {
     options?: MockMessageOptions,
   ) {
     this.message = mockDeep<Message>();
-    this.listener = new ListenerRunner(spec);
+    // TODO: A "spec" shouldn't have state saved on it but it does at the moment
+    // in the form of CooldownManager. Thus, we have to clone the spec for each
+    // instance of MockMessage to make sure tests using a distinct MockMessage
+    // don't share cooldown state.
+    this.listener = new ListenerRunner(lodash.cloneDeep(spec));
     this.client.listenerRunners.set(spec.id, this.listener);
     this.client.registerListeners();
     this.options = options;
-
-    // Automatically handle resetting this instance before every test.
-    beforeEach(() => mockReset(this.message));
   }
 
   /**
