@@ -16,7 +16,6 @@ import {
   Matcher,
   mockDeep,
 } from "jest-mock-extended";
-import lodash from "lodash";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
@@ -54,7 +53,7 @@ export class MockInteraction {
 
   constructor(spec: CommandSpec) {
     this.interaction = mockDeep<ChatInputCommandInteraction>();
-    this.command = new CommandRunner(lodash.cloneDeep(spec));
+    this.command = new CommandRunner(spec);
   }
 
   /**
@@ -183,14 +182,15 @@ export class MockMessage {
     options?: MockMessageOptions,
   ) {
     this.message = mockDeep<Message>();
-    // TODO: A "spec" shouldn't have state saved on it but it does at the moment
-    // in the form of CooldownManager. Thus, we have to clone the spec for each
-    // instance of MockMessage to make sure tests using a distinct MockMessage
-    // don't share cooldown state.
-    this.listener = new ListenerRunner(lodash.cloneDeep(spec));
+    this.listener = new ListenerRunner(spec);
     this.client.listenerRunners.set(spec.id, this.listener);
     this.client.registerListeners();
     this.options = options;
+    // TODO: A "spec" shouldn't have state saved on it but it does at the moment
+    // in the form of CooldownManager. Thus, we have to manually reset this
+    // manager for each instance of MockMessage to make sure tests using a
+    // distinct MockMessage don't share cooldown state.
+    this.listener.spec.cooldown?.clearCooldowns();
   }
 
   /**
@@ -209,8 +209,29 @@ export class MockMessage {
    *
    * Mock the content of the message.
    */
-  public mockContent(content: string): void {
+  public mockContent(content: string): this {
     this.message.content = content;
+    return this;
+  }
+
+  public mockAuthorBot(isBot: boolean): this {
+    this.message.author.bot = isBot;
+    return this;
+  }
+
+  public mockAuthorId(uid: string): this {
+    this.message.author.id = uid;
+    return this;
+  }
+
+  public mockCooldownActive(): this {
+    if (!this.listener.spec.cooldown) {
+      throw new Error(
+        `listener ${this.listener.spec.id} doesn't have a cooldown manager`)
+      ;
+    }
+    this.listener.spec.cooldown.refresh(this.message);
+    return this;
   }
 
   /**
