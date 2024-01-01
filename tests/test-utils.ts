@@ -23,12 +23,6 @@ import { IClientWithIntentsAndRunners } from "../src/types/client.abc";
 import { CommandSpec } from "../src/types/command.types";
 import { ListenerSpec } from "../src/types/listener.types";
 
-/**
- * Default delay to use between emitting an event and querying a listener. This
- * is to give the listener time to receive and process the event.
- */
-const DEFAULT_EVENT_EMIT_DELAY_MSEC = 100;
-
 export type OptionType =
   | "Attachment"
   | "Boolean"
@@ -59,10 +53,10 @@ export class MockInteraction {
   /**
    * ACT.
    *
-   * Simulate the command execute pipeline, passing in the underlying arranged
-   * interaction object.
+   * Simulate the emission of the interaction create event, passing the
+   * underlying interaction object directly into the command execution pipeline.
    */
-  public async runCommand(): Promise<void> {
+  public async simulateCommand(): Promise<void> {
     await this.command.run(this.interaction);
   }
 
@@ -108,14 +102,14 @@ export class MockInteraction {
   ) {
     it("should respond ephemerally by default", async () => {
       if (arrange) await arrange(this);
-      await this.runCommand();
+      await this.simulateCommand();
       this.expectRepliedWith({ ephemeral: true });
     });
 
     it("should respond publicly if the broadcast option is set", async () => {
       if (arrange) await arrange(this);
       this.mockOption("Boolean", "broadcast", true);
-      await this.runCommand();
+      await this.simulateCommand();
       this.expectRepliedWith({ ephemeral: false });
     });
   }
@@ -159,10 +153,6 @@ class TestClient extends IClientWithIntentsAndRunners {
     = new Collection<string, ListenerRunner<any>>();
 }
 
-export type MockMessageOptions = {
-  emitDelay?: number;
-};
-
 /**
  * Manager for mocking a message emitted by `Events.MessageCreate`.
  */
@@ -171,21 +161,14 @@ export class MockMessage {
   public readonly message: DeepMockProxy<Message>;
   /** The listener this message is to be passed into. */
   public readonly listener: ListenerRunner<Events.MessageCreate>;
-
   /** Event-emitting client to register the listener onto. */
   private client = new TestClient();
-  /** Wrapper options. */
-  private options?: MockMessageOptions;
 
-  constructor(
-    spec: ListenerSpec<Events.MessageCreate>,
-    options?: MockMessageOptions,
-  ) {
+  constructor(spec: ListenerSpec<Events.MessageCreate>) {
     this.message = mockDeep<Message>();
     this.listener = new ListenerRunner(spec);
     this.client.listenerRunners.set(spec.id, this.listener);
     this.client.registerListeners();
-    this.options = options;
     // TODO: A "spec" shouldn't have state saved on it but it does at the moment
     // in the form of CooldownManager. Thus, we have to manually reset this
     // manager for each instance of MockMessage to make sure tests using a
@@ -196,12 +179,11 @@ export class MockMessage {
   /**
    * ACT.
    *
-   * Simulate the listener execute pipeline by emitting the message creation
-   * event with the underlying message object.
+   * Simulate the emission of the message creation event by passing the
+   * underlying message object directly to the listener execute pipeline.
    */
-  public async emitEvent(): Promise<void> {
-    this.client.emit(Events.MessageCreate, this.message);
-    await sleep(this.options?.emitDelay ?? DEFAULT_EVENT_EMIT_DELAY_MSEC);
+  public async simulateEvent(): Promise<void> {
+    await this.listener.callbackToRegister(this.message);
   }
 
   /**
@@ -315,14 +297,14 @@ export async function testBroadcastOptionSupport(
 ): Promise<void> {
   it("should respond ephemerally by default", async () => {
     if (arrange) await arrange(mock);
-    await mock.runCommand();
+    await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: true });
   });
 
   it("should respond publicly if the broadcast option is set", async () => {
     if (arrange) await arrange(mock);
     mock.mockOption("Boolean", "broadcast", true);
-    await mock.runCommand();
+    await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: false });
   });
 }
@@ -338,14 +320,14 @@ export async function testEphemeralOptionSupport(
 ): Promise<void> {
   it("should respond publicly by default", async () => {
     if (arrange) await arrange(mock);
-    await mock.runCommand();
+    await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: false });
   });
 
   it("should respond ephemerally if the ephemeral option is set", async () => {
     if (arrange) await arrange(mock);
     mock.mockOption("Boolean", "ephemeral", true);
-    await mock.runCommand();
+    await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: true });
   });
 }
