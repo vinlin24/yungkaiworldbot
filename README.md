@@ -3,6 +3,14 @@
 Misc bot for **yung kai world**, the Discord server for the music artist [yung
 kai](https://linktr.ee/yungkaiboy)!
 
+
+## Overview
+
+The iconic **@TempBot** lurks in the channels, always ready to ~~annoy~~ bring
+some humor or personality to the server with stupid Dad jokes, entertaining your
+different catchphrases, and more! ~~Maybe I should also give it timeout
+permissions to keep you rowdy children in check...~~
+
 This started as a throwaway for-fun project, hence the name "TempBot", but the
 name stuck. This codebase has some simple features up and running but is an
 ongoing project welcome to requests and suggestions. Server members are welcome
@@ -37,6 +45,7 @@ Install dependencies:
 ```sh
 npm install
 ```
+
 
 ### Environment File
 
@@ -95,6 +104,7 @@ environment variable names, we use this suffix convention:
 | `npm run clean` | Clear JavaScript build files.                                                                |
 | `npm run build` | Compile TypeScript source to JavaScript.                                                     |
 | `npm start`     | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
+| `npm test`      | Run tests.                                                                                   |
 
 
 ### Command Registration vs. Bot Runtime
@@ -137,4 +147,158 @@ Your flow would look something like:
 
 ## Project Architecture
 
-**TODO.**
+**This codebase uses the [discord.js](https://discord.js.org/#/) framework for
+creating the Discord bot.**
+
+The directory structure loosely resembles the pattern recommended in the
+[discord.js Guide](https://discordjs.guide/) in that commands and events are
+defined one-per-file and then dynamically discovered and loaded at runtime.
+However, I also got a bit carried away defining a sort of
+framework-within-a-framework on top of discord.js to further streamline adding
+new commands and event listeners. This behind-the-scenes work is under
+[bot/](src/bot/) and shouldn't need to be touched outside of project-wide
+refactoring.
+
+Notably, I initially took inspiration from how
+[Express.js](https://expressjs.com/) uses a builder-like pattern to register
+callbacks on some handler class, as well as the support for reusable middleware
+that offloads the burden of data validation from the main command/event listener
+callback.
+
+I chose to liken the project structure to the typical
+middleware-controller-service layer design from backend REST API architecture:
+
+* Modules implementing the main logic for handling commands and event listeners
+  are collectively referred to as "[controllers](src/controllers/)". Start here
+  if you want to get up and running with adding a new command/event listener,
+  and reference any of the existing modules as examples of the required file
+  anatomy.
+* Checks and filters for the commands and event listeners respectively are
+  analogous to "[middleware](src/middleware/)".
+* Complex state management can be encapsulated within
+  "[services](src/services/)", serving as the single source of truth for
+  stateful data or as clients for 3rd party APIs.
+* TypeScript-related utilities or helper classes/abstract classes/interfaces are
+  under [types/](src/types/).
+* Project-wide utility functions are under [utils/](src/utils/).
+
+My main goal with this is to promote code reusability and modularity, also
+making it easier to test the modules through a code mocking framework (we use
+[Jest](https://jestjs.io/)) instead of having to go through the real Discord API
+and spamming commands/messages on the real server.
+
+
+### Commands
+
+Command modules should be created anywhere under
+[controllers/](src/controllers/) and end with `.controller.ts` to be discovered
+and loaded by our dynamic command loader on bot startup. The module *must*
+export a `CommandSpec` object, but I've defined a `CommandBuilder` helper class
+to make building this object more convenient and readable.
+
+Refer to the [`CommandSpec`](src/types/command.types.ts) type for documentation
+on the different parts of a command to expose per module. At a high-level, a
+command contains zero or more **checks**, which are like middleware determining
+whether the main callback should run, followed by the main `execute` controller.
+
+
+#### Command Lifecycle
+
+0. Command is deployed to Discord via REST API (using a special [command line
+   switch](#packagejson-scripts)).
+1. User enters a slash command on the Discord application.
+2. Command is forwarded from Discord server to discord.js runtime, which
+   encapsulates the context as a `ChatInputCommandInteraction` object and emits
+   it with an `interactionCreate` event.
+3. `interactionCreate` event is received by a [special event
+   listener*](src/bot/listeners/command.listener.ts) on our `BotClient` class,
+   which dispatches the correct `CommandRunner` to handle it.
+4. `CommandRunner` executes the [command pipeline](#command-execution-pipeline)
+   defined by the `CommandSpec` with which it was initialized.
+
+*Note that commands are really just a special form of event,
+`interactionCreate`.*
+
+
+#### Command Execution Pipeline
+
+From [command.runner.ts](src/bot/command.runner.ts):
+
+```ts
+/**
+ * COMMAND EXECUTION PIPELINE
+ * --------------------------
+ * Checks: run predicate
+ *    -> success: move onto Execute
+ *    -> fail: run onFail if provided, short-circuit
+ *        -> error: handleCommandError, short-circuit
+ *    -> error: handleCommandError, short-circuit
+ * Execute: run execute
+ *    -> success: move onto Cleanup
+ *    -> error: handleCommandError, return
+ * Cleanup: run all afterExecute hooks of checks
+ *    -> success: return
+ *    -> error: handleCommandError, DON'T short-circuit
+ */
+```
+
+
+### Event Listeners
+
+Event listener modules should be created anywhere under
+[controllers/](src/controllers/) and end with `.listener.ts` to be discovered,
+loaded, and registered on our bot by our dynamic listener loader on bot startup.
+The module *must* export a `ListenerSpec` object, but I've defined a
+`ListenerBuilder` helper class to make building this object more convenient and
+readable.
+
+Refer to the [`ListenerSpec`](src/types/listener.types.ts) type for
+documentation on the different parts of a command to expose per module. At a
+high-level, a listener contains zero or more **filters**, which are like
+middleware determining whether the main callback should run, followed by the
+main `execute` controller.
+
+Note that because of the immense popularity of the
+`ListenerSpec<Events.MessageCreate>` specialization, there also exists a
+`MessageListenerBuilder` helper. Notably, this adds support for a **cooldown**
+mechanism, which has become very popular with requests.
+
+
+#### Event Lifecycle
+
+1. An event occurs on the Discord server.
+2. Event is sent to our `BotClient` running under the discord.js runtime, which
+   makes the bot emit the event.
+3. The emitted event is received by all callbacks registered to receive it.
+   These callbacks are the entry point into the `ListenerRunner`.
+4. `ListenerRunner` executes the listener pipeline defined by the `ListenerSpec`
+   with which it was initialized.
+
+
+#### Listener Execution Pipeline
+
+Refer to the [`ListenerSpec`](src/types/listener.types.ts) type for
+documentation on the different parts of an event listener to expose per module.
+At a high level, a listener contains zero or more **filters**, which are like
+middleware determining whether the main callback should run, followed by the
+main `execute` controller.
+
+From [listener.runner.ts](src/bot/listener.runner.ts):
+
+```ts
+/**
+ * LISTENER EXECUTION PIPELINE
+ * ---------------------------
+ * Filters: run predicate
+ *    -> success: move onto Execute
+ *    -> fail: run onFail if provided, short-circuit
+ *        -> error: handleListenerError, short-circuit
+ *    -> error: handleListenerError, short-circuit
+ * Execute: run execute
+ *    -> success: move onto Cleanup
+ *    -> error: handleListenerError, return
+ * Cleanup: run all afterExecute hooks of filters
+ *    -> success: return
+ *    -> error: handleListenerError, DON'T short-circuit
+ */
+```
