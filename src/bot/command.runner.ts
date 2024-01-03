@@ -41,6 +41,17 @@ export class CommandRunner {
     if (!passedChecks) return;
     const success = await this.runExecute(interaction);
     if (success) await this.runCleanups(interaction);
+
+    // Ensure that the user never sees "Application did not respond" if we can
+    // help it.
+    if (!interaction.replied) {
+      log.warning(
+        `${context}: execute didn't reply to interaction, ` +
+        "using generic response."
+      );
+      await interaction.reply({ content: "👍", ephemeral: true });
+    }
+
     log.debug(`${context}: finished executing command.`);
   }
 
@@ -111,13 +122,6 @@ export class CommandRunner {
       return false;
     }
 
-    if (!interaction.replied) {
-      log.warning(
-        `${context}: execute didn't reply to interaction, ` +
-        "using generic response."
-      );
-      await interaction.reply({ content: "👍", ephemeral: true });
-    }
     return success;
   }
 
