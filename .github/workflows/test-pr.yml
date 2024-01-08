@@ -8,6 +8,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: test  # Overwritten by Jest anyway.
+      BOT_TOKEN: ${{ secrets.PROD_BOT_TOKEN }}
+      APPLICATION_ID: ${{ secrets.PROD_APPLICATION_ID }}
+
+      # TODO: There has to be a better way to automate this (for
+      # not-so-sensitive variables at least).
+      YUNG_KAI_WORLD_GID: ${{ vars.YUNG_KAI_WORLD_GID }}
+      BOT_DEV_RID: ${{ vars.BOT_DEV_RID }}
+      KAI_RID: ${{ vars.KAI_RID }}
+      ALPHA_MOD_RID: ${{ vars.ALPHA_MOD_RID }}
+      BABY_MOD_RID: ${{ vars.BABY_MOD_RID }}
+      LUKE_UID: ${{ vars.LUKE_UID }}
+      KLEE_UID: ${{ vars.KLEE_UID }}
+      COFFEE_UID: ${{ vars.COFFEE_UID }}
+      CXTIE_UID: ${{ vars.CXTIE_UID }}
+      TACO_UID: ${{ vars.TACO_UID }}
+      WAV_UID: ${{ vars.WAV_UID }}
+      BUNNY_UID: ${{ vars.BUNNY_UID }}
+      J_UID: ${{ vars.J_UID }}
+      KAI_UID: ${{ vars.KAI_UID }}
+      MUDAE_UID: ${{ vars.MUDAE_UID }}
+
     steps:
       - name: Check out code on job environment
         uses: actions/checkout@v3
