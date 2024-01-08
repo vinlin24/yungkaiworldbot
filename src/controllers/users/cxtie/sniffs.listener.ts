@@ -1,4 +1,3 @@
-
 import getLogger from "../../../logger";
 import {
   CooldownManager,
@@ -19,13 +18,21 @@ onSniffs.filter(message => {
   return !!message.content.match(sniffsWithPossibleMarkdown);
 });
 onSniffs.execute(async (message) => {
-  await replySilently(message, message.content);
   const context = formatContext(message);
-  log.info(`${context}: echoed sniffs.`);
+  const wouldSniffBack = Math.random() > 0.5;
+  if (wouldSniffBack) {
+    await replySilently(message, message.content);
+    log.info(`${context}: echoed sniffs.`);
+  } else {
+    await replySilently(message, "daily cxtie appreciation");
+    log.info(`${context}: appreciated cxtie.`);
+  }
 });
 
-const cooldown = new CooldownManager({ type: "global", seconds: 600 });
+const cooldown = new CooldownManager({ type: "global", seconds: 300 });
+
 onSniffs.filter(useCooldown(cooldown));
 onSniffs.saveCooldown(cooldown);
 
-export default onSniffs.toSpec();
+const onSniffsSpec = onSniffs.toSpec();
+export default onSniffsSpec;
