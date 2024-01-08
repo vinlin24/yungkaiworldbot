@@ -1,5 +1,6 @@
 import { Awaitable, ClientEvents, Events } from "discord.js";
 
+import { z } from "zod";
 import { CooldownManager } from "../middleware/cooldown.middleware";
 
 export type ListenerFilterFunction<Type extends keyof ClientEvents>
@@ -77,6 +78,28 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    */
   cooldown?: Type extends Events.MessageCreate ? CooldownManager : never;
 };
+
+/**
+ * Schema for the `ListenerSpec` type for Zod runtime parsing/validation.
+ *
+ * NOTE: This schema merely checks for the existence of and basic types of the
+ * expected keys, not the internal structure of all the values such as function
+ * argument/return types or JSON schema/class types that come from within
+ * discord.js. This schema is mostly meant to sanity check that the coders
+ * default exported the the correct type from a controller file.
+ */
+export const listenerSpecSchema = z.object({
+  type: z.string(),
+  id: z.string(),
+  once: z.boolean().optional(),
+  filters: z.array(z.object({
+    predicate: z.function(),
+    onFail: z.function().optional(),
+    afterExecute: z.function().optional(),
+  })).optional(),
+  execute: z.function(),
+  cooldown: z.instanceof(CooldownManager).optional(),
+});
 
 /**
  * Utility class for constructing a `ListenerSpec` in a more readable way.

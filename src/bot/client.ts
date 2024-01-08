@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import path from "node:path";
 
 import { ClientEvents, Collection, REST, Routes } from "discord.js";
@@ -12,6 +11,7 @@ import {
 } from "../types/listener.types";
 import { CommandLoader } from "./command.loader";
 import { CommandRunner } from "./command.runner";
+import { ListenerLoader } from "./listener.loader";
 import { ListenerRunner } from "./listener.runner";
 
 const log = getLogger(__filename);
@@ -34,23 +34,22 @@ export class BotClient extends IClientWithIntentsAndRunners {
     = new Collection<string, ListenerRunner<any>>();
 
   private commandLoader = new CommandLoader(CONTROLLERS_DIR_PATH);
+  private listenerLoader = new ListenerLoader(
+    CONTROLLERS_DIR_PATH,
+    SPECIAL_LISTENERS_DIR_PATH,
+  );
 
   public prepareRuntime(): boolean {
-    const [
-      commandPaths,
-      listenerPaths,
-    ] = this.discoverControllerFiles(CONTROLLERS_DIR_PATH);
+    this.loadCommands();
+    this.loadListeners();
 
     try {
-      this.loadCommands();
-      this.loadListeners(listenerPaths);
       this.registerListeners();
       return true;
     } catch (error) {
       if (error instanceof DuplicateListenerIDError) {
         log.error(`duplicate listener ID: ${error.duplicateId}`);
-      }
-      else {
+      } else {
         log.crit(`unexpected error in registering events: ${error}`);
         console.error(error);
       }
@@ -95,71 +94,13 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadListeners(listenerPaths: string[]): void {
-    // Discover the listeners special to the bot itself and prepend their paths
-    // to the controller listener paths.
-    const specialListenerPaths: string[] = [];
-    const contents = fs.readdirSync(SPECIAL_LISTENERS_DIR_PATH);
-    for (const file of contents) {
-      const fullPath = path.join(SPECIAL_LISTENERS_DIR_PATH, file);
-      specialListenerPaths.push(fullPath);
-      log.debug(`discovered special event listener file: ${file}.`);
-    }
-    const allListenerPaths = [...specialListenerPaths, ...listenerPaths];
-
-    for (const fullPath of allListenerPaths) {
-      const listenerSpec = require(fullPath).default as ListenerSpec<any>;
-      // TODO: Maybe add a runtime validation that controller matches the
-      // Controller schema. Maybe use a library like Zod?
-      const { id, type } = listenerSpec;
+  private loadListeners(): void {
+    const allListenerSpecs = this.listenerLoader.load()
+    for (const spec of allListenerSpecs) {
+      const { id, type } = spec;
+      this.listenerRunners.set(id, new ListenerRunner(spec));
       log.debug(`imported ${type} listener module ID=${id}.`);
-
-      this.listenerRunners.set(id, new ListenerRunner(listenerSpec));
     }
-  }
-
-  private discoverControllerFiles(directory: string): [
-    commandPaths: string[],
-    listenerPaths: string[],
-  ] {
-    const commandPaths: string[] = [];
-    const listenerPaths: string[] = [];
-
-    const contents = fs.readdirSync(directory);
-    for (const file of contents) {
-      const fullPath = path.join(directory, file);
-
-      // Recursive case: file is a directory.
-      if (fs.lstatSync(fullPath).isDirectory()) {
-        const [
-          innerCommandPaths,
-          innerListenerPaths,
-        ] = this.discoverControllerFiles(fullPath);
-        commandPaths.push(...innerCommandPaths);
-        listenerPaths.push(...innerListenerPaths);
-        continue;
-      }
-
-      // Base case: file is a controller file.
-      if (file.endsWith(".command.js") || file.endsWith("command.ts")) {
-        commandPaths.push(fullPath);
-        log.debug(
-          "discovered command implementation file: " +
-          `${path.relative(CONTROLLERS_DIR_PATH, fullPath)}.`
-        );
-        continue;
-      }
-      if (file.endsWith(".listener.js") || file.endsWith("listener.ts")) {
-        listenerPaths.push(fullPath);
-        log.debug(
-          "discovered listener implementation file: " +
-          `${path.relative(CONTROLLERS_DIR_PATH, fullPath)}.`
-        );
-        continue;
-      }
-    }
-
-    return [commandPaths, listenerPaths];
   }
 
   public getListenerSpecs<Type extends keyof ClientEvents>(type?: Type)
@@ -170,4 +111,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
   }
 }
 
+/**
+ * Singleton bot to use when starting the bot runtime normally or deploying
+ * slash commands.
+ */
 export default new BotClient();
