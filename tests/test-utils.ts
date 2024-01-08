@@ -127,7 +127,8 @@ export function addMockGetter<PropertyType>(
 ): void;
 /**
  * Add a mock getter on the object. This is a workaround for jest-mock-extended
- * not supporting mocking getters yet.
+ * not supporting mocking getters yet. This can also be used to overwrite
+ * read-only properties.
  */
 export function addMockGetter<ValueType>(
   obj: Record<string, any>,
@@ -152,6 +153,14 @@ class TestClient extends IClientWithIntentsAndRunners {
   public override readonly listenerRunners
     = new Collection<string, ListenerRunner<any>>();
 }
+
+/**
+ * Parameter options for `MockMessage#mockAuthor`. To be extended over time.
+ */
+type AuthorOptions = Partial<{
+  uid: string,
+  displayName: string,
+}>;
 
 /**
  * Manager for mocking a message emitted by `Events.MessageCreate`.
@@ -201,8 +210,19 @@ export class MockMessage {
     return this;
   }
 
+  /**
+   * @deprecated Use the more general `mockAuthor` method instead.
+   */
   public mockAuthorId(uid: string): this {
     this.message.author.id = uid;
+    return this;
+  }
+
+  public mockAuthor(options: AuthorOptions): this {
+    if (options.uid !== undefined)
+      this.message.author.id = options.uid;
+    if (options.displayName !== undefined)
+      addMockGetter(this.message.author, "displayName", options.displayName);
     return this;
   }
 
