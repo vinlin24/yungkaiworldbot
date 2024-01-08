@@ -9,6 +9,7 @@
     "clean": "rm -rf dist/*",
     "build": "npm run clean && tsc --project tsconfig.build.json",
     "start": "npm run build && node .",
+    "now": "LOGGER_LEVEL=debug node .",
     "test": "jest"
   },
   "keywords": [],
