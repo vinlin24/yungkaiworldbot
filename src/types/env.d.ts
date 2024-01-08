@@ -71,6 +71,7 @@ declare global {
     BUNNY_UID?: string;
     J_UID?: string;
     KAI_UID?: string;
+    NI_UID?: string;
 
     /////////////////////////////
     //     Discord Bot IDs     //
