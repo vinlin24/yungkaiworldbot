@@ -3,6 +3,11 @@ import config from "../config";
 // TODO: Maybe we should move all instances of log.warning("<name> UID not
 // found") to this module.
 
+// TODO: Also, we should really deprecate this approach as it's yet another
+// place to keep track of UIDs, and a redundant one too! Just stick with UID
+// string constants (they already have readable names as environment
+// variables!).
+
 /**
  * Mapping of "name" to Discord user ID, useful for user-specific features and
  * functionality. While the values for the UIDs are provided in the environment
@@ -24,6 +29,7 @@ const NAME_TO_UID = {
   "BUNNY": config.BUNNY_UID,
   "J": config.J_UID,
   "KAI": config.KAI_UID,
+  "NI": config.NI_UID,
 };
 
 export default NAME_TO_UID;

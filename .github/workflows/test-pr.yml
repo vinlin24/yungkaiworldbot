@@ -29,6 +29,7 @@ jobs:
       BUNNY_UID: ${{ vars.BUNNY_UID }}
       J_UID: ${{ vars.J_UID }}
       KAI_UID: ${{ vars.KAI_UID }}
+      NI_UID: ${{ vars.NI_UID }}
       MUDAE_UID: ${{ vars.MUDAE_UID }}
 
     steps:
