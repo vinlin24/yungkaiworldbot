@@ -5,6 +5,7 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
   SlashCommandBuilder,
 } from "discord.js";
+import { z } from "zod";
 
 export type CommandCheckFunction
   = (interaction: ChatInputCommandInteraction) => Awaitable<boolean>;
@@ -75,6 +76,26 @@ export type CommandSpec = {
    */
   autocomplete?: CommandAutocompleteHandler,
 };
+
+/**
+ * Schema for the `CommandSpec` type for Zod runtime parsing/validation.
+ *
+ * NOTE: This schema merely checks for the existence of and basic types of the
+ * expected keys, not the internal structure of all the values such as function
+ * argument/return types or JSON schema/class types that come from within
+ * discord.js. This schema is mostly meant to sanity check that the coders
+ * default exported the the correct type from a controller file.
+ */
+export const commandSpecSchema = z.object({
+  definition: z.object({ /* discord.js' JSON schema */ }),
+  checks: z.array(z.object({
+    predicate: z.function(),
+    onFail: z.function().optional(),
+    afterExecute: z.function().optional(),
+  })).optional(),
+  execute: z.function(),
+  autocomplete: z.function().optional(),
+});
 
 /**
  * Adding certain types of options makes the builder incompatible with
