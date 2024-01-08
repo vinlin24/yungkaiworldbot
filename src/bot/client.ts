@@ -6,11 +6,11 @@ import { ClientEvents, Collection, REST, Routes } from "discord.js";
 import config from "../config";
 import getLogger from "../logger";
 import { IClientWithIntentsAndRunners } from "../types/client.abc";
-import { CommandSpec } from "../types/command.types";
 import {
   DuplicateListenerIDError,
   ListenerSpec,
 } from "../types/listener.types";
+import { CommandLoader } from "./command.loader";
 import { CommandRunner } from "./command.runner";
 import { ListenerRunner } from "./listener.runner";
 
@@ -33,6 +33,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
   public override readonly listenerRunners
     = new Collection<string, ListenerRunner<any>>();
 
+  private commandLoader = new CommandLoader(CONTROLLERS_DIR_PATH);
+
   public prepareRuntime(): boolean {
     const [
       commandPaths,
@@ -40,7 +42,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
     ] = this.discoverControllerFiles(CONTROLLERS_DIR_PATH);
 
     try {
-      this.loadCommands(commandPaths);
+      this.loadCommands();
       this.loadListeners(listenerPaths);
       this.registerListeners();
       return true;
@@ -57,9 +59,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
   }
 
   public async deploySlashCommands(): Promise<void> {
-    const [commandPaths] = this.discoverControllerFiles(CONTROLLERS_DIR_PATH);
-    this.loadCommands(commandPaths);
-
+    this.loadCommands();
     const commandsJSON = this.commandRunners.map(r => r.getDeployJSON());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
@@ -86,15 +86,12 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadCommands(commandPaths: string[]): void {
-    for (const fullPath of commandPaths) {
-      const commandSpec = require(fullPath).default as CommandSpec;
-      // TODO: Maybe add a runtime validation that controller matches the
-      // Controller schema. Maybe use a library like Zod?
-      const commandName = commandSpec.definition.name;
+  private loadCommands(): void {
+    const commandSpecs = this.commandLoader.load();
+    for (const spec of commandSpecs) {
+      const commandName = spec.definition.name;
+      this.commandRunners.set(commandName, new CommandRunner(spec));
       log.debug(`imported command module for /${commandName}.`);
-
-      this.commandRunners.set(commandName, new CommandRunner(commandSpec));
     }
   }
 
