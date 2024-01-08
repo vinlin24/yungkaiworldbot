@@ -44,6 +44,7 @@ export function isPollutionImmuneChannel(
   return false;
 }
 
+
 /**
  * Only listen to messages created in a channel where pollution is "acceptable".
  * That is, the predicate should fail on "important" channels such as
@@ -57,6 +58,25 @@ export function contentMatching(
   pattern: string | RegExp,
 ): ListenerFilterFunction<Events.MessageCreate> {
   return message => !!message.content.match(pattern);
+}
+
+/**
+ * Same as `channelPollutionAllowed`, but taking in arguments and then returning
+ * the closure that can be passed into a builder filter. The arguments are user
+ * IDs of users that can bypass the channel pollution prevention policy.
+ */
+export function channelPollutionAllowedOrBypass(
+  // TODO: `| undefined` to accommodate undefined UIDs for now.
+  ...bypasserUids: (string | undefined)[]
+): ListenerFilterFunction<Events.MessageCreate> {
+  return function (message) {
+    const channel = message.channel as GuildTextBasedChannel
+    const pollutionAllowed = !isPollutionImmuneChannel(channel);
+    // TODO: filtering out undefined to accommodate undefined UIDs for now.
+    const canBypass = bypasserUids.filter(Boolean).includes(message.author.id);
+    console.log(pollutionAllowed, canBypass);
+    return pollutionAllowed || canBypass;
+  };
 }
 
 export function randomly(

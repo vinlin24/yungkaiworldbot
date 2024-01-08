@@ -4,7 +4,7 @@ import {
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
-  channelPollutionAllowed,
+  channelPollutionAllowedOrBypass,
   contentMatching,
   ignoreBots,
 } from "../../../middleware/filters.middleware";
@@ -21,11 +21,8 @@ const onDab = new MessageListenerBuilder().setId("dab");
 onDab.filter(ignoreBots);
 onDab.filter(contentMatching(/^dab$/i));
 onDab.filter({
-  // Klee's dab can bypass channel restrictions.
-  predicate: (message) =>
-    message.author.id === uids.KLEE || channelPollutionAllowed(message),
-  onFail: async (message) =>
-    await message.react(GUILD_EMOJIS.NEKO_L),
+  predicate: channelPollutionAllowedOrBypass(uids.KLEE),
+  onFail: async (message) => await message.react(GUILD_EMOJIS.NEKO_L),
 });
 
 onDab.execute(async (message) => {

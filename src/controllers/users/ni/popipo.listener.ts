@@ -1,7 +1,10 @@
 import getLogger from "../../../logger";
-import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
 import {
-  channelPollutionAllowed,
+  CooldownManager,
+  useCooldown,
+} from "../../../middleware/cooldown.middleware";
+import {
+  channelPollutionAllowedOrBypass,
   contentMatching,
 } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -14,10 +17,7 @@ const log = getLogger(__filename);
 const onPopipo = new MessageListenerBuilder().setId("popipo");
 
 onPopipo.filter(contentMatching(/popipo/i));
-onPopipo.filter(message => {
-  // Ni can bypass channel restrictions.
-  return message.author.id === uids.NI || channelPollutionAllowed(message);
-});
+onPopipo.filter(channelPollutionAllowedOrBypass(uids.NI));
 
 onPopipo.execute(async (message) => {
   const randomNum = randRange(2, 6);
