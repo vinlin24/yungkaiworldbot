@@ -105,6 +105,7 @@ environment variable names, we use this suffix convention:
 | `npm run build` | Compile TypeScript source to JavaScript.                                                     |
 | `npm start`     | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
 | `npm test`      | Run tests.                                                                                   |
+| `npm run now`   | Run existing JavaScript build files right away.                                              |
 
 
 ### Command Registration vs. Bot Runtime
@@ -192,9 +193,10 @@ and spamming commands/messages on the real server.
 
 Command modules should be created anywhere under
 [controllers/](src/controllers/) and end with `.controller.ts` to be discovered
-and loaded by our dynamic command loader on bot startup. The module *must*
-export a `CommandSpec` object, but I've defined a `CommandBuilder` helper class
-to make building this object more convenient and readable.
+and loaded by our [dynamic command loader](src/bot/command.loader.ts) on bot
+startup. The module *must* export a `CommandSpec` object, but I've defined a
+`CommandBuilder` helper class to make building this object more convenient and
+readable.
 
 Refer to the [`CommandSpec`](src/types/command.types.ts) type for documentation
 on the different parts of a command to expose per module. At a high-level, a
@@ -247,13 +249,13 @@ From [command.runner.ts](src/bot/command.runner.ts):
 
 Event listener modules should be created anywhere under
 [controllers/](src/controllers/) and end with `.listener.ts` to be discovered,
-loaded, and registered on our bot by our dynamic listener loader on bot startup.
-The module *must* export a `ListenerSpec` object, but I've defined a
-`ListenerBuilder` helper class to make building this object more convenient and
-readable.
+loaded, and registered on our bot by our [dynamic listener
+loader](src/bot/listener.loader.ts) on bot startup. The module *must* export a
+`ListenerSpec` object, but I've defined a `ListenerBuilder` helper class to make
+building this object more convenient and readable.
 
 Refer to the [`ListenerSpec`](src/types/listener.types.ts) type for
-documentation on the different parts of a command to expose per module. At a
+documentation on the different parts of a listener to expose per module. At a
 high-level, a listener contains zero or more **filters**, which are like
 middleware determining whether the main callback should run, followed by the
 main `execute` controller.
@@ -271,17 +273,12 @@ mechanism, which has become very popular with requests.
    makes the bot emit the event.
 3. The emitted event is received by all callbacks registered to receive it.
    These callbacks are the entry point into the `ListenerRunner`.
-4. `ListenerRunner` executes the listener pipeline defined by the `ListenerSpec`
-   with which it was initialized.
+4. `ListenerRunner` executes the [listener
+   pipeline](#listener-execution-pipeline) defined by the `ListenerSpec` with
+   which it was initialized.
 
 
 #### Listener Execution Pipeline
-
-Refer to the [`ListenerSpec`](src/types/listener.types.ts) type for
-documentation on the different parts of an event listener to expose per module.
-At a high level, a listener contains zero or more **filters**, which are like
-middleware determining whether the main callback should run, followed by the
-main `execute` controller.
 
 From [listener.runner.ts](src/bot/listener.runner.ts):
 
