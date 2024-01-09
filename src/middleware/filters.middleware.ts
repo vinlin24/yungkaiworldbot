@@ -1,7 +1,6 @@
 import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
 
 import { ListenerFilterFunction } from "../types/listener.types";
-import uids from "../utils/uids.utils";
 
 /**
  * Ignore messages created by bot accounts.
@@ -13,13 +12,13 @@ export const ignoreBots: ListenerFilterFunction<Events.MessageCreate> =
   message => !message.author.bot;
 
 /**
- * Only listen to messages created by a specific user(s) available in our
- * Discord UID mapping.
+ * Only listen to messages created by a specific user(s), specified by user
+ * ID(s).
  */
 export function messageFrom(
-  ...names: (keyof typeof uids)[]
+  ...userIds: string[]
 ): ListenerFilterFunction<Events.MessageCreate> {
-  return message => names.some(name => message.author.id === uids[name]);
+  return message => userIds.some(uid => message.author.id === uid);
 }
 
 /**
