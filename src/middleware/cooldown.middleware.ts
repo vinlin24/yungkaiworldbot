@@ -22,13 +22,21 @@ export type OnCooldownFunction = (message: Message) => Awaitable<void>;
 
 export type GlobalCooldownSpec = {
   type: "global";
+  /** Global cooldown duration (seconds). */
   seconds: number;
+  /** UIDs that can bypass this cooldown. */
+  bypassers?: (string | undefined)[],
+  /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
 
 export type PerUserCooldownSpec = {
   type: "user";
+  /** Default per-user cooldown duration (seconds). */
   defaultSeconds: number;
+  /** UID-to-duration mapping for cooldown duration (seconds.) overrides. */
+  overrides?: Map<string | undefined, number>,
+  /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
 
@@ -107,9 +115,7 @@ export class CooldownManager {
     const bypassers = this.getBypassers();
 
     // Copy to allow support for changing properties of the spec later. NOTE:
-    // native support for structuredClone() requires Node 17+. Not sure if deep
-    // cloning is need anymore now that Sets and Maps are stored on the
-    // CooldownManager instead of the spec itself, but doesn't hurt (I think).
+    // native support for structuredClone() requires Node 17+.
     this.spec = lodash.cloneDeep(spec);
 
     // When switching specs, invalidate current expirations.
@@ -118,6 +124,18 @@ export class CooldownManager {
     // Transfer bypassers.
     for (const memberId of bypassers) {
       this.setBypass(true, memberId);
+    }
+
+    // Add any new bypassers/overrides if provided in spec.
+    if (this.spec.type === "global" && this.spec.bypassers) {
+      const bypasserIds = this.spec.bypassers.filter(Boolean) as string[];
+      for (const uid of bypasserIds) {
+        this.bypassers.add(uid);
+      }
+    } else if (this.spec.type === "user" && this.spec.overrides) {
+      for (const [uid, duration] of Object.entries(this.spec.overrides)) {
+        this.durationOverrides.set(uid, duration);
+      }
     }
   };
 
@@ -379,6 +397,10 @@ export function useCooldown(
 export function useCooldown(
   spec: CooldownSpec,
 ): ListenerFilter<Events.MessageCreate>;
+/**
+ * Add a cooldown mechanism to this event listener. This filter passes only if
+ * cooldown isn't currently active.
+ */
 export function useCooldown(
   value: CooldownManager | CooldownSpec,
 ): ListenerFilter<Events.MessageCreate> {
