@@ -3,21 +3,24 @@ import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
 import { ListenerFilterFunction } from "../types/listener.types";
 
 /**
+ * Abbreviation for `ListenerFilterFunction<Events.MessageCreate>`.
+ */
+export type MessageFilterFunction
+  = ListenerFilterFunction<Events.MessageCreate>;
+
+/**
  * Ignore messages created by bot accounts.
  *
  * NOTE: This includes ALL bot users, not just our client's user. The latter
  * should always be ignored anyway as enforced by the event handler dispatcher.
  */
-export const ignoreBots: ListenerFilterFunction<Events.MessageCreate> =
-  message => !message.author.bot;
+export const ignoreBots: MessageFilterFunction = message => !message.author.bot;
 
 /**
  * Only listen to messages created by a specific user(s), specified by user
  * ID(s).
  */
-export function messageFrom(
-  ...userIds: string[]
-): ListenerFilterFunction<Events.MessageCreate> {
+export function messageFrom(...userIds: string[]): MessageFilterFunction {
   return message => userIds.some(uid => message.author.id === uid);
 }
 
@@ -49,13 +52,13 @@ export function isPollutionImmuneChannel(
  * That is, the predicate should fail on "important" channels such as
  * #announcements as well as central hubs like #general.
  */
-export const channelPollutionAllowed
-  : ListenerFilterFunction<Events.MessageCreate>
-  = message => !isPollutionImmuneChannel(message.channel as GuildTextBasedChannel);
+export const channelPollutionAllowed: MessageFilterFunction
+  = message =>
+    !isPollutionImmuneChannel(message.channel as GuildTextBasedChannel);
 
 export function contentMatching(
   pattern: string | RegExp,
-): ListenerFilterFunction<Events.MessageCreate> {
+): MessageFilterFunction {
   return message => !!message.content.match(pattern);
 }
 
@@ -67,7 +70,7 @@ export function contentMatching(
 export function channelPollutionAllowedOrBypass(
   // TODO: `| undefined` to accommodate undefined UIDs for now.
   ...bypasserUids: (string | undefined)[]
-): ListenerFilterFunction<Events.MessageCreate> {
+): MessageFilterFunction {
   return function (message) {
     const channel = message.channel as GuildTextBasedChannel
     const pollutionAllowed = !isPollutionImmuneChannel(channel);
@@ -85,7 +88,7 @@ export function channelPollutionAllowedOrBypass(
 export function randomly(successChance:
   | number
   | (() => Awaitable<number>),
-): ListenerFilterFunction<Events.MessageCreate> {
+): MessageFilterFunction {
   // Normalize argument to a callback.
   const getSuccessChance = typeof successChance === "function"
     ? successChance
