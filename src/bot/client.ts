@@ -95,7 +95,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
   }
 
   private loadListeners(): void {
-    const allListenerSpecs = this.listenerLoader.load()
+    const allListenerSpecs = this.listenerLoader.load();
     for (const spec of allListenerSpecs) {
       const { id, type } = spec;
       this.listenerRunners.set(id, new ListenerRunner(spec));

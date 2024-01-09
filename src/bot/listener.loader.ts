@@ -37,9 +37,6 @@ export class ListenerLoader {
   ): string[] {
     const listenerPaths: string[] = [];
 
-    // Prepend the listeners special to the bot itself.
-    listenerPaths.push(...this.discoverSpecialListenerFiles());
-
     const contents = fs.readdirSync(directory);
     for (const file of contents) {
       const fullPath = path.join(directory, file);
@@ -55,7 +52,7 @@ export class ListenerLoader {
       if (file.endsWith(".listener.js") || file.endsWith("listener.ts")) {
         listenerPaths.push(fullPath);
         log.debug(
-          "discovered command implementation file: " +
+          "discovered event listener implementation file: " +
           `${path.relative(this.listenersBaseDirectoryPath, fullPath)}.`
         );
         continue;
@@ -75,7 +72,9 @@ export class ListenerLoader {
 
   public load(): ListenerSpec<any>[] {
     const specs: ListenerSpec<any>[] = [];
-    const listenerPaths = this.discoverListenerFiles();
+    const customListenerPaths = this.discoverListenerFiles();
+    const specialListenerPaths = this.discoverSpecialListenerFiles();
+    const listenerPaths = [...specialListenerPaths, ...customListenerPaths];
 
     for (const fullPath of listenerPaths) {
       const listenerSpec = require(fullPath).default as unknown;

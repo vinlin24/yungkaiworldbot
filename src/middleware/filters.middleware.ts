@@ -74,7 +74,6 @@ export function channelPollutionAllowedOrBypass(
     const pollutionAllowed = !isPollutionImmuneChannel(channel);
     // TODO: filtering out undefined to accommodate undefined UIDs for now.
     const canBypass = bypasserUids.filter(Boolean).includes(message.author.id);
-    console.log(pollutionAllowed, canBypass);
     return pollutionAllowed || canBypass;
   };
 }
