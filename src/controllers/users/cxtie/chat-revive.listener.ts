@@ -1,5 +1,6 @@
 import { Events, Message } from "discord.js";
 
+import config from "../../../config";
 import getLogger from "../../../logger";
 import {
   CooldownManager,
@@ -7,7 +8,6 @@ import {
 } from "../../../middleware/cooldown.middleware";
 import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
 import { replySilently } from "../../../utils/interaction.utils";
-import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
@@ -20,13 +20,11 @@ function containsChatReviveWithPossibleMarkdown(message: Message): boolean {
   return !!message.content.match(chatReviveWithPossibleMD);
 }
 
-const cooldown = new CooldownManager({ type: "user", defaultSeconds: 600 });
-
-if (uids.CXTIE === undefined) {
-  log.warning("cxtie UID not found.");
-} else {
-  cooldown.setBypass(true, uids.CXTIE);
-}
+const cooldown = new CooldownManager({
+  type: "user",
+  defaultSeconds: 600,
+  overrides: new Map([[config.CXTIE_UID, 0]]),
+});
 
 const chatReviveSpecSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()

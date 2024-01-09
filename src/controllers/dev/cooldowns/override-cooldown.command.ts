@@ -106,7 +106,7 @@ overrideCooldown.execute(async (interaction) => {
       return;
     }
     for (const member of members)
-      cooldown.setDuration(duration, member.id);
+      cooldown.setDuration(member.id, duration);
     await interaction.reply({
       content:
         `Set **${listenerId}** cooldown duration override for ` +

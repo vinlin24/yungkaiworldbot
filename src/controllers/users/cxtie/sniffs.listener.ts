@@ -1,3 +1,4 @@
+import config from "../../../config";
 import getLogger from "../../../logger";
 import {
   CooldownManager,
@@ -12,7 +13,7 @@ const log = getLogger(__filename);
 
 const onSniffs = new MessageListenerBuilder().setId("sniffs");
 
-onSniffs.filter(messageFrom("CXTIE"));
+onSniffs.filter(messageFrom(config.CXTIE_UID));
 onSniffs.filter(message => {
   const sniffsWithPossibleMarkdown = /^(?:[*_`|~]*|#+ )sniffs?[*_`|~]*$/i;
   return !!message.content.match(sniffsWithPossibleMarkdown);

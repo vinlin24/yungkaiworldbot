@@ -1,3 +1,4 @@
+import config from "../../../config";
 import {
   CooldownManager,
   useCooldown,
@@ -11,7 +12,7 @@ import { replySilentlyWith } from "../../../utils/interaction.utils";
 
 const onMwah = new MessageListenerBuilder().setId("mwah");
 
-onMwah.filter(messageFrom("J"));
+onMwah.filter(messageFrom(config.J_UID));
 onMwah.filter(contentMatching(/^mwah$/i));
 onMwah.execute(replySilentlyWith("mwah"));
 

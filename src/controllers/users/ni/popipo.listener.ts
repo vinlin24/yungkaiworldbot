@@ -1,3 +1,4 @@
+import config from "../../../config";
 import getLogger from "../../../logger";
 import {
   CooldownManager,
@@ -10,14 +11,13 @@ import {
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { replySilently } from "../../../utils/interaction.utils";
 import { randRange } from "../../../utils/math.utils";
-import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
 const onPopipo = new MessageListenerBuilder().setId("popipo");
 
 onPopipo.filter(contentMatching(/popipo/i));
-onPopipo.filter(channelPollutionAllowedOrBypass(uids.NI));
+onPopipo.filter(channelPollutionAllowedOrBypass(config.NI_UID));
 
 onPopipo.execute(async (message) => {
   const randomNum = randRange(2, 6);
@@ -25,12 +25,11 @@ onPopipo.execute(async (message) => {
   await replySilently(message, response);
 });
 
-const cooldown = new CooldownManager({ type: "user", defaultSeconds: 60 });
-if (uids.NI === undefined) {
-  log.warning("ni UID not found.");
-} else {
-  cooldown.setBypass(true, uids.NI);
-}
+const cooldown = new CooldownManager({
+  type: "user",
+  defaultSeconds: 60,
+  overrides: new Map([[config.NI_UID, 0]]),
+});
 
 onPopipo.filter(useCooldown(cooldown));
 onPopipo.saveCooldown(cooldown);
