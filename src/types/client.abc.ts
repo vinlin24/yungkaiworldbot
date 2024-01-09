@@ -19,6 +19,8 @@ export abstract class IClientWithIntentsAndRunners extends Client {
   public abstract readonly listenerRunners
     : Collection<string, ListenerRunner<any>>;
 
+  public readySince?: Date;
+
   constructor() {
     super({
       intents: [
