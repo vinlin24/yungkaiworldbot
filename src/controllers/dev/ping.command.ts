@@ -2,7 +2,7 @@ import child_process from "node:child_process";
 
 import {
   ChatInputCommandInteraction,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } from "discord.js";
 
 import {
@@ -10,6 +10,11 @@ import {
 } from "../../types/command.types";
 
 import getLogger from "../../logger";
+import { IClientWithIntentsAndRunners } from "../../types/client.abc";
+import {
+  toRelativeTimestampMention,
+  toTimestampMention,
+} from "../../utils/markdown.utils";
 import { addBroadcastOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
@@ -36,9 +41,11 @@ addBroadcastOption(slashCommandDefinition);
 async function respondWithDevDetails(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
+  const client = interaction.client as IClientWithIntentsAndRunners;
+
   let text = "Hello there!";
 
-  const latency = interaction.client.ws.ping;
+  const latency = client.ws.ping;
   // NOTE: For some reason, this seems to be -1 for a while right after bot
   // startup. Supposedly this is because the client has not sent its first
   // heartbeat yet.
@@ -54,6 +61,12 @@ async function respondWithDevDetails(
   const branchName = getCurrentBranchName();
   if (branchName !== null) {
     text += `\n* Branch: \`${branchName}\``;
+  }
+
+  if (client.readySince) {
+    const timestamp = toTimestampMention(client.readySince);
+    const relativeTimestamp = toRelativeTimestampMention(client.readySince);
+    text += `\n* Ready: ${timestamp} (${relativeTimestamp})`;
   }
 
   const broadcast = interaction.options.getBoolean("broadcast");

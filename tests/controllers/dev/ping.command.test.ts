@@ -1,7 +1,9 @@
 import pingSpec from "../../../src/controllers/dev/ping.command";
+import { toRelativeTimestampMention, toTimestampMention } from "../../../src/utils/markdown.utils";
 
 import {
   MockInteraction,
+  TestClient,
   addMockGetter
 } from "../../test-utils";
 
@@ -11,16 +13,23 @@ describe("/ping command", () => {
     mock = new MockInteraction(pingSpec);
   });
 
-  it("should respond with a message, latency, and branch details", async () => {
+  it("should respond with latency, branch, startup details", async () => {
     const dummyPing = 42;
-    addMockGetter(mock.interaction.client.ws, "ping", dummyPing);
+    const dummyReadySince = new Date();
+
+    const mockClient = new TestClient();
+    mockClient.readySince = dummyReadySince;
+    addMockGetter(mockClient.ws, "ping", dummyPing);
+    mock.mockClient(mockClient);
 
     await mock.simulateCommand();
 
+    const timestamp = toTimestampMention(dummyReadySince);
+    const relativeTimestamp = toRelativeTimestampMention(dummyReadySince);
     const expectedParts = [
-      "Hello there!",
       `Latency: **${dummyPing}**`,
       "Branch: ",
+      `Ready: ${timestamp} (${relativeTimestamp})`,
     ];
     for (const part of expectedParts) {
       mock.expectRepliedWith({

@@ -63,13 +63,24 @@ export class MockInteraction {
   /**
    * ARRANGE.
    *
+   * Mock the client attached to the interaction.
+   */
+  public mockClient(client: IClientWithIntentsAndRunners): this {
+    addMockGetter(this.interaction, "client", client);
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
    * Mock that the caller of this interaction has the roles specified by the
    * provided IDs.
    */
-  public mockCallerRoles(...roleIds: string[]): void {
+  public mockCallerRoles(...roleIds: string[]): this {
     const member = this.interaction.member as DeepMockProxy<GuildMember>;
     const matcher = new Matcher<string>(roleId => roleIds.includes(roleId), "");
     member.roles.cache.has.calledWith(matcher).mockReturnValue(true);
+    return this;
   }
 
   /**
@@ -77,10 +88,11 @@ export class MockInteraction {
    *
    * Mock an option value on this interaction.
    */
-  public mockOption(type: OptionType, name: string, value: any): void {
+  public mockOption(type: OptionType, name: string, value: any): this {
     const options
       = this.interaction.options as DeepMockProxy<CommandInteractionOptionResolver>;
     options[`get${type}`].calledWith(name).mockReturnValue(value);
+    return this;
   }
 
 
@@ -147,7 +159,7 @@ export function addMockGetter<ValueType>(
   return mockGetter;
 }
 
-class TestClient extends IClientWithIntentsAndRunners {
+export class TestClient extends IClientWithIntentsAndRunners {
   public override readonly commandRunners
     = new Collection<string, CommandRunner>();
   public override readonly listenerRunners
