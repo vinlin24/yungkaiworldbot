@@ -119,16 +119,34 @@ export class CooldownManager {
   }
 
   public setDuration(seconds: number): void;
-  public setDuration(seconds: number, userId: string): void;
-  public setDuration(seconds: number, userId?: string): void {
-    if (userId === undefined) {
+  public setDuration(userId: string | undefined, seconds: number): void;
+  public setDuration(arg1: number | string | undefined, arg2?: number): void {
+    let userId: string | undefined;
+    let seconds: number;
+
+    // First overload: treat as global case.
+    if (typeof arg1 === "number") {
+      seconds = arg1;
       this.setGlobalDuration(seconds);
-    } else {
-      this.setUserDuration(seconds, userId);
+      return;
     }
+
+    // Second overload: treat as per-user case.
+    userId = arg1;
+    seconds = arg2!;
+    if (userId === undefined) {
+      log.warning("undefined UID passed to setDuration, doing nothing.");
+      return;
+    }
+    this.setUserDuration(seconds, userId);
   };
 
-  public setBypass = (bypass: boolean, userId: string): void => {
+  public setBypass = (bypass: boolean, userId?: string): void => {
+    if (userId === undefined) {
+      log.warning("undefined UID passed to setBypass, doing nothing.");
+      return;
+    }
+
     if (this.spec.type === "disabled") {
       const message = (
         "attempted to set cooldown bypass on listener with disabled cooldown"
