@@ -3,6 +3,7 @@ import getLogger from "../../../logger";
 import {
   channelPollutionAllowed,
   messageFrom,
+  randomly,
 } from "../../../middleware/filters.middleware";
 import lukeService from "../../../services/luke.service";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -15,7 +16,7 @@ const randomMeower = new MessageListenerBuilder().setId("meow");
 
 randomMeower.filter(channelPollutionAllowed);
 randomMeower.filter(messageFrom("LUKE"));
-randomMeower.filter(_ => Math.random() < lukeService.getMeowChance());
+randomMeower.filter(randomly(lukeService.getMeowChance));
 randomMeower.execute(async (message) => {
   await replySilently(message, "meow meow");
   log.debug(`${formatContext(message)}: meowed at Luke.`);
