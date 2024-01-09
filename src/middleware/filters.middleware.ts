@@ -1,4 +1,4 @@
-import { Events, GuildTextBasedChannel } from "discord.js";
+import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
 
 import { ListenerFilterFunction } from "../types/listener.types";
 import uids from "../utils/uids.utils";
@@ -78,13 +78,27 @@ export function channelPollutionAllowedOrBypass(
   };
 }
 
-export function randomly(
-  successChance: number,
+/**
+ * A filter that passes by random chance. The chance parameter can either be a
+ * constant probability (in the range [0, 1]) or a callback that resolves to a
+ * probability (for dynamic, real-time computation).
+ */
+export function randomly(successChance:
+  | number
+  | (() => Awaitable<number>),
 ): ListenerFilterFunction<Events.MessageCreate> {
-  if (successChance < 0 || successChance > 1) {
-    throw new Error(
-      `successChance must be in range [0, 1] but received ${successChance}`
-    );
+  // Normalize argument to a callback.
+  const getSuccessChance = typeof successChance === "function"
+    ? successChance
+    : () => successChance;
+
+  return async function (_) {
+    const chance = await getSuccessChance();
+    if (chance < 0 || chance > 1) {
+      throw new Error(
+        `success chance must be in range [0, 1] but received ${successChance}`
+      );
+    }
+    return Math.random() < chance;
   }
-  return _ => Math.random() < successChance;
 }
