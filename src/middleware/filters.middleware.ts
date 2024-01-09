@@ -20,7 +20,9 @@ export const ignoreBots: MessageFilterFunction = message => !message.author.bot;
  * Only listen to messages created by a specific user(s), specified by user
  * ID(s).
  */
-export function messageFrom(...userIds: string[]): MessageFilterFunction {
+export function messageFrom(
+  ...userIds: (string | undefined)[]
+): MessageFilterFunction {
   return message => userIds.some(uid => message.author.id === uid);
 }
 
