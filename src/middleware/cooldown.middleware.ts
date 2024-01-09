@@ -1,7 +1,7 @@
 import {
   Awaitable,
   Events,
-  Message
+  Message,
 } from "discord.js";
 import lodash from "lodash";
 
@@ -20,22 +20,36 @@ const log = getLogger(__filename);
 
 export type OnCooldownFunction = (message: Message) => Awaitable<void>;
 
-export type CooldownSpec = {
+export type GlobalCooldownSpec = {
   type: "global";
   seconds: number;
-  bypassers?: Set<string>;
   onCooldown?: OnCooldownFunction;
-} | {
-  type: "user";
-  defaultSeconds: number;
-  userSeconds?: Map<string, number>;
-  onCooldown?: OnCooldownFunction;
-} | {
-  type: "disabled";
 };
 
+export type PerUserCooldownSpec = {
+  type: "user";
+  defaultSeconds: number;
+  onCooldown?: OnCooldownFunction;
+};
+
+export type DisabledCooldownSpec = {
+  type: "disabled";
+}
+
+export type CooldownSpec =
+  | GlobalCooldownSpec
+  | PerUserCooldownSpec
+  | DisabledCooldownSpec;
+
 export class CooldownManager {
+  /** The spec the manager is currently observing. */
   private spec: CooldownSpec = { type: "disabled" };
+
+  /** User IDs for users that bypass global cooldown type. */
+  private bypassers = new Set<string>();
+
+  /** Per-user cooldown duration overrides for user cooldown type. */
+  private durationOverrides = new Map<string, number>();
 
   /** Timestamp of cooldown expiration for global type cooldowns. */
   private globalExpiration = new Date(0);
@@ -78,11 +92,10 @@ export class CooldownManager {
       case "disabled":
         return emptySet;
       case "global":
-        return this.spec.bypassers ?? emptySet;
+        return this.bypassers;
       case "user":
-        if (!this.spec.userSeconds) return emptySet;
         const idsWithDurationZero = Array
-          .from(this.spec.userSeconds)
+          .from(this.durationOverrides)
           .filter(([_, duration]) => duration === 0)
           .map(([memberId, _]) => memberId);
         return new Set(idsWithDurationZero);
@@ -94,7 +107,9 @@ export class CooldownManager {
     const bypassers = this.getBypassers();
 
     // Copy to allow support for changing properties of the spec later. NOTE:
-    // native support for structuredClone() requires Node 17+.
+    // native support for structuredClone() requires Node 17+. Not sure if deep
+    // cloning is need anymore now that Sets and Maps are stored on the
+    // CooldownManager instead of the spec itself, but doesn't hurt (I think).
     this.spec = lodash.cloneDeep(spec);
 
     // When switching specs, invalidate current expirations.
@@ -172,9 +187,7 @@ export class CooldownManager {
       throw new Error(message);
     }
 
-    if (!this.spec.userSeconds)
-      this.spec.userSeconds = new Map();
-    this.spec.userSeconds.set(userId, seconds);
+    this.durationOverrides.set(userId, seconds);
     log.info(
       "set user cooldown duration for " +
       `${toUserMention(userId)} to ${seconds}.`
@@ -203,17 +216,14 @@ export class CooldownManager {
     if (this.spec.type !== "global") // Pacify TS.
       throw new Error("unexpected call to setGlobalCooldownBypass");
 
-    if (!this.spec.bypassers)
-      this.spec.bypassers = new Set();
-
     if (bypass) {
-      this.spec.bypassers.add(userId);
+      this.bypassers.add(userId);
       log.debug(
         `added ${toUserMention(userId)} to bypassers for listener ` +
         "with global cooldown type."
       );
     } else {
-      this.spec.bypassers.delete(userId);
+      this.bypassers.delete(userId);
       log.debug(
         `removed ${toUserMention(userId)} from bypassers for listener ` +
         "with global cooldown type."
@@ -225,9 +235,6 @@ export class CooldownManager {
     if (this.spec.type !== "user") // Pacify TS.
       throw new Error("unexpected call to setUserCooldownBypass");
 
-    if (!this.spec.userSeconds)
-      this.spec.userSeconds = new Map();
-
     if (bypass) {
       this.setUserDuration(0, userId);
       this.userExpirations.delete(userId); // Invalidate current expiration.
@@ -235,13 +242,13 @@ export class CooldownManager {
     }
 
     const mention = toUserMention(userId);
-    const currentCooldown = this.spec.userSeconds?.get(userId);
+    const currentCooldown = this.durationOverrides.get(userId);
     // "Revoking bypass" only makes sense if the user already has a duration
     // associated with them and the duration is 0. In this case, just delete
     // them from the mapping overrides to effectively revert them to the
     // default duration.
     if (currentCooldown === 0) {
-      this.spec.userSeconds?.delete(userId);
+      this.durationOverrides.delete(userId);
       log.debug(
         `revoked bypass from ${mention} for listener ` +
         "with user cooldown type."
@@ -268,7 +275,7 @@ export class CooldownManager {
         return false;
       case "global":
         // Bypass cooldown, proceed to handling event.
-        if (this.spec.bypassers?.has(authorId)) return false;
+        if (this.bypassers.has(authorId)) return false;
         // Listener on cooldown.
         if (now < this.globalExpiration) return true;;
         return false;
@@ -289,13 +296,13 @@ export class CooldownManager {
         return;
       case "global":
         // Bypassers shouldn't interfere with the ongoing cooldown for others.
-        if (this.spec.bypassers?.has(authorId)) return;
+        if (this.bypassers.has(authorId)) return;
         expiration = addDateSeconds(now, this.spec.seconds);
         this.globalExpiration = expiration;
         return;
       case "user":
         const duration =
-          this.spec.userSeconds?.get(authorId)
+          this.durationOverrides.get(authorId)
           ?? this.spec.defaultSeconds;
         expiration = addDateSeconds(now, duration);
         this.userExpirations.set(authorId, expiration);
@@ -303,6 +310,11 @@ export class CooldownManager {
     }
   };
 
+  /**
+   * @deprecated Separate application layer logic from presentation layer. Maybe
+   * return some serialized form of cooldown state as an object, and let the
+   * caller be the one to format what to send on Discord.
+   */
   public dump = (): string | null => {
     const now = new Date();
     let result: string;
@@ -316,7 +328,7 @@ export class CooldownManager {
     }
 
     if (this.spec.type === "global") {
-      const bypasserMentions = joinUserMentions(this.spec.bypassers);
+      const bypasserMentions = joinUserMentions(this.bypassers);
       result = toBulletedList([
         "**Type:** GLOBAL",
         `**Status:** ${formatStatus(this.globalExpiration)}`,
@@ -335,7 +347,7 @@ export class CooldownManager {
       const statusesBullets = toBulletedList(statuses, 1);
 
       const durations: string[] = [];
-      for (const [userId, duration] of this.spec.userSeconds ?? []) {
+      for (const [userId, duration] of this.durationOverrides) {
         const mention = toUserMention(userId);
         durations.push(`${mention}: ${formatHoursMinsSeconds(duration)}`);
       }
