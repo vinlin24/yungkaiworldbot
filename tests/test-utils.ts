@@ -310,7 +310,17 @@ export class MockMessage {
    */
   public expectRepliedSilentlyWith(
     options: Partial<MessageReplyOptions>,
+  ): void;
+  public expectRepliedSilentlyWith(content: string): void;
+  public expectRepliedSilentlyWith(
+    arg: Partial<MessageReplyOptions> | string,
   ): void {
+    let options: Partial<MessageReplyOptions>;
+    if (typeof arg === "string") {
+      options = { content: arg };
+    } else {
+      options = arg;
+    }
     this.expectRepliedWith({
       ...options,
       allowedMentions: expect.objectContaining({ parse: [] }),
