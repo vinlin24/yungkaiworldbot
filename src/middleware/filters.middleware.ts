@@ -20,9 +20,7 @@ export const ignoreBots: MessageFilterFunction = message => !message.author.bot;
  * Only listen to messages created by a specific user(s), specified by user
  * ID(s).
  */
-export function messageFrom(
-  ...userIds: (string | undefined)[]
-): MessageFilterFunction {
+export function messageFrom(...userIds: string[]): MessageFilterFunction {
   return message => userIds.some(uid => message.author.id === uid);
 }
 
@@ -70,14 +68,12 @@ export function contentMatching(
  * IDs of users that can bypass the channel pollution prevention policy.
  */
 export function channelPollutionAllowedOrBypass(
-  // TODO: `| undefined` to accommodate undefined UIDs for now.
-  ...bypasserUids: (string | undefined)[]
+  ...bypasserUids: string[]
 ): MessageFilterFunction {
   return function (message) {
     const channel = message.channel as GuildTextBasedChannel
     const pollutionAllowed = !isPollutionImmuneChannel(channel);
-    // TODO: filtering out undefined to accommodate undefined UIDs for now.
-    const canBypass = bypasserUids.filter(Boolean).includes(message.author.id);
+    const canBypass = bypasserUids.includes(message.author.id);
     return pollutionAllowed || canBypass;
   };
 }

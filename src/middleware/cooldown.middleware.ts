@@ -25,7 +25,7 @@ export type GlobalCooldownSpec = {
   /** Global cooldown duration (seconds). */
   seconds: number;
   /** UIDs that can bypass this cooldown. */
-  bypassers?: (string | undefined)[],
+  bypassers?: string[],
   /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
@@ -35,7 +35,7 @@ export type PerUserCooldownSpec = {
   /** Default per-user cooldown duration (seconds). */
   defaultSeconds: number;
   /** UID-to-duration mapping for cooldown duration (seconds.) overrides. */
-  overrides?: Map<string | undefined, number>,
+  overrides?: Map<string, number>,
   /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
@@ -128,8 +128,7 @@ export class CooldownManager {
 
     // Add any new bypassers/overrides if provided in spec.
     if (this.spec.type === "global" && this.spec.bypassers) {
-      const bypasserIds = this.spec.bypassers.filter(Boolean) as string[];
-      for (const uid of bypasserIds) {
+      for (const uid of this.spec.bypassers) {
         this.bypassers.add(uid);
       }
     } else if (this.spec.type === "user" && this.spec.overrides) {
@@ -152,9 +151,9 @@ export class CooldownManager {
   }
 
   public setDuration(seconds: number): void;
-  public setDuration(userId: string | undefined, seconds: number): void;
-  public setDuration(arg1: number | string | undefined, arg2?: number): void {
-    let userId: string | undefined;
+  public setDuration(userId: string, seconds: number): void;
+  public setDuration(arg1: number | string, arg2?: number): void {
+    let userId: string;
     let seconds: number;
 
     // First overload: treat as global case.
@@ -167,19 +166,10 @@ export class CooldownManager {
     // Second overload: treat as per-user case.
     userId = arg1;
     seconds = arg2!;
-    if (userId === undefined) {
-      log.warning("undefined UID passed to setDuration, doing nothing.");
-      return;
-    }
     this.setUserDuration(seconds, userId);
   };
 
-  public setBypass = (bypass: boolean, userId?: string): void => {
-    if (userId === undefined) {
-      log.warning("undefined UID passed to setBypass, doing nothing.");
-      return;
-    }
-
+  public setBypass = (bypass: boolean, userId: string): void => {
     if (this.spec.type === "disabled") {
       const message = (
         "attempted to set cooldown bypass on listener with disabled cooldown"
