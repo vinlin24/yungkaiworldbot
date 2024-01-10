@@ -44,4 +44,5 @@ setReactChance.execute(async (interaction) => {
   );
 });
 
-export default setReactChance.toSpec();
+const setReactChanceSpec = setReactChance.toSpec();
+export default setReactChanceSpec;

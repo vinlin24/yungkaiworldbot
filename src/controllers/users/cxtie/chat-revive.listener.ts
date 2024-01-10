@@ -6,13 +6,18 @@ import {
   CooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
-import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
+import {
+  ListenerSpec,
+  MessageListenerBuilder,
+} from "../../../types/listener.types";
 import { replySilently } from "../../../utils/interaction.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
 async function replyWithNo(message: Message) {
   await replySilently(message, "no");
+  log.debug(`${formatContext(message)}: denied chat revival.`);
 };
 
 function containsChatReviveWithPossibleMarkdown(message: Message): boolean {
@@ -26,7 +31,7 @@ const cooldown = new CooldownManager({
   overrides: new Map([[config.CXTIE_UID, 0]]),
 });
 
-const chatReviveSpecSpec: ListenerSpec<Events.MessageCreate>
+const chatReviveSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("chat-revive")
     .filter(containsChatReviveWithPossibleMarkdown)
@@ -39,4 +44,4 @@ const chatReviveSpecSpec: ListenerSpec<Events.MessageCreate>
     .saveCooldown(cooldown)
     .toSpec();
 
-export default chatReviveSpecSpec;
+export default chatReviveSpec;

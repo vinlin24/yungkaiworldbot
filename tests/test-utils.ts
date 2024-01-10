@@ -6,9 +6,11 @@ import {
   EmojiIdentifierResolvable,
   Events,
   GuildMember,
+  GuildTextBasedChannel,
   InteractionReplyOptions,
   Message,
   MessageFlags,
+  MessageReference,
   MessageReplyOptions,
 } from "discord.js";
 import {
@@ -169,9 +171,18 @@ export class TestClient extends IClientWithIntentsAndRunners {
 /**
  * Parameter options for `MockMessage#mockAuthor`. To be extended over time.
  */
-type AuthorOptions = Partial<{
-  uid: string,
-  displayName: string,
+type MockAuthorOptions = Partial<{
+  uid: string;
+  displayName: string;
+  bot: boolean;
+}>;
+
+/**
+ * Parameter options for `MockMessage#mockChannel`. To be extended over time.
+ */
+type MockChannelOptions = Partial<{
+  cid: string;
+  name: string;
 }>;
 
 /**
@@ -195,6 +206,10 @@ export class MockMessage {
     // manager for each instance of MockMessage to make sure tests using a
     // distinct MockMessage don't share cooldown state.
     this.listener.spec.cooldown?.clearCooldowns();
+
+    // Reasonable defaults.
+    this.message.author.bot = false;
+    this.message.reference = null;
   }
 
   /**
@@ -217,6 +232,9 @@ export class MockMessage {
     return this;
   }
 
+  /**
+   * @deprecated Use the more general `mockAuthor` method instead.
+   */
   public mockAuthorBot(isBot: boolean): this {
     this.message.author.bot = isBot;
     return this;
@@ -230,14 +248,49 @@ export class MockMessage {
     return this;
   }
 
-  public mockAuthor(options: AuthorOptions): this {
+  /**
+   * ARRANGE.
+   *
+   * Mock the message's author attached to the underlying message object.
+   */
+  public mockAuthor(options: MockAuthorOptions): this {
     if (options.uid !== undefined)
       this.message.author.id = options.uid;
     if (options.displayName !== undefined)
       addMockGetter(this.message.author, "displayName", options.displayName);
+    if (options.bot !== undefined)
+      this.message.author.bot = options.bot;
     return this;
   }
 
+  /**
+   * ARRANGE.
+   *
+   * Mock the referenced message of the underlying message object.
+   */
+  public mockReference(message: Message): this {
+    const reference: MessageReference = {
+      channelId: "MOCK-CHANNEL-ID",
+      guildId: "MOCK-GUILD-ID",
+      messageId: "MOCK-MESSAGE-ID",
+    };
+    this.message.reference = reference;
+    // @ts-ignore fetch literally resolves Message. For SOME reason,
+    // mockImplementation wants the callback to resolve Collection<string,
+    // Message>.
+    this.message.channel.messages.fetch.mockImplementation(async (id) => {
+      if (id === reference.messageId) return message;
+      throw new Error("unknown mock message reference ID");
+    });
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
+   * Mock that the cooldown is currently active by refreshing the underlying
+   * cooldown manager.
+   */
   public mockCooldownActive(): this {
     if (!this.listener.spec.cooldown) {
       throw new Error(
@@ -245,6 +298,19 @@ export class MockMessage {
       ;
     }
     this.listener.spec.cooldown.refresh(this.message);
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
+   * Mock properties on the channel attached to the underlying message object.
+   */
+  public mockChannel(options: MockChannelOptions): this {
+    if (options.cid !== undefined)
+      this.message.channel.id = options.cid;
+    if (options.name !== undefined)
+      (this.message.channel as GuildTextBasedChannel).name = options.name;
     return this;
   }
 
@@ -282,7 +348,17 @@ export class MockMessage {
    */
   public expectRepliedSilentlyWith(
     options: Partial<MessageReplyOptions>,
+  ): void;
+  public expectRepliedSilentlyWith(content: string): void;
+  public expectRepliedSilentlyWith(
+    arg: Partial<MessageReplyOptions> | string,
   ): void {
+    let options: Partial<MessageReplyOptions>;
+    if (typeof arg === "string") {
+      options = { content: arg };
+    } else {
+      options = arg;
+    }
     this.expectRepliedWith({
       ...options,
       allowedMentions: expect.objectContaining({ parse: [] }),

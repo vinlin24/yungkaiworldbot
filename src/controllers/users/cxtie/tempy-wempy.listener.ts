@@ -41,4 +41,5 @@ const cooldown = new CooldownManager({ type: "global", seconds: 60 });
 onTempyWempy.filter(useCooldown(cooldown));
 onTempyWempy.saveCooldown(cooldown);
 
-export default onTempyWempy.toSpec();
+const onTempyWempySpec = onTempyWempy.toSpec();
+export default onTempyWempySpec;
