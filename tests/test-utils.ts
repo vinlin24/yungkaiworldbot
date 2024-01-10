@@ -6,6 +6,7 @@ import {
   EmojiIdentifierResolvable,
   Events,
   GuildMember,
+  GuildTextBasedChannel,
   InteractionReplyOptions,
   Message,
   MessageFlags,
@@ -170,10 +171,18 @@ export class TestClient extends IClientWithIntentsAndRunners {
 /**
  * Parameter options for `MockMessage#mockAuthor`. To be extended over time.
  */
-type AuthorOptions = Partial<{
+type MockAuthorOptions = Partial<{
   uid: string;
   displayName: string;
   bot: boolean;
+}>;
+
+/**
+ * Parameter options for `MockMessage#mockChannel`. To be extended over time.
+ */
+type MockChannelOptions = Partial<{
+  cid: string;
+  name: string;
 }>;
 
 /**
@@ -239,7 +248,12 @@ export class MockMessage {
     return this;
   }
 
-  public mockAuthor(options: AuthorOptions): this {
+  /**
+   * ARRANGE.
+   *
+   * Mock the message's author attached to the underlying message object.
+   */
+  public mockAuthor(options: MockAuthorOptions): this {
     if (options.uid !== undefined)
       this.message.author.id = options.uid;
     if (options.displayName !== undefined)
@@ -249,6 +263,11 @@ export class MockMessage {
     return this;
   }
 
+  /**
+   * ARRANGE.
+   *
+   * Mock the referenced message of the underlying message object.
+   */
   public mockReference(message: Message): this {
     const reference: MessageReference = {
       channelId: "MOCK-CHANNEL-ID",
@@ -266,6 +285,12 @@ export class MockMessage {
     return this;
   }
 
+  /**
+   * ARRANGE.
+   *
+   * Mock that the cooldown is currently active by refreshing the underlying
+   * cooldown manager.
+   */
   public mockCooldownActive(): this {
     if (!this.listener.spec.cooldown) {
       throw new Error(
@@ -273,6 +298,19 @@ export class MockMessage {
       ;
     }
     this.listener.spec.cooldown.refresh(this.message);
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
+   * Mock properties on the channel attached to the underlying message object.
+   */
+  public mockChannel(options: MockChannelOptions): this {
+    if (options.cid !== undefined)
+      this.message.channel.id = options.cid;
+    if (options.name !== undefined)
+      (this.message.channel as GuildTextBasedChannel).name = options.name;
     return this;
   }
 
