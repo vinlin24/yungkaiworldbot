@@ -90,7 +90,7 @@ environment variable names, we use this suffix convention:
 >
 > On a related note, use your common sense when naming user ID keys. Use
 > nicknames or "gamer aliases" where possible. Do not use full or legal names
-> under any circumstances. See [uids.utils.ts](src/utils/uids.utils.ts).
+> under any circumstances.
 
 
 ## Running
