@@ -197,6 +197,10 @@ export class MockMessage {
     // manager for each instance of MockMessage to make sure tests using a
     // distinct MockMessage don't share cooldown state.
     this.listener.spec.cooldown?.clearCooldowns();
+
+    // UPDATED: It makes more sense to default to a non-bot author. If we want
+    // to pretend the author is a bot, then explicitly specify it.
+    this.message.author.bot = false;
   }
 
   /**
