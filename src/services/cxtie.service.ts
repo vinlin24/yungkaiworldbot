@@ -12,7 +12,7 @@ export const SUP_EMOJI_ID = "1171056612761403413"
 export const SLAY_EMOJI_ID = "1176908139896000623";
 
 export class CxtieService {
-  public static INIT_TIMER_REACT_CHANCE = 0.05;
+  public static readonly INIT_TIMER_REACT_CHANCE = 0.05;
   private currentReactChance = CxtieService.INIT_TIMER_REACT_CHANCE;
 
   public get reactChance(): number { return this.currentReactChance; }
