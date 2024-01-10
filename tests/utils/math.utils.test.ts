@@ -7,7 +7,7 @@ describe("generating a random integer within a range", () => {
 
   afterEach(() => {
     jest.spyOn(global.Math, "random").mockRestore();
-  })
+  });
 
   it("should reject lower bounds that aren't integers", () => {
     expect(() => randRange(1.5, 6)).toThrow();
