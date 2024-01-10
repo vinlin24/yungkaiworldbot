@@ -13,7 +13,7 @@ import {
   ListenerSpec,
   MessageListenerBuilder,
 } from "../../../types/listener.types";
-import { replySilently } from "../../../utils/interaction.utils";
+import { replySilentlyWith } from "../../../utils/interaction.utils";
 
 const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 
@@ -22,7 +22,7 @@ const uffSpec: ListenerSpec<Events.MessageCreate>
     .setId("uff")
     .filter(messageFrom(config.COFFEE_UID))
     .filter(contentMatching(/^uff$/i))
-    .execute(async (message) => await replySilently(message, "woof"))
+    .execute(replySilentlyWith("woof"))
     .filter(useCooldown(cooldown))
     .saveCooldown(cooldown)
     .toSpec();
