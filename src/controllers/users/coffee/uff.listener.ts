@@ -1,5 +1,6 @@
 import { Events } from "discord.js";
 
+import config from "../../../config";
 import {
   CooldownManager,
   useCooldown,
@@ -19,7 +20,7 @@ const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 const uffSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("uff")
-    .filter(messageFrom("COFFEE"))
+    .filter(messageFrom(config.COFFEE_UID))
     .filter(contentMatching(/^uff$/i))
     .execute(async (message) => await replySilently(message, "woof"))
     .filter(useCooldown(cooldown))

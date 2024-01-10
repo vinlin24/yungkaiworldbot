@@ -1,3 +1,4 @@
+import config from "../../../config";
 import {
   CooldownManager,
   useCooldown,
@@ -11,7 +12,7 @@ import { replySilentlyWith } from "../../../utils/interaction.utils";
 
 const onGulp = new MessageListenerBuilder().setId("gulp");
 
-onGulp.filter(messageFrom("BUNNY"));
+onGulp.filter(messageFrom(config.BUNNY_UID));
 onGulp.filter(contentMatching(/^gulp$/i));
 onGulp.execute(replySilentlyWith("gulp"));
 

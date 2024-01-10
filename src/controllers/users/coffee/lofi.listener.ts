@@ -1,11 +1,16 @@
 import { Events, Message } from "discord.js";
 
+import config from "../../../config";
 import getLogger from "../../../logger";
-import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
+import {
+  ListenerSpec,
+  MessageListenerBuilder,
+} from "../../../types/listener.types";
 import { formatContext } from "../../../utils/logging.utils";
-import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
+
+const { LUKE_UID, COFFEE_UID } = config;
 
 async function reactWithLOFI(message: Message) {
   await message.react("🇱");
@@ -25,8 +30,8 @@ async function isLukeOrCoffeeReplyingToEachOther(message: Message) {
   const authorId = message.author.id;
   const repliedId = referencedMessage.author.id;
   return (
-    (authorId === uids.COFFEE && repliedId === uids.LUKE) ||
-    (authorId === uids.LUKE && repliedId === uids.COFFEE)
+    (authorId === COFFEE_UID && repliedId === LUKE_UID) ||
+    (authorId === LUKE_UID && repliedId === COFFEE_UID)
   );
 }
 

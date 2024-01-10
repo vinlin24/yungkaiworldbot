@@ -1,5 +1,6 @@
 import { Embed } from "discord.js";
 
+import config from "../../../config";
 import getLogger from "../../../logger";
 import { messageFrom } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -19,7 +20,7 @@ const NAMES_TO_APPRECIATE = new Map<string, string>([
 const onAppreciatedChar = new MessageListenerBuilder()
   .setId("mudae-appreciation");
 
-onAppreciatedChar.filter(messageFrom("MUDAE"));
+onAppreciatedChar.filter(messageFrom(config.MUDAE_UID));
 onAppreciatedChar.execute(async (message) => {
   const embed: Embed | undefined = message.embeds[0];
   const charName = embed?.author?.name;

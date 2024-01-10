@@ -1,4 +1,5 @@
 
+import config from "../../../config";
 import getLogger from "../../../logger";
 import {
   channelPollutionAllowed,
@@ -15,7 +16,7 @@ const log = getLogger(__filename);
 const randomMeower = new MessageListenerBuilder().setId("meow");
 
 randomMeower.filter(channelPollutionAllowed);
-randomMeower.filter(messageFrom("LUKE"));
+randomMeower.filter(messageFrom(config.LUKE_UID));
 randomMeower.filter(randomly(lukeService.getMeowChance));
 randomMeower.execute(async (message) => {
   await replySilently(message, "meow meow");

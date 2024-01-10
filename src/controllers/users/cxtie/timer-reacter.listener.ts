@@ -1,3 +1,4 @@
+import config from "../../../config";
 import getLogger from "../../../logger";
 import { messageFrom, randomly } from "../../../middleware/filters.middleware";
 import cxtieService from "../../../services/cxtie.service";
@@ -9,7 +10,7 @@ const log = getLogger(__filename);
 
 const randomReacter = new MessageListenerBuilder().setId("anti-cxtie");
 
-randomReacter.filter(messageFrom("CXTIE"));
+randomReacter.filter(messageFrom(config.CXTIE_UID));
 randomReacter.filter(randomly(() => cxtieService.reactChance));
 randomReacter.execute(async (message) => {
   await message.react(GUILD_EMOJIS.HMM);

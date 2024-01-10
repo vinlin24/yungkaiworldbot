@@ -1,5 +1,6 @@
 import { Events, Message } from "discord.js";
 
+import config from "../../../config";
 import getLogger from "../../../logger";
 import {
   CooldownManager,
@@ -8,7 +9,6 @@ import {
 import { contentMatching } from "../../../middleware/filters.middleware";
 import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
 import { formatContext } from "../../../utils/logging.utils";
-import uids from "../../../utils/uids.utils";
 
 const log = getLogger(__filename);
 
@@ -18,13 +18,11 @@ async function reactWithVomit(message: Message) {
   log.debug(`${formatContext(message)}: reacted to uwu.`);
 };
 
-const cooldown = new CooldownManager({ type: "global", seconds: 10 });
-
-if (uids.COFFEE === undefined) {
-  log.warning("coffee UID not found");
-} else {
-  cooldown.setBypass(true, uids.COFFEE);
-}
+const cooldown = new CooldownManager({
+  type: "global",
+  seconds: 10,
+  bypassers: [config.COFFEE_UID],
+});
 
 const uwuSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()

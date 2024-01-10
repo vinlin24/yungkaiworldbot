@@ -3,19 +3,12 @@ import { GuildMember, Message } from "discord.js";
 import getLogger from "../logger";
 import { replySilently } from "../utils/interaction.utils";
 import { formatContext } from "../utils/logging.utils";
-import uids from "../utils/uids.utils";
 
 const log = getLogger(__filename);
 
 export class LukeService {
   public static INIT_MEOW_CHANCE = 0.05;
   private meowChance = LukeService.INIT_MEOW_CHANCE;
-
-  constructor() {
-    if (uids.LUKE === undefined) {
-      log.warning("luke UID not found.");
-    }
-  }
 
   public getMeowChance = (): number => {
     return this.meowChance;
