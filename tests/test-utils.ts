@@ -9,6 +9,7 @@ import {
   InteractionReplyOptions,
   Message,
   MessageFlags,
+  MessageReference,
   MessageReplyOptions,
 } from "discord.js";
 import {
@@ -170,8 +171,9 @@ export class TestClient extends IClientWithIntentsAndRunners {
  * Parameter options for `MockMessage#mockAuthor`. To be extended over time.
  */
 type AuthorOptions = Partial<{
-  uid: string,
-  displayName: string,
+  uid: string;
+  displayName: string;
+  bot: boolean;
 }>;
 
 /**
@@ -217,6 +219,9 @@ export class MockMessage {
     return this;
   }
 
+  /**
+   * @deprecated Use the more general `mockAuthor` method instead.
+   */
   public mockAuthorBot(isBot: boolean): this {
     this.message.author.bot = isBot;
     return this;
@@ -235,6 +240,25 @@ export class MockMessage {
       this.message.author.id = options.uid;
     if (options.displayName !== undefined)
       addMockGetter(this.message.author, "displayName", options.displayName);
+    if (options.bot !== undefined)
+      this.message.author.bot = options.bot;
+    return this;
+  }
+
+  public mockReference(message: Message): this {
+    const reference: MessageReference = {
+      channelId: "MOCK-CHANNEL-ID",
+      guildId: "MOCK-GUILD-ID",
+      messageId: "MOCK-MESSAGE-ID",
+    };
+    this.message.reference = reference;
+    // @ts-ignore fetch literally resolves Message. For SOME reason,
+    // mockImplementation wants the callback to resolve Collection<string,
+    // Message>.
+    this.message.channel.messages.fetch.mockImplementation(async (id) => {
+      if (id === reference.messageId) return message;
+      throw new Error("unknown mock message reference ID");
+    });
     return this;
   }
 
