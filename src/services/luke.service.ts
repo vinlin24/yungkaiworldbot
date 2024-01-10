@@ -7,7 +7,7 @@ import { formatContext } from "../utils/logging.utils";
 const log = getLogger(__filename);
 
 export class LukeService {
-  public static INIT_MEOW_CHANCE = 0.05;
+  public static readonly INIT_MEOW_CHANCE = 0.05;
   private meowChance = LukeService.INIT_MEOW_CHANCE;
 
   public getMeowChance = (): number => {

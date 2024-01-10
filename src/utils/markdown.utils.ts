@@ -23,7 +23,7 @@ export function joinUserMentions(userIds?: Iterable<string>): string {
 /**
  * See: https://gist.github.com/LeviSnoot/d9147767abeef2f770e9ddcd91eb85aa.
  */
-export const enum TimestampFormat {
+export enum TimestampFormat {
   /** 12-hour Example: 9:01 AM */
   SHORT_TIME = "t",
   /** 12-hour Example: 9:01:00 AM */

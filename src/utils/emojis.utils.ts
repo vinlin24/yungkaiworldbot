@@ -3,6 +3,9 @@ export type CustomEmoji = {
   id: string;
 };
 
+/**
+ * Extract custom emojis from a content string.
+ */
 export function parseCustomEmojis(content: string): CustomEmoji[] {
   const CUSTOM_EMOJI_REGEXP = /<:(.+?):(\d+?)>/g;
   const matches = content.matchAll(CUSTOM_EMOJI_REGEXP);
@@ -12,6 +15,15 @@ export function parseCustomEmojis(content: string): CustomEmoji[] {
     emojis.push({ name, id });
   }
   return emojis;
+}
+
+/**
+ * Return the custom emoji in "escaped" form (with name and ID, how they are
+ * encoded in a content string payload).
+ */
+export function toEscapedEmoji(emoji: CustomEmoji): string {
+  const { name, id } = emoji;
+  return `<:${name}:${id}>`;
 }
 
 /** Partial database of yung kai world's custom emoji IDs. */

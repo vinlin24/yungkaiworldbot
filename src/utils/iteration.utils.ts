@@ -22,24 +22,6 @@ export function iterateEnum<T extends {}>(enumerable: T)
 }
 
 /**
- * Equivalent of Python's `zip()` for two arrays. Example usage:
- *
- *    ```
- *    const numbers = [1, 2, 3];
- *    const words = ['one', 'two', 'three'];
- *    const zipped = zip(numbers, words);
- *    console.log(zipped);
- *    // Output: [ [ 1, 'one' ], [ 2, 'two' ], [ 3, 'three' ] ]
- *    ```
- *
- * Attribution: ChatGPT.
- */
-export function zip<T, U>(array1: T[], array2: U[]): [T, U][] {
-  const length = Math.min(array1.length, array2.length);
-  return Array.from({ length }, (_, index) => [array1[index], array2[index]]);
-}
-
-/**
  * Resolve a mentionable into an array of member objects.
  */
 export function getAllMembers(mentionable: GuildMember | Role): GuildMember[] {
