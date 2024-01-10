@@ -132,7 +132,7 @@ export class CooldownManager {
         this.bypassers.add(uid);
       }
     } else if (this.spec.type === "user" && this.spec.overrides) {
-      for (const [uid, duration] of Object.entries(this.spec.overrides)) {
+      for (const [uid, duration] of this.spec.overrides.entries()) {
         this.durationOverrides.set(uid, duration);
       }
     }
