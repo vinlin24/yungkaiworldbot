@@ -62,22 +62,22 @@ declare global {
     //     Discord User IDs     //
     //////////////////////////////
 
-    LUKE_UID?: string;
-    KLEE_UID?: string;
-    COFFEE_UID?: string;
-    CXTIE_UID?: string;
-    TACO_UID?: string;
-    WAV_UID?: string;
-    BUNNY_UID?: string;
-    J_UID?: string;
-    KAI_UID?: string;
-    NI_UID?: string;
+    LUKE_UID: string;
+    KLEE_UID: string;
+    COFFEE_UID: string;
+    CXTIE_UID: string;
+    TACO_UID: string;
+    WAV_UID: string;
+    BUNNY_UID: string;
+    J_UID: string;
+    KAI_UID: string;
+    NI_UID: string;
 
     /////////////////////////////
     //     Discord Bot IDs     //
     /////////////////////////////
 
-    MUDAE_UID?: string;
+    MUDAE_UID: string;
   };
 
   namespace NodeJS {
