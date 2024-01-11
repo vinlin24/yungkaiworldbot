@@ -22,7 +22,7 @@ describe("/ping command", () => {
 
     const mockClient = new TestClient();
     mockClient.readySince = dummyReadySince;
-    mockClient.branchName = dummyBranchName;
+    addMockGetter(mockClient, "branchName", dummyBranchName);
     addMockGetter(mockClient.ws, "ping", dummyPing);
     mock.mockClient(mockClient);
 
