@@ -1,3 +1,5 @@
+import child_process from "node:child_process";
+
 import {
   Client,
   Collection,
@@ -13,13 +15,37 @@ import { ListenerFilter } from "./listener.types";
 
 const log = getLogger(__filename);
 
+function getCurrentBranchName(): string | null {
+  const command = "git rev-parse --abbrev-ref HEAD";
+  const process = child_process.spawnSync(command, { shell: true });
+  if (process.status !== 0) {
+    const stderr = process.stderr?.toString().trim();
+    log.warning(
+      `\`${command}\` failed with exit code ${process.status}` +
+      (stderr ? `: ${stderr}` : "")
+    );
+    return null;
+  }
+  return process.stdout.toString().trim();
+}
+
 export abstract class IClientWithIntentsAndRunners extends Client {
   public abstract readonly commandRunners
     : Collection<string, CommandRunner>;
   public abstract readonly listenerRunners
     : Collection<string, ListenerRunner<any>>;
 
+  /**
+   * The timestamp since when the bot has been ready. This is to be set by the
+   * client ready event listener handler.
+   */
   public readySince?: Date;
+
+  /**
+   * Name of the Git branch that was checked out when this program was started.
+   * This value is `null` if no Git repository is detected.
+   */
+  public readonly branchName = getCurrentBranchName();
 
   constructor() {
     super({

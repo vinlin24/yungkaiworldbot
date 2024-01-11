@@ -1,4 +1,3 @@
-import child_process from "node:child_process";
 
 import {
   ChatInputCommandInteraction,
@@ -18,20 +17,6 @@ import {
 import { addBroadcastOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
-
-function getCurrentBranchName(): string | null {
-  const command = "git rev-parse --abbrev-ref HEAD";
-  const process = child_process.spawnSync(command, { shell: true });
-  if (process.status !== 0) {
-    const stderr = process.stderr?.toString().trim();
-    log.warning(
-      `\`${command}\` failed with exit code ${process.status}` +
-      (stderr ? `: ${stderr}` : "")
-    );
-    return null;
-  }
-  return process.stdout.toString().trim();
-}
 
 const slashCommandDefinition = new SlashCommandBuilder()
   .setName("ping")
@@ -58,14 +43,15 @@ async function respondWithDevDetails(
     }
   }
 
-  const branchName = getCurrentBranchName();
-  if (branchName !== null) {
+  const { branchName, readySince } = client;
+
+  if (branchName) {
     text += `\n* Branch: \`${branchName}\``;
   }
 
-  if (client.readySince) {
-    const timestamp = toTimestampMention(client.readySince);
-    const relativeTimestamp = toRelativeTimestampMention(client.readySince);
+  if (readySince) {
+    const timestamp = toTimestampMention(readySince);
+    const relativeTimestamp = toRelativeTimestampMention(readySince);
     text += `\n* Ready: ${timestamp} (${relativeTimestamp})`;
   }
 

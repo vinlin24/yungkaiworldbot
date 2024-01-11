@@ -1,10 +1,12 @@
 import pingSpec from "../../../src/controllers/dev/ping.command";
-import { toRelativeTimestampMention, toTimestampMention } from "../../../src/utils/markdown.utils";
-
+import {
+  toRelativeTimestampMention,
+  toTimestampMention,
+} from "../../../src/utils/markdown.utils";
 import {
   MockInteraction,
   TestClient,
-  addMockGetter
+  addMockGetter,
 } from "../../test-utils";
 
 describe("/ping command", () => {
@@ -15,10 +17,12 @@ describe("/ping command", () => {
 
   it("should respond with latency, branch, startup details", async () => {
     const dummyPing = 42;
+    const dummyBranchName = "dummy-branch-name";
     const dummyReadySince = new Date();
 
     const mockClient = new TestClient();
     mockClient.readySince = dummyReadySince;
+    addMockGetter(mockClient, "branchName", dummyBranchName);
     addMockGetter(mockClient.ws, "ping", dummyPing);
     mock.mockClient(mockClient);
 
@@ -28,7 +32,7 @@ describe("/ping command", () => {
     const relativeTimestamp = toRelativeTimestampMention(dummyReadySince);
     const expectedParts = [
       `Latency: **${dummyPing}**`,
-      "Branch: ",
+      `Branch: \`${dummyBranchName}\``,
       `Ready: ${timestamp} (${relativeTimestamp})`,
     ];
     for (const part of expectedParts) {
