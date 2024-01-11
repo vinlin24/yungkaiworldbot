@@ -38,7 +38,7 @@ setReactChance.execute(async (interaction) => {
   const context = formatContext(interaction);
   log.info(`${context}: set anti-Cxtie react chance to ${newProbability}.`);
 
-  interaction.reply(
+  await interaction.reply(
     "Updated anti-Cxtie react chance from " +
     `${oldProbability} to ${newProbability}.`
   );
