@@ -129,24 +129,24 @@ export class MockInteraction {
   }
 }
 
-export function addMockGetter<PropertyType>(
-  obj: Record<string, any>,
-  key: string,
-  value: PropertyType,
+export function addMockGetter<ObjectType extends {}, ValueType>(
+  obj: ObjectType,
+  key: keyof ObjectType,
+  value: ValueType,
 ): void;
-export function addMockGetter<PropertyType>(
-  obj: Record<string, any>,
-  key: string,
-  getter: () => PropertyType,
+export function addMockGetter<ObjectType extends {}, ValueType>(
+  obj: ObjectType,
+  key: keyof ObjectType,
+  getter: () => ValueType,
 ): void;
 /**
  * Add a mock getter on the object. This is a workaround for jest-mock-extended
  * not supporting mocking getters yet. This can also be used to overwrite
  * read-only properties.
  */
-export function addMockGetter<ValueType>(
-  obj: Record<string, any>,
-  key: string,
+export function addMockGetter<ObjectType extends {}, ValueType>(
+  obj: ObjectType,
+  key: keyof ObjectType,
   getter: ValueType | (() => ValueType),
 ): jest.Mock<ValueType, [], any> {
   const mockGetter = jest.fn<ValueType, []>();
@@ -307,10 +307,16 @@ export class MockMessage {
    * Mock properties on the channel attached to the underlying message object.
    */
   public mockChannel(options: MockChannelOptions): this {
-    if (options.cid !== undefined)
+    if (options.cid !== undefined) {
       this.message.channel.id = options.cid;
-    if (options.name !== undefined)
-      (this.message.channel as GuildTextBasedChannel).name = options.name;
+    }
+    if (options.name !== undefined) {
+      addMockGetter(
+        this.message.channel as GuildTextBasedChannel,
+        "name",
+        options.name,
+      );
+    }
     return this;
   }
 
