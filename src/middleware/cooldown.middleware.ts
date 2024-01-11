@@ -7,14 +7,8 @@ import lodash from "lodash";
 
 import getLogger from "../logger";
 import { ListenerFilter } from "../types/listener.types";
-import { addDateSeconds, formatHoursMinsSeconds } from "../utils/dates.utils";
-import {
-  joinUserMentions,
-  toBulletedList,
-  toRelativeTimestampMention,
-  toTimestampMention,
-  toUserMention,
-} from "../utils/markdown.utils";
+import { addDateSeconds } from "../utils/dates.utils";
+import { toUserMention } from "../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
@@ -25,7 +19,7 @@ export type GlobalCooldownSpec = {
   /** Global cooldown duration (seconds). */
   seconds: number;
   /** UIDs that can bypass this cooldown. */
-  bypassers?: string[],
+  bypassers?: readonly string[],
   /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
@@ -35,7 +29,7 @@ export type PerUserCooldownSpec = {
   /** Default per-user cooldown duration (seconds). */
   defaultSeconds: number;
   /** UID-to-duration mapping for cooldown duration (seconds.) overrides. */
-  overrides?: Map<string, number>,
+  overrides?: ReadonlyMap<string, number>,
   /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
@@ -48,6 +42,14 @@ export type CooldownSpec =
   | GlobalCooldownSpec
   | PerUserCooldownSpec
   | DisabledCooldownSpec;
+
+export type GlobalCooldownDump
+  = Omit<Required<GlobalCooldownSpec>, "onCooldown">
+  & { expiration: Date };
+
+export type PerUserCooldownDump
+  = Omit<Required<PerUserCooldownSpec>, "onCooldown">
+  & { expirations: ReadonlyMap<string, Date> };
 
 export class CooldownManager {
   /** The spec the manager is currently observing. */
@@ -319,65 +321,30 @@ export class CooldownManager {
   };
 
   /**
-   * @deprecated Separate application layer logic from presentation layer. Maybe
-   * return some serialized form of cooldown state as an object, and let the
-   * caller be the one to format what to send on Discord.
+   * Dump the current state of the cooldown. Return null if the cooldown is
+   * currently disabled.
    */
-  public dump = (): string | null => {
-    const now = new Date();
-    let result: string;
-
-    function formatStatus(expiration: Date): string {
-      if (now >= expiration)
-        return "Inactive ✅";
-      const mention = toTimestampMention(expiration);
-      const relativeMention = toRelativeTimestampMention(expiration);
-      return `Active until ${mention} (${relativeMention}) ⌛`;
+  public dump = (): GlobalCooldownDump | PerUserCooldownDump | null => {
+    switch (this.spec.type) {
+      case "disabled":
+        return null;
+      case "global":
+        const globalData: GlobalCooldownDump = {
+          type: "global",
+          expiration: this.globalExpiration,
+          bypassers: Array.from(this.bypassers),
+          seconds: this.spec.seconds,
+        };
+        return globalData;
+      case "user":
+        const perUserData: PerUserCooldownDump = {
+          type: "user",
+          expirations: this.userExpirations,
+          overrides: this.durationOverrides,
+          defaultSeconds: this.spec.defaultSeconds,
+        };
+        return perUserData;
     }
-
-    if (this.spec.type === "global") {
-      const bypasserMentions = joinUserMentions(this.bypassers);
-      result = toBulletedList([
-        "**Type:** GLOBAL",
-        `**Status:** ${formatStatus(this.globalExpiration)}`,
-        `**Duration:** ${formatHoursMinsSeconds(this.spec.seconds)}`,
-        `**Bypassers:** ${bypasserMentions || "(none)"}`,
-      ]);
-      return result;
-    }
-
-    if (this.spec.type === "user") {
-      const statuses: string[] = [];
-      for (const [userId, expiration] of this.userExpirations.entries()) {
-        const mention = toUserMention(userId);
-        statuses.push(`${mention}: ${formatStatus(expiration)}`);
-      }
-      const statusesBullets = toBulletedList(statuses, 1);
-
-      const durations: string[] = [];
-      for (const [userId, duration] of this.durationOverrides) {
-        const mention = toUserMention(userId);
-        durations.push(`${mention}: ${formatHoursMinsSeconds(duration)}`);
-      }
-      const durationsBullets = toBulletedList(durations, 1);
-
-      const formattedDefault = formatHoursMinsSeconds(this.spec.defaultSeconds);
-      result = toBulletedList([
-        "**Type:** PER-USER",
-        "**Statuses:**" + (statusesBullets
-          ? `\n${statusesBullets}`
-          : " (none)"
-        ),
-        `**Default duration:** ${formattedDefault}`,
-        "**Duration overrides:**" + (durationsBullets
-          ? `\n${durationsBullets}`
-          : " (none)"
-        ),
-      ]);
-      return result;
-    }
-
-    return null;
   };
 }
 
