@@ -1,4 +1,4 @@
-import { Events, Message, MessageFlags } from "discord.js";
+import { EmojiResolvable, Events, Message, MessageFlags } from "discord.js";
 
 import getLogger from "../logger";
 import { ListenerExecuteFunction } from "../types/listener.types";
@@ -28,4 +28,16 @@ export function replySilentlyWith(content: string)
     await replySilently(message, content);
     log.debug(`${formatContext(message)}: replied with '${content}'.`);
   };
+}
+
+/**
+ * Return a closure that can be passed directly to `Listener#execute`. Reacts
+ * to the message with the specified emoji.
+ */
+export function reactWith(emoji: EmojiResolvable)
+  : ListenerExecuteFunction<Events.MessageCreate> {
+  return async (message) => {
+    await message.react(emoji);
+    log.debug(`${formatContext(message)}: reacted with ${emoji}.`);
+  }
 }

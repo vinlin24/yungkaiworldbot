@@ -3,6 +3,7 @@ import { Awaitable, ClientEvents, Events } from "discord.js";
 import { z } from "zod";
 import {
   CooldownManager,
+  CooldownSpec,
   useCooldown,
 } from "../middleware/cooldown.middleware";
 
@@ -197,12 +198,19 @@ export class MessageListenerBuilder
     return this;
   }
 
+  public cooldown(manager: CooldownManager): this;
+  public cooldown(spec: CooldownSpec): this;
   /**
    * Use cooldown middleware. This method also automatically saves the cooldown
    * manager instance on the built listener spec, making it available to code
    * that wants to query/update the cooldown through the bot client at runtime.
    */
-  public cooldown(manager: CooldownManager): this {
+  public cooldown(arg: CooldownManager | CooldownSpec): this {
+    let manager: CooldownManager
+    if (arg instanceof CooldownManager)
+      manager = arg;
+    else
+      manager = new CooldownManager(arg);
     this.filter(useCooldown(manager));
     this.cooldownManager = manager;
     return this;
