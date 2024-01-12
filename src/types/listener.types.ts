@@ -1,7 +1,10 @@
 import { Awaitable, ClientEvents, Events } from "discord.js";
 
 import { z } from "zod";
-import { CooldownManager } from "../middleware/cooldown.middleware";
+import {
+  CooldownManager,
+  useCooldown,
+} from "../middleware/cooldown.middleware";
 
 export type ListenerFilterFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean>;
@@ -177,25 +180,38 @@ export class ListenerBuilder<Type extends keyof ClientEvents> {
 export class MessageListenerBuilder
   extends ListenerBuilder<Events.MessageCreate> {
 
-  private cooldown?: CooldownManager;
+  private cooldownManager?: CooldownManager;
 
   constructor() { super(Events.MessageCreate); }
 
   /**
+   * @deprecated Use `.cooldown()` instead.
+   *
    * Save the dynamic cooldown manager for message creation listeners. If you
    * want to be able to change this listener's cooldown spec at runtime (such as
    * through commands), then you should include this call in addition to the
    * middleware passed to the filters.
    */
   public saveCooldown(manager: CooldownManager): this {
-    this.cooldown = manager;
+    this.cooldownManager = manager;
+    return this;
+  }
+
+  /**
+   * Use cooldown middleware. This method also automatically saves the cooldown
+   * manager instance on the built listener spec, making it available to code
+   * that wants to query/update the cooldown through the bot client at runtime.
+   */
+  public cooldown(manager: CooldownManager): this {
+    this.filter(useCooldown(manager));
+    this.cooldownManager = manager;
     return this;
   }
 
   public override toSpec(): ListenerSpec<Events.MessageCreate> {
     return {
       ...super.toSpec(),
-      cooldown: this.cooldown,
+      cooldown: this.cooldownManager,
     };
   }
 }
