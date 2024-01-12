@@ -1,6 +1,7 @@
 import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
 
 import { ListenerFilterFunction } from "../types/listener.types";
+import { parseCustomEmojis } from "../utils/emojis.utils";
 
 /**
  * Abbreviation for `ListenerFilterFunction<Events.MessageCreate>`.
@@ -100,5 +101,26 @@ export function randomly(successChance:
       );
     }
     return Math.random() < chance;
+  }
+}
+
+/**
+ * Return a filter that checks for whether the message content contains the
+ * specified custom emoji.
+ */
+export function containsCustomEmoji(emojiId: string): MessageFilterFunction {
+  return function (message) {
+    const emojis = parseCustomEmojis(message.content);
+    return emojis.some(e => e.id === emojiId);
+  }
+}
+
+/**
+ * Return a filter that checks for whether the message content contains the
+ * specified Unicode emoji.
+ */
+export function containsEmoji(unicodeEmoji: string): MessageFilterFunction {
+  return function (message) {
+    return message.content.includes(unicodeEmoji);
   }
 }
