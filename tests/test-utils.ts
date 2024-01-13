@@ -97,6 +97,15 @@ export class MockInteraction {
     return this;
   }
 
+  /**
+   * ASSERT.
+   *
+   * Shorthand for expecting that the interaction has been replied to in any
+   * way.
+   */
+  public expectReplied(): void {
+    expect(this.interaction.reply).toHaveBeenCalled();
+  }
 
   /**
    * ASSERT.
