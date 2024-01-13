@@ -108,7 +108,7 @@ async function updateBotPresence(
     log.info(`${context}: set bot status to ${statusValue}.`);
   }
 
-  await interaction.reply("👍");
+  await interaction.reply({ content: "👍", ephemeral: true });
   return true;
 }
 
