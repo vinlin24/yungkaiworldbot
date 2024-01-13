@@ -28,12 +28,19 @@ export class LukeService {
     const [_, notPresent, captured] = matches;
 
     let response: string;
+
+    // Negative version of the joke.
     if (notPresent) {
-      response = (
-        `Of course you're not ${captured}, you're ${author.displayName}!`
-      );
-    } else {
-      response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
+      response =
+        `Of course you're not ${captured}, you're ${author.displayName}!`;
+    }
+
+    // Affirmative version of the joke.
+    else {
+      if (captured.match(/^(back|awake|up|here)[.~!?-]*$/i))
+        response = `Welcome back, ${author.displayName}!`;
+      else
+        response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
     }
 
     await replySilently(message, response);

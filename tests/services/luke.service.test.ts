@@ -66,6 +66,15 @@ describe("dad joke handler", () => {
     );
   });
 
+  it("should respond with the special 'Welcome back' version", async () => {
+    const mockMessage = getMockMessage("i am back!");
+
+    const result = await lukeService.processDadJoke(mockMessage);
+
+    expect(result).toEqual(true);
+    expectRepliedWith(mockMessage, "Welcome back, test-user!");
+  });
+
   it("should not respond if the trigger is not detected", async () => {
     const mockMessage = getMockMessage("an ordinary message");
 
