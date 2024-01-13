@@ -18,8 +18,9 @@ import { formatContext } from "../../utils/logging.utils";
 const log = getLogger(__filename);
 
 type Choice<T> = APIApplicationCommandOptionChoice<T>;
-type ActivityTypeName = keyof typeof ActivityType;
-type PresenceUpdateStatusName
+
+export type ActivityTypeName = keyof typeof ActivityType;
+export type PresenceUpdateStatusName
   = Exclude<keyof typeof PresenceUpdateStatus, "Offline">;
 
 const activityTypeNames: ActivityTypeName[]

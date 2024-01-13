@@ -90,10 +90,14 @@ export class MockInteraction {
    *
    * Mock an option value on this interaction.
    */
-  public mockOption(type: OptionType, name: string, value: any): this {
-    const options
-      = this.interaction.options as DeepMockProxy<CommandInteractionOptionResolver>;
-    options[`get${type}`].calledWith(name).mockReturnValue(value);
+  public mockOption<T = any>(type: OptionType, name: string, value: T): this {
+    const options = this.interaction.options as
+      DeepMockProxy<CommandInteractionOptionResolver>;
+    // NOTE: For SOME reason, mockReturnValue is always expecting an argument of
+    // type null even though the option getter can return other values. `as
+    // null` is to pacify this TS error when switching param value from `any` to
+    // `T`. Code still works as expected.
+    options[`get${type}`].calledWith(name).mockReturnValue(value as null);
     return this;
   }
 
