@@ -22,6 +22,13 @@ describe("popipo listener", () => {
     mock.expectRepliedSilentlyWith({ content: "popipopipopipopipo" });
   });
 
+  it("should trigger on '뽀삐뽀' as well", async () => {
+    const mock = new MockMessage(onPopipoSpec).mockContent("뽀삐뽀뽀삐뽀");
+    mockRandRange.mockReturnValueOnce(4);
+    await mock.simulateEvent();
+    mock.expectRepliedSilentlyWith({ content: "popipopipopipopipo" });
+  });
+
   it("should allow Ni to bypass cooldown", async () => {
     const mock = new MockMessage(onPopipoSpec)
       .mockContent("popipopipopipo")
