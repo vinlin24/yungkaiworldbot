@@ -42,3 +42,22 @@ export function getAllPermute2<T>(array: T[]): [T, T][] {
   }
   return combinations;
 }
+
+type HashableKey = number | string | boolean | bigint | null | undefined;
+
+export function unorderedEquals<T extends HashableKey>(
+  iterable1: Iterable<T>,
+  iterable2: Iterable<T>,
+): boolean {
+  const set1 = new Set(iterable1);
+  const set2 = new Set(iterable2);
+  if (set1.size !== set2.size) {
+    return false;
+  }
+  for (const element of set1) {
+    if (!set2.has(element)) {
+      return false;
+    }
+  }
+  return true;
+}

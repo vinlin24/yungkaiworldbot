@@ -3,6 +3,7 @@ import {
   getAllMembers,
   getAllPermute2,
   iterateEnum,
+  unorderedEquals,
 } from "../../src/utils/iteration.utils";
 
 describe.skip("iterating over an enum", () => {
@@ -41,5 +42,21 @@ describe("getting all permutation pairs from an array", () => {
       [3, 1], [3, 2],
     ];
     expect(result.sort()).toEqual(pairs.sort());
+  });
+});
+
+describe("testing iterable equality ignoring order", () => {
+  it("should treat contents as equal ignoring order", () => {
+    const array1 = [1, 2, 3, 4, 5];
+    const array2 = [5, 4, 3, 2, 1];
+    const result = unorderedEquals(array1, array2);
+    expect(result).toEqual(true);
+  });
+
+  it("should treat contents as unequal even when ignoring order", () => {
+    const array1 = [1, 2, 3, 4, 5];
+    const array2 = [2, 3, 4, 5, 6];
+    const result = unorderedEquals(array1, array2);
+    expect(result).toEqual(false);
   });
 });
