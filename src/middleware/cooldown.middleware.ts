@@ -33,14 +33,28 @@ export type PerUserCooldownSpec = {
   onCooldown?: OnCooldownFunction;
 };
 
-type DisabledCooldownSpec = {
+export type PerChannelCooldownSpec = {
+  type: "channel";
+  /** Default per-channel cooldown duration (seconds). */
+  defaultSeconds: number;
+  /** CID-to-duration mapping for cooldown duration (seconds) overrides. */
+  overrides?: ReadonlyMap<string, number>;
+  /** Callback to run if cooldown is queried and found to be active. */
+  onCooldown?: OnCooldownFunction;
+};
+
+export type DisabledCooldownSpec = {
   type: "disabled";
   onCooldown?: undefined; // For consistency sake.
 };
 
+export type PerIDCooldownSpec =
+  | PerUserCooldownSpec
+  | PerChannelCooldownSpec;
+
 export type CooldownSpec =
   | GlobalCooldownSpec
-  | PerUserCooldownSpec
+  | PerIDCooldownSpec
   | DisabledCooldownSpec;
 
 export type GlobalCooldownDump
@@ -51,14 +65,25 @@ export type PerUserCooldownDump
   = Omit<Required<PerUserCooldownSpec>, "onCooldown">
   & { expirations: ReadonlyMap<string, Date> };
 
+export type PerChannelCooldownDump
+  = Omit<Required<PerChannelCooldownSpec>, "onCooldown">
+  & { expirations: ReadonlyMap<string, Date> };
+
 export type DisabledCooldownDump = { type: "disabled" };
+
+export type PerIDCooldownDump =
+  | PerUserCooldownDump
+  | PerChannelCooldownDump
 
 export type CooldownDump =
   | GlobalCooldownDump
-  | PerUserCooldownDump
+  | PerIDCooldownDump
   | DisabledCooldownDump;
 
-export interface ICooldownManager<SpecType extends CooldownSpec> {
+export interface ICooldownManager<
+  SpecType extends CooldownSpec = CooldownSpec,
+  DumpType extends CooldownDump = CooldownDump,
+> {
   get type(): SpecType["type"];
   get duration(): number;
   get onCooldown(): OnCooldownFunction | null;
@@ -68,11 +93,13 @@ export interface ICooldownManager<SpecType extends CooldownSpec> {
   setBypass(bypass: boolean, discordId: string): void;
   isActive(message: Message): boolean;
   refresh(message: Message): void;
-  dump(): CooldownDump;
+  dump(): DumpType;
 }
 
-export abstract class CooldownManagerABC<SpecType extends CooldownSpec>
-  implements ICooldownManager<SpecType> {
+export abstract class CooldownManagerABC<
+  SpecType extends CooldownSpec = CooldownSpec,
+  DumpType extends CooldownDump = CooldownDump,
+> implements ICooldownManager<SpecType, DumpType> {
 
   public readonly spec: SpecType;
 
@@ -96,11 +123,11 @@ export abstract class CooldownManagerABC<SpecType extends CooldownSpec>
   public abstract setBypass(bypass: boolean, discordId: string): void;
   public abstract isActive(message: Message): boolean;
   public abstract refresh(message: Message): void;
-  public abstract dump(): CooldownDump;
+  public abstract dump(): DumpType;
 }
 
 export class GlobalCooldownManager
-  extends CooldownManagerABC<GlobalCooldownSpec> {
+  extends CooldownManagerABC<GlobalCooldownSpec, GlobalCooldownDump> {
 
   /** Timestamp of cooldown expiration for global type cooldowns. */
   private expiration = new Date(0);
@@ -169,15 +196,17 @@ export class GlobalCooldownManager
   }
 }
 
-export class PerUserCooldownManager
-  extends CooldownManagerABC<PerUserCooldownSpec> {
+export abstract class PerIDCooldownManager<
+  SpecType extends PerIDCooldownSpec,
+  DumpType extends PerIDCooldownDump,
+> extends CooldownManagerABC<SpecType, DumpType> {
 
-  /** Per-user cooldown duration overrides for user cooldown type. */
-  private overrides = new Map<string, number>();
-  /** Per-user timestamps of cooldown expiration for user type cooldowns. */
-  private expirations = new Map<string, Date>();
+  /** Per-ID cooldown duration overrides. */
+  protected overrides = new Map<string, number>();
+  /** Per-ID timestamps of cooldown expiration. */
+  protected expirations = new Map<string, Date>();
 
-  constructor(spec: PerUserCooldownSpec) {
+  constructor(spec: SpecType) {
     super(spec);
     if (spec.overrides) {
       for (const [uid, duration] of spec.overrides) {
@@ -196,26 +225,44 @@ export class PerUserCooldownManager
 
   public override getBypassers(): string[] {
     const idsWithDurationZero: string[] = [];
-    for (const [uid, duration] of this.overrides) {
+    for (const [id, duration] of this.overrides) {
       if (duration === 0) {
-        idsWithDurationZero.push(uid);
+        idsWithDurationZero.push(id);
       }
     }
     return idsWithDurationZero;
   }
 
-  public override setDuration(seconds: number, userId?: string): void {
-    if (userId === undefined) {
+  public override setDuration(seconds: number, discordId?: string): void {
+    if (discordId === undefined) {
       this.spec.defaultSeconds = seconds;
     } else {
-      this.overrides.set(userId, seconds);
+      this.overrides.set(discordId, seconds);
     }
   }
 
-  public override setBypass(bypass: boolean, userId: string): void {
-    if (bypass) this.overrides.set(userId, 0);
-    else this.overrides.delete(userId); // User falls back to defaultSeconds.
+  public override setBypass(bypass: boolean, discordId: string): void {
+    if (bypass) this.overrides.set(discordId, 0);
+    else this.overrides.delete(discordId); // ID falls back to defaultSeconds.
   }
+
+  public override dump(): DumpType {
+    // @ts-ignore "{ ...} is assignable to the constraint of type 'DumpType',
+    // but 'DumpType' could be instantiated with a different subtype of
+    // constraint 'PerIDCooldownDump'. ts(2322)""
+    return {
+      type: this.type,
+      expirations: this.expirations,
+      overrides: this.overrides,
+      defaultSeconds: this.spec.defaultSeconds,
+    };
+  }
+}
+
+export class PerUserCooldownManager
+  extends PerIDCooldownManager<PerUserCooldownSpec, PerUserCooldownDump> {
+
+  constructor(spec: PerUserCooldownSpec) { super(spec); }
 
   public override isActive(message: Message): boolean {
     const now = new Date();
@@ -234,19 +281,34 @@ export class PerUserCooldownManager
     const expiration = addDateSeconds(now, duration);
     this.expirations.set(authorId, expiration);
   }
+}
 
-  public override dump(): PerUserCooldownDump {
-    return {
-      type: "user",
-      expirations: this.expirations,
-      overrides: this.overrides,
-      defaultSeconds: this.spec.defaultSeconds,
-    };
+export class PerChannelCooldownManager extends
+  PerIDCooldownManager<PerChannelCooldownSpec, PerChannelCooldownDump> {
+
+  constructor(spec: PerChannelCooldownSpec) { super(spec); }
+
+  public override isActive(message: Message): boolean {
+    const now = new Date();
+    const { channelId } = message;
+    const expiration = this.expirations.get(channelId);
+    if (expiration && now < expiration) {
+      return true;
+    }
+    return false;
+  }
+
+  public override refresh(message: Message): void {
+    const now = new Date();
+    const { channelId } = message;
+    const duration = this.overrides.get(channelId) ?? this.spec.defaultSeconds;
+    const expiration = addDateSeconds(now, duration);
+    this.expirations.set(channelId, expiration);
   }
 }
 
-export class DynamicCooldownManager implements ICooldownManager<CooldownSpec> {
-  private manager?: CooldownManagerABC<CooldownSpec>;
+export class DynamicCooldownManager implements ICooldownManager {
+  private manager?: CooldownManagerABC;
 
   private setNewManager(spec: CooldownSpec): void {
     switch (spec.type) {

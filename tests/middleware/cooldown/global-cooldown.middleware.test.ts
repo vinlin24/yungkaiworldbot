@@ -30,7 +30,7 @@ it("should know that it's observing a global cooldown type", () => {
 });
 
 it("should know its global duration", () => {
-  expect(manager.duration).toEqual(60);
+  expect(manager.duration).toEqual(initSpec.seconds);
 });
 
 it("should clear cooldowns", () => {

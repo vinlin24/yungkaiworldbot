@@ -2,37 +2,46 @@ import { Message } from "discord.js";
 
 import {
   CooldownSpec,
-  PerUserCooldownDump,
-  PerUserCooldownManager,
-  PerUserCooldownSpec,
+  PerChannelCooldownDump,
+  PerChannelCooldownManager,
+  PerChannelCooldownSpec,
 } from "../../../src/middleware/cooldown.middleware";
 
-const dummyBypasserUid = "4242424242";
-const dummyOverriderUid = "2244668800";
+const dummyBypasserCid = "4242424242";
+const dummyOverriderCid = "2244668800";
 
-const initSpec: PerUserCooldownSpec = {
-  type: "user",
+const initSpec: PerChannelCooldownSpec = {
+  type: "channel",
   defaultSeconds: 60,
   overrides: new Map([
-    [dummyBypasserUid, 0],
-    [dummyOverriderUid, 30],
+    [dummyBypasserCid, 0],
+    [dummyOverriderCid, 30],
   ]),
   onCooldown: jest.fn(),
 };
 
-const dummyMessage1Uid = "123456789";
-const dummyMessage2Uid = "987654321";
-const dummyMessage1 = { author: { id: dummyMessage1Uid } } as Message;
-const dummyMessage2 = { author: { id: dummyMessage2Uid } } as Message;
+const dummyMessage1Cid = "123456789";
+const dummyMessage2Cid = "987654321";
+const dummyMessage1 = {
+  channelId: dummyMessage1Cid,
+  channel: { id: dummyMessage1Cid },
+} as Message;
+const dummyMessage2 = {
+  channelId: dummyMessage2Cid,
+  channel: { id: dummyMessage2Cid },
+} as Message;
 
-let manager: PerUserCooldownManager;
+let manager: PerChannelCooldownManager;
 
 beforeEach(() => {
-  manager = new PerUserCooldownManager(initSpec);
+  manager = new PerChannelCooldownManager(initSpec);
 });
 
-it("should know that it's observing a user cooldown type", () => {
-  expect(manager.type).toEqual<CooldownSpec["type"]>("user");
+// TODO: These are literally identical to per-user cooldown tests but with
+// slightly renamed variables and descriptions.
+
+it("should know that it's observing a channel cooldown type", () => {
+  expect(manager.type).toEqual<CooldownSpec["type"]>("channel");
 });
 
 it("should know its default duration", () => {
@@ -50,13 +59,13 @@ it("should clear cooldowns", () => {
 
 it("should start with the specified bypassers", () => {
   const bypassers = manager.getBypassers();
-  expect(bypassers).toEqual([dummyBypasserUid]);
+  expect(bypassers).toEqual([dummyBypasserCid]);
 });
 
 it("should support adding bypassers", () => {
-  manager.setBypass(true, dummyMessage1Uid);
+  manager.setBypass(true, dummyMessage1Cid);
   const bypassers = manager.getBypassers();
-  expect(bypassers).toContain(dummyMessage1Uid);
+  expect(bypassers).toContain(dummyMessage1Cid);
 
   manager.refresh(dummyMessage1);
   const isActive = manager.isActive(dummyMessage1);
@@ -64,9 +73,9 @@ it("should support adding bypassers", () => {
 });
 
 it("should allow revocation of bypass", () => {
-  manager.setBypass(false, dummyMessage1Uid);
+  manager.setBypass(false, dummyMessage1Cid);
   const bypassers = manager.getBypassers();
-  expect(bypassers).not.toContain(dummyMessage1Uid);
+  expect(bypassers).not.toContain(dummyMessage1Cid);
 
   manager.refresh(dummyMessage1);
   const isActive = manager.isActive(dummyMessage1);
@@ -78,7 +87,7 @@ it("should observe new cooldown duration", () => {
   expect(manager.duration).toEqual(300);
 });
 
-it("should have independent cooldowns for different users", () => {
+it("should have independent cooldowns for different channels", () => {
   manager.refresh(dummyMessage1);
   const isActive1 = manager.isActive(dummyMessage1);
   const isActive2 = manager.isActive(dummyMessage2);
@@ -91,7 +100,7 @@ it("should dump the expected state", () => {
   manager.refresh(dummyMessage1);
   manager.refresh(dummyMessage2);
   const state = manager.dump();
-  expect(state).toEqual<PerUserCooldownDump>({
+  expect(state).toEqual<PerChannelCooldownDump>({
     type: initSpec.type,
     defaultSeconds: initSpec.defaultSeconds,
     expirations: expect.any(Map),
@@ -99,18 +108,18 @@ it("should dump the expected state", () => {
   });
   const now = new Date();
   expect(Array.from(state.overrides)).toEqual([
-    [dummyBypasserUid, 0],
-    [dummyOverriderUid, 30],
+    [dummyBypasserCid, 0],
+    [dummyOverriderCid, 30],
   ]);
   expect(Array.from(state.expirations.keys()))
-    .toEqual([dummyMessage1Uid, dummyMessage2Uid]);
+    .toEqual([dummyMessage1Cid, dummyMessage2Cid]);
   for (const expiration of state.expirations.values()) {
     expect(expiration.getTime()).toBeGreaterThan(now.getTime());
   }
 });
 
 it("should support adding overrides", () => {
-  manager.setDuration(100, dummyMessage1Uid);
+  manager.setDuration(100, dummyMessage1Cid);
   const state = manager.dump();
-  expect(Array.from(state.overrides)).toContainEqual([dummyMessage1Uid, 100]);
+  expect(Array.from(state.overrides)).toContainEqual([dummyMessage1Cid, 100]);
 });
