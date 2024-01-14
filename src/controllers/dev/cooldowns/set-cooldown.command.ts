@@ -33,6 +33,7 @@ const slashCommandDefinition = new SlashCommandBuilder()
     .addChoices(
       { name: "Global", value: "global" },
       { name: "Per-user", value: "user" },
+      { name: "Per-channel", value: "channel" },
       { name: "Disabled", value: "disabled" },
     )
   )
@@ -90,10 +91,14 @@ setCooldown.execute(async (interaction) => {
     return;
   }
 
-  if (type === "global") {
-    listener.cooldown.update({ type: "global", seconds });
-  } else if (type === "user") {
-    listener.cooldown.update({ type: "user", defaultSeconds: seconds });
+  switch (type) {
+    case "global":
+      listener.cooldown.update({ type, seconds });
+      break;
+    case "user":
+    case "channel":
+      listener.cooldown.update({ type, defaultSeconds: seconds });
+      break;
   }
 
   const response = `Updated **${listenerId}** cooldown spec:\n` +
