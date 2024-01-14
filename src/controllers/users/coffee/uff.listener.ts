@@ -2,7 +2,7 @@ import { Events } from "discord.js";
 
 import config from "../../../config";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -15,7 +15,7 @@ import {
 } from "../../../types/listener.types";
 import { replySilentlyWith } from "../../../utils/interaction.utils";
 
-const cooldown = new CooldownManager({ type: "global", seconds: 600 });
+const cooldown = new DynamicCooldownManager({ type: "global", seconds: 600 });
 
 const uffSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()

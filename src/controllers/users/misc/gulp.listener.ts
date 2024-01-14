@@ -1,6 +1,6 @@
 import config from "../../../config";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -16,7 +16,7 @@ onGulp.filter(messageFrom(config.BUNNY_UID));
 onGulp.filter(contentMatching(/^gulp$/i));
 onGulp.execute(replySilentlyWith("gulp"));
 
-const cooldown = new CooldownManager({ type: "global", seconds: 600 });
+const cooldown = new DynamicCooldownManager({ type: "global", seconds: 600 });
 onGulp.filter(useCooldown(cooldown));
 onGulp.saveCooldown(cooldown);
 

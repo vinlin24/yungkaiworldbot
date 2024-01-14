@@ -1,7 +1,7 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -30,7 +30,7 @@ onDab.execute(async (message) => {
   log.debug(`${formatContext(message)}: dabbed back.`);
 });
 
-const cooldown = new CooldownManager({
+const cooldown = new DynamicCooldownManager({
   type: "global",
   seconds: 600,
   bypassers: [config.KLEE_UID],

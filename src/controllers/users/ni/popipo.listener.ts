@@ -1,7 +1,7 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -27,7 +27,7 @@ onPopipo.execute(async (message) => {
   log.debug(`${formatContext(message)}: replied with '${response}'.`);
 });
 
-const cooldown = new CooldownManager({
+const cooldown = new DynamicCooldownManager({
   type: "user",
   defaultSeconds: 60,
   overrides: new Map([[config.NI_UID, 0]]),

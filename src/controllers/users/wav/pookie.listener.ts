@@ -1,7 +1,7 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import { contentMatching } from "../../../middleware/filters.middleware";
@@ -17,7 +17,7 @@ onPookie.execute(async (message) => {
   await message.react(GUILD_EMOJIS.NEKO_UWU);
 });
 
-const cooldown = new CooldownManager({
+const cooldown = new DynamicCooldownManager({
   type: "user",
   defaultSeconds: 300,
   overrides: new Map([

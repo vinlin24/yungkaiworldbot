@@ -2,8 +2,8 @@ import { Events, SlashCommandBuilder } from "discord.js";
 
 import { BotClient } from "../../../bot/client";
 import {
-  CooldownManager,
   CooldownSpec,
+  DynamicCooldownManager,
 } from "../../../middleware/cooldown.middleware";
 import {
   RoleLevel,
@@ -67,7 +67,7 @@ setCooldown.execute(async (interaction) => {
   }
 
   if (!listener.cooldown) {
-    listener.cooldown = new CooldownManager();
+    listener.cooldown = new DynamicCooldownManager();
   }
 
   const type = options.getString("type", true) as CooldownSpec["type"];

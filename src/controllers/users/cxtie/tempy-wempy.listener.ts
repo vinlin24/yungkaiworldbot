@@ -2,7 +2,7 @@ import { GuildTextBasedChannel } from "discord.js";
 
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
+  DynamicCooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -37,7 +37,7 @@ onTempyWempy.execute(async (message) => {
   );
 });
 
-const cooldown = new CooldownManager({ type: "global", seconds: 60 });
+const cooldown = new DynamicCooldownManager({ type: "global", seconds: 60 });
 onTempyWempy.filter(useCooldown(cooldown));
 onTempyWempy.saveCooldown(cooldown);
 
