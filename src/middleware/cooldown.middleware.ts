@@ -318,6 +318,9 @@ export class DynamicCooldownManager implements ICooldownManager {
       case "user":
         this.manager = new PerUserCooldownManager(spec);
         return;
+      case "channel":
+        this.manager = new PerChannelCooldownManager(spec);
+        return;
       case "disabled":
         this.manager = undefined;
         return;
