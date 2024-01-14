@@ -3,7 +3,7 @@ import { Events, Message } from "discord.js";
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  DynamicCooldownManager,
+  CooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -25,7 +25,7 @@ function containsChatReviveWithPossibleMarkdown(message: Message): boolean {
   return !!message.content.match(chatReviveWithPossibleMD);
 }
 
-const cooldown = new DynamicCooldownManager({
+const cooldown = new CooldownManager({
   type: "user",
   defaultSeconds: 600,
   overrides: new Map([[config.CXTIE_UID, 0]]),

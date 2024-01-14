@@ -1,6 +1,6 @@
 import config from "../../../config";
 import {
-  DynamicCooldownManager,
+  CooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import {
@@ -16,7 +16,7 @@ onMwah.filter(messageFrom(config.J_UID));
 onMwah.filter(contentMatching(/^mwah$/i));
 onMwah.execute(replySilentlyWith("mwah"));
 
-const cooldown = new DynamicCooldownManager({ type: "global", seconds: 600 });
+const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 onMwah.filter(useCooldown(cooldown));
 onMwah.saveCooldown(cooldown);
 

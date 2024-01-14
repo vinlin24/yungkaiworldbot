@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import {
+  CooldownManager,
   CooldownSpec,
   DisabledCooldownDump,
-  DynamicCooldownManager,
 } from "../../src/middleware/cooldown.middleware";
 import { getAllPermute2, unorderedEquals } from "../../src/utils/iteration.utils";
 import { expectMatchingSchema } from "../test-utils";
@@ -21,25 +21,25 @@ import {
   userCooldownDumpSchema,
 } from "./cooldown/cooldown-test-utils";
 
-let manager: DynamicCooldownManager;
+let manager: CooldownManager;
 
 beforeEach(() => {
-  manager = new DynamicCooldownManager();
+  manager = new CooldownManager();
 });
 
 describe("supporting all initial spec types", () => {
   it("should support initial global type", () => {
-    manager = new DynamicCooldownManager(initGlobalCDSpec);
+    manager = new CooldownManager(initGlobalCDSpec);
     expectGlobalCooldownDump(manager);
   });
 
   it("should support initial user type", () => {
-    manager = new DynamicCooldownManager(initUserCDSpec);
+    manager = new CooldownManager(initUserCDSpec);
     expectUserCooldownDump(manager);
   });
 
   it("should support initial channel type", () => {
-    manager = new DynamicCooldownManager(initChannelCDSpec);
+    manager = new CooldownManager(initChannelCDSpec);
     expectChannelCooldownDump(manager);
   });
 });
@@ -81,11 +81,11 @@ describe("switching between spec types", () => {
 
 describe("edge cases when cooldown is disabled", () => {
   beforeEach(() => {
-    manager = new DynamicCooldownManager({ type: "disabled" });
+    manager = new CooldownManager({ type: "disabled" });
   });
 
   it("should treat no initial spec as initializing with disabled type", () => {
-    const managerOmittedArg = new DynamicCooldownManager();
+    const managerOmittedArg = new CooldownManager();
     expect(managerOmittedArg.type).toEqual<CooldownSpec["type"]>("disabled");
   });
 

@@ -1,7 +1,7 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  DynamicCooldownManager,
+  CooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import { messageFrom } from "../../../middleware/filters.middleware";
@@ -56,7 +56,7 @@ onSniffs.execute(async (message) => {
   return true;
 });
 
-const cooldown = new DynamicCooldownManager({ type: "global", seconds: 300 });
+const cooldown = new CooldownManager({ type: "global", seconds: 300 });
 
 onSniffs.filter(useCooldown(cooldown));
 onSniffs.saveCooldown(cooldown);

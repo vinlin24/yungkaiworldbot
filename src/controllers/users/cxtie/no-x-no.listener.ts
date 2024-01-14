@@ -1,4 +1,4 @@
-import { DynamicCooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
+import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed,
   contentMatching,
@@ -15,7 +15,7 @@ noXNo.execute(async (message) => {
   await replySilently(message, `no ${displayName} no`);
 });
 
-const cooldown = new DynamicCooldownManager({
+const cooldown = new CooldownManager({
   type: "user",
   defaultSeconds: 60,
 });

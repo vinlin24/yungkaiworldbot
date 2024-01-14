@@ -3,7 +3,7 @@ import { Events, Message } from "discord.js";
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  DynamicCooldownManager,
+  CooldownManager,
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import { contentMatching } from "../../../middleware/filters.middleware";
@@ -18,7 +18,7 @@ async function reactWithVomit(message: Message) {
   log.debug(`${formatContext(message)}: reacted to uwu.`);
 };
 
-const cooldown = new DynamicCooldownManager({
+const cooldown = new CooldownManager({
   type: "global",
   seconds: 10,
   bypassers: [config.COFFEE_UID],

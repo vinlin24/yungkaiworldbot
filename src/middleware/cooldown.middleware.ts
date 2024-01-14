@@ -307,7 +307,11 @@ export class PerChannelCooldownManager extends
   }
 }
 
-export class DynamicCooldownManager implements ICooldownManager {
+/**
+ * Dynamic cooldown manager that can switch between the different cooldown types
+ * at runtime.
+ */
+export class CooldownManager implements ICooldownManager {
   private manager?: CooldownManagerABC;
 
   private setNewManager(spec: CooldownSpec): void {
@@ -418,7 +422,7 @@ export class DynamicCooldownManager implements ICooldownManager {
 }
 
 export function useCooldown(
-  manager: DynamicCooldownManager,
+  manager: CooldownManager,
 ): ListenerFilter<Events.MessageCreate>;
 export function useCooldown(
   spec: CooldownSpec,
@@ -428,13 +432,13 @@ export function useCooldown(
  * cooldown isn't currently active.
  */
 export function useCooldown(
-  value: DynamicCooldownManager | CooldownSpec,
+  value: CooldownManager | CooldownSpec,
 ): ListenerFilter<Events.MessageCreate> {
-  let manager: DynamicCooldownManager;
-  if (value instanceof DynamicCooldownManager) {
+  let manager: CooldownManager;
+  if (value instanceof CooldownManager) {
     manager = value;
   } else {
-    manager = new DynamicCooldownManager();
+    manager = new CooldownManager();
     manager.set(value);
   }
 

@@ -1,7 +1,7 @@
 import { Events, Message } from "discord.js";
 
 import getLogger from "../../../logger";
-import { DynamicCooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
+import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed,
   contentMatching,
@@ -17,7 +17,7 @@ async function execute(message: Message) {
   log.debug(`${formatContext(message)}: replied with deez.`);
 };
 
-const cooldown = new DynamicCooldownManager({ type: "global", seconds: 600 });
+const cooldown = new CooldownManager({ type: "global", seconds: 600 });
 
 const deezSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()

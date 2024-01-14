@@ -2,8 +2,8 @@ import { Awaitable, ClientEvents, Events } from "discord.js";
 
 import { z } from "zod";
 import {
+  CooldownManager,
   CooldownSpec,
-  DynamicCooldownManager,
   useCooldown,
 } from "../middleware/cooldown.middleware";
 
@@ -80,7 +80,7 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    * able to change this listener's cooldown spec at runtime (such as through
    * commands), then you should include this property.
    */
-  cooldown?: Type extends Events.MessageCreate ? DynamicCooldownManager : never;
+  cooldown?: Type extends Events.MessageCreate ? CooldownManager : never;
 };
 
 /**
@@ -102,7 +102,7 @@ export const listenerSpecSchema = z.object({
     afterExecute: z.function().optional(),
   })).optional(),
   execute: z.function(),
-  cooldown: z.instanceof(DynamicCooldownManager).optional(),
+  cooldown: z.instanceof(CooldownManager).optional(),
 });
 
 /**
@@ -181,7 +181,7 @@ export class ListenerBuilder<Type extends keyof ClientEvents> {
 export class MessageListenerBuilder
   extends ListenerBuilder<Events.MessageCreate> {
 
-  private cooldownManager?: DynamicCooldownManager;
+  private cooldownManager?: CooldownManager;
 
   constructor() { super(Events.MessageCreate); }
 
@@ -193,24 +193,24 @@ export class MessageListenerBuilder
    * through commands), then you should include this call in addition to the
    * middleware passed to the filters.
    */
-  public saveCooldown(manager: DynamicCooldownManager): this {
+  public saveCooldown(manager: CooldownManager): this {
     this.cooldownManager = manager;
     return this;
   }
 
-  public cooldown(manager: DynamicCooldownManager): this;
+  public cooldown(manager: CooldownManager): this;
   public cooldown(spec: CooldownSpec): this;
   /**
    * Use cooldown middleware. This method also automatically saves the cooldown
    * manager instance on the built listener spec, making it available to code
    * that wants to query/update the cooldown through the bot client at runtime.
    */
-  public cooldown(arg: DynamicCooldownManager | CooldownSpec): this {
-    let manager: DynamicCooldownManager
-    if (arg instanceof DynamicCooldownManager)
+  public cooldown(arg: CooldownManager | CooldownSpec): this {
+    let manager: CooldownManager
+    if (arg instanceof CooldownManager)
       manager = arg;
     else
-      manager = new DynamicCooldownManager(arg);
+      manager = new CooldownManager(arg);
     this.filter(useCooldown(manager));
     this.cooldownManager = manager;
     return this;
