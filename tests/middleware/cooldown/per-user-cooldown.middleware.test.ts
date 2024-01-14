@@ -1,34 +1,20 @@
-import { Message } from "discord.js";
-
 import {
   CooldownSpec,
-  PerUserCooldownDump,
   PerUserCooldownManager,
-  PerUserCooldownSpec,
 } from "../../../src/middleware/cooldown.middleware";
-
-const dummyBypasserUid = "4242424242";
-const dummyOverriderUid = "2244668800";
-
-const initSpec: PerUserCooldownSpec = {
-  type: "user",
-  defaultSeconds: 60,
-  overrides: new Map([
-    [dummyBypasserUid, 0],
-    [dummyOverriderUid, 30],
-  ]),
-  onCooldown: jest.fn(),
-};
-
-const dummyMessage1Uid = "123456789";
-const dummyMessage2Uid = "987654321";
-const dummyMessage1 = { author: { id: dummyMessage1Uid } } as Message;
-const dummyMessage2 = { author: { id: dummyMessage2Uid } } as Message;
+import {
+  dummyBypasserUid,
+  dummyMessage1,
+  dummyMessage1Uid,
+  dummyMessage2,
+  expectUserCooldownDump,
+  initUserCDSpec,
+} from "./cooldown-test-utils";
 
 let manager: PerUserCooldownManager;
 
 beforeEach(() => {
-  manager = new PerUserCooldownManager(initSpec);
+  manager = new PerUserCooldownManager(initUserCDSpec);
 });
 
 it("should know that it's observing a user cooldown type", () => {
@@ -36,7 +22,7 @@ it("should know that it's observing a user cooldown type", () => {
 });
 
 it("should know its default duration", () => {
-  expect(manager.duration).toEqual(initSpec.defaultSeconds);
+  expect(manager.duration).toEqual(initUserCDSpec.defaultSeconds);
 });
 
 it("should clear cooldowns", () => {
@@ -87,27 +73,7 @@ it("should have independent cooldowns for different users", () => {
   expect(isActive1).toEqual(true);
 });
 
-it("should dump the expected state", () => {
-  manager.refresh(dummyMessage1);
-  manager.refresh(dummyMessage2);
-  const state = manager.dump();
-  expect(state).toEqual<PerUserCooldownDump>({
-    type: initSpec.type,
-    defaultSeconds: initSpec.defaultSeconds,
-    expirations: expect.any(Map),
-    overrides: expect.any(Map),
-  });
-  const now = new Date();
-  expect(Array.from(state.overrides)).toEqual([
-    [dummyBypasserUid, 0],
-    [dummyOverriderUid, 30],
-  ]);
-  expect(Array.from(state.expirations.keys()))
-    .toEqual([dummyMessage1Uid, dummyMessage2Uid]);
-  for (const expiration of state.expirations.values()) {
-    expect(expiration.getTime()).toBeGreaterThan(now.getTime());
-  }
-});
+it("should dump the expected state", () => expectUserCooldownDump(manager));
 
 it("should support adding overrides", () => {
   manager.setDuration(100, dummyMessage1Uid);

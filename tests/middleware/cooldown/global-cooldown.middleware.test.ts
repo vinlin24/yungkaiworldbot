@@ -1,28 +1,19 @@
-import { Message } from "discord.js";
-
 import {
   CooldownSpec,
-  GlobalCooldownDump,
   GlobalCooldownManager,
-  GlobalCooldownSpec,
 } from "../../../src/middleware/cooldown.middleware";
-
-const dummyBypasserUid = "4242424242";
-
-const initSpec: GlobalCooldownSpec = {
-  type: "global",
-  seconds: 60,
-  bypassers: [dummyBypasserUid],
-  onCooldown: jest.fn(),
-};
-
-const dummyMessageUid = "123456789";
-const dummyMessage = { author: { id: dummyMessageUid } } as Message;
+import {
+  dummyBypasserUid,
+  dummyMessage1,
+  dummyMessage1Uid,
+  expectGlobalCooldownDump,
+  initGlobalCDSpec,
+} from "./cooldown-test-utils";
 
 let manager: GlobalCooldownManager;
 
 beforeEach(() => {
-  manager = new GlobalCooldownManager(initSpec);
+  manager = new GlobalCooldownManager(initGlobalCDSpec);
 });
 
 it("should know that it's observing a global cooldown type", () => {
@@ -30,14 +21,14 @@ it("should know that it's observing a global cooldown type", () => {
 });
 
 it("should know its global duration", () => {
-  expect(manager.duration).toEqual(initSpec.seconds);
+  expect(manager.duration).toEqual(initGlobalCDSpec.seconds);
 });
 
 it("should clear cooldowns", () => {
-  manager.refresh(dummyMessage);
-  const isActiveBefore = manager.isActive(dummyMessage);
+  manager.refresh(dummyMessage1);
+  const isActiveBefore = manager.isActive(dummyMessage1);
   manager.clearCooldowns();
-  const isActiveAfter = manager.isActive(dummyMessage);
+  const isActiveAfter = manager.isActive(dummyMessage1);
   expect(isActiveAfter).toEqual(false);
   expect(isActiveBefore).toEqual(true);
 });
@@ -48,22 +39,22 @@ it("should start with the specified bypassers", () => {
 });
 
 it("should support adding bypassers", () => {
-  manager.setBypass(true, dummyMessageUid);
+  manager.setBypass(true, dummyMessage1Uid);
   const bypassers = manager.getBypassers();
-  expect(bypassers).toContain(dummyMessageUid);
+  expect(bypassers).toContain(dummyMessage1Uid);
 
-  manager.refresh(dummyMessage);
-  const isActive = manager.isActive(dummyMessage);
+  manager.refresh(dummyMessage1);
+  const isActive = manager.isActive(dummyMessage1);
   expect(isActive).toEqual(false);
 });
 
 it("should allow revocation of bypass", () => {
-  manager.setBypass(false, dummyMessageUid);
+  manager.setBypass(false, dummyMessage1Uid);
   const bypassers = manager.getBypassers();
-  expect(bypassers).not.toContain(dummyMessageUid);
+  expect(bypassers).not.toContain(dummyMessage1Uid);
 
-  manager.refresh(dummyMessage);
-  const isActive = manager.isActive(dummyMessage);
+  manager.refresh(dummyMessage1);
+  const isActive = manager.isActive(dummyMessage1);
   expect(isActive).toEqual(true);
 });
 
@@ -72,15 +63,4 @@ it("should observe new cooldown duration", () => {
   expect(manager.duration).toEqual(300);
 });
 
-it("should dump the expected state", () => {
-  manager.refresh(dummyMessage);
-  const state = manager.dump();
-  expect(state).toEqual<GlobalCooldownDump>({
-    type: initSpec.type,
-    seconds: initSpec.seconds,
-    expiration: expect.any(Date),
-    bypassers: initSpec.bypassers!,
-  });
-  const now = new Date();
-  expect(state.expiration.getTime()).toBeGreaterThan(now.getTime());
-});
+it("should dump the expected state", () => expectGlobalCooldownDump(manager));

@@ -1,40 +1,20 @@
-import { Message } from "discord.js";
-
 import {
   CooldownSpec,
-  PerChannelCooldownDump,
   PerChannelCooldownManager,
-  PerChannelCooldownSpec,
 } from "../../../src/middleware/cooldown.middleware";
-
-const dummyBypasserCid = "4242424242";
-const dummyOverriderCid = "2244668800";
-
-const initSpec: PerChannelCooldownSpec = {
-  type: "channel",
-  defaultSeconds: 60,
-  overrides: new Map([
-    [dummyBypasserCid, 0],
-    [dummyOverriderCid, 30],
-  ]),
-  onCooldown: jest.fn(),
-};
-
-const dummyMessage1Cid = "123456789";
-const dummyMessage2Cid = "987654321";
-const dummyMessage1 = {
-  channelId: dummyMessage1Cid,
-  channel: { id: dummyMessage1Cid },
-} as Message;
-const dummyMessage2 = {
-  channelId: dummyMessage2Cid,
-  channel: { id: dummyMessage2Cid },
-} as Message;
+import {
+  dummyBypasserCid,
+  dummyMessage1,
+  dummyMessage1Cid,
+  dummyMessage2,
+  expectChannelCooldownDump,
+  initChannelCDSpec,
+} from "./cooldown-test-utils";
 
 let manager: PerChannelCooldownManager;
 
 beforeEach(() => {
-  manager = new PerChannelCooldownManager(initSpec);
+  manager = new PerChannelCooldownManager(initChannelCDSpec);
 });
 
 // TODO: These are literally identical to per-user cooldown tests but with
@@ -45,7 +25,7 @@ it("should know that it's observing a channel cooldown type", () => {
 });
 
 it("should know its default duration", () => {
-  expect(manager.duration).toEqual(initSpec.defaultSeconds);
+  expect(manager.duration).toEqual(initChannelCDSpec.defaultSeconds);
 });
 
 it("should clear cooldowns", () => {
@@ -96,27 +76,7 @@ it("should have independent cooldowns for different channels", () => {
   expect(isActive1).toEqual(true);
 });
 
-it("should dump the expected state", () => {
-  manager.refresh(dummyMessage1);
-  manager.refresh(dummyMessage2);
-  const state = manager.dump();
-  expect(state).toEqual<PerChannelCooldownDump>({
-    type: initSpec.type,
-    defaultSeconds: initSpec.defaultSeconds,
-    expirations: expect.any(Map),
-    overrides: expect.any(Map),
-  });
-  const now = new Date();
-  expect(Array.from(state.overrides)).toEqual([
-    [dummyBypasserCid, 0],
-    [dummyOverriderCid, 30],
-  ]);
-  expect(Array.from(state.expirations.keys()))
-    .toEqual([dummyMessage1Cid, dummyMessage2Cid]);
-  for (const expiration of state.expirations.values()) {
-    expect(expiration.getTime()).toBeGreaterThan(now.getTime());
-  }
-});
+it("should dump the expected state", () => expectChannelCooldownDump(manager));
 
 it("should support adding overrides", () => {
   manager.setDuration(100, dummyMessage1Cid);
