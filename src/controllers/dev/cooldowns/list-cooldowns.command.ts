@@ -5,6 +5,8 @@ import { BotClient } from "../../../bot/client";
 import getLogger from "../../../logger";
 import {
   GlobalCooldownDump,
+  PerChannelCooldownDump,
+  PerIDCooldownDump,
   PerUserCooldownDump,
 } from "../../../middleware/cooldown.middleware";
 import { CommandBuilder } from "../../../types/command.types";
@@ -14,6 +16,7 @@ import { formatContext } from "../../../utils/logging.utils";
 import {
   joinUserMentions,
   toBulletedList,
+  toChannelMention,
   toRelativeTimestampMention,
   toTimestampMention,
   toUserMention,
@@ -50,27 +53,29 @@ function formatGlobalCooldownDump(
   return result;
 }
 
-function formatPerUserCooldownDump(
+function formatPerIDCooldownDump(
   now: Date,
-  dump: PerUserCooldownDump,
+  dump: PerIDCooldownDump,
+  toMention: (id: string) => string,
+  typeToDisplay: string,
 ): string {
   const statuses: string[] = [];
-  for (const [userId, expiration] of dump.expirations.entries()) {
-    const mention = toUserMention(userId);
+  for (const [id, expiration] of dump.expirations.entries()) {
+    const mention = toMention(id);
     statuses.push(`${mention}: ${formatStatus(now, expiration)}`);
   }
   const statusesBullets = toBulletedList(statuses, 1);
 
   const durations: string[] = [];
-  for (const [userId, duration] of dump.overrides) {
-    const mention = toUserMention(userId);
+  for (const [id, duration] of dump.overrides) {
+    const mention = toMention(id);
     durations.push(`${mention}: ${formatHoursMinsSeconds(duration)}`);
   }
   const durationsBullets = toBulletedList(durations, 1);
 
   const formattedDefault = formatHoursMinsSeconds(dump.defaultSeconds);
   const result = toBulletedList([
-    "**Type:** PER-USER",
+    `**Type:** ${typeToDisplay}`,
     "**Statuses:**" + (statusesBullets
       ? `\n${statusesBullets}`
       : " (none)"
@@ -84,18 +89,40 @@ function formatPerUserCooldownDump(
   return result;
 }
 
+function formatPerUserCooldownDump(
+  now: Date,
+  dump: PerUserCooldownDump,
+): string {
+  return formatPerIDCooldownDump(now, dump, toUserMention, "PER-USER");
+}
+
+function formatPerChannelCooldownDump(
+  now: Date,
+  dump: PerChannelCooldownDump,
+): string {
+  return formatPerIDCooldownDump(now, dump, toChannelMention, "PER-CHANNEL");
+}
+
 function formatListenerCooldownDump(
   now: Date,
   listener: ListenerSpec<Events.MessageCreate>,
 ): string {
   const dump = listener.cooldown?.dump();
   let formatted: string;
-  if (dump) {
-    formatted = dump.type === "global"
-      ? formatGlobalCooldownDump(now, dump)
-      : formatPerUserCooldownDump(now, dump);
-  } else {
-    formatted = "(disabled)";
+  switch (dump?.type) {
+    case "global":
+      formatted = formatGlobalCooldownDump(now, dump);
+      break;
+    case "user":
+      formatted = formatPerUserCooldownDump(now, dump);
+      break;
+    case "channel":
+      formatted = formatPerChannelCooldownDump(now, dump);
+      break;
+    case "disabled":
+    case undefined:
+      formatted = "(disabled)";
+      break;
   }
   return `__**${listener.id}** Cooldown__\n${formatted}`;
 }
