@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   CooldownSpec,
+  DisabledCooldownDump,
   DynamicCooldownManager,
 } from "../../src/middleware/cooldown.middleware";
 import { getAllPermute2 } from "../../src/utils/iteration.utils";
@@ -9,6 +10,7 @@ import { expectMatchingSchema } from "../test-utils";
 import {
   channelCooldownDumpSchema,
   disabledCooldownDumpSchema,
+  dummyMessage1,
   expectChannelCooldownDump,
   expectGlobalCooldownDump,
   expectUserCooldownDump,
@@ -16,7 +18,7 @@ import {
   initChannelCDSpec,
   initGlobalCDSpec,
   initUserCDSpec,
-  userCooldownDumpSchema
+  userCooldownDumpSchema,
 } from "./cooldown/cooldown-test-utils";
 
 let manager: DynamicCooldownManager;
@@ -74,4 +76,36 @@ describe("switching between spec types", () => {
       });
     }
   }
+});
+
+describe("edge cases when cooldown is disabled", () => {
+  beforeEach(() => {
+    manager = new DynamicCooldownManager({ type: "disabled" });
+  });
+
+  it("should treat no initial spec as initializing with disabled type", () => {
+    const managerOmittedArg = new DynamicCooldownManager();
+    expect(managerOmittedArg.type).toEqual<CooldownSpec["type"]>("disabled");
+  });
+
+  it("should know if it's not observing any cooldown type", () => {
+    expect(manager.type).toEqual<CooldownSpec["type"]>("disabled");
+  });
+
+  it("should return infinite duration if cooldown disabled", () => {
+    expect(manager.duration).toEqual(Infinity);
+  });
+
+  it("should always appear inactive if cooldown disabled", () => {
+    manager.refresh(dummyMessage1);
+    expect(manager.isActive(dummyMessage1)).toEqual(false);
+  });
+
+  it("should return no bypassers if cooldown disabled", () => {
+    expect(manager.getBypassers()).toHaveLength(0);
+  });
+
+  it("should dump the expected state", () => {
+    expect(manager.dump()).toEqual<DisabledCooldownDump>({ type: "disabled" });
+  });
 });
