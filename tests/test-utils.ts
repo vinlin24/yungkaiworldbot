@@ -18,6 +18,8 @@ import {
   Matcher,
   mockDeep,
 } from "jest-mock-extended";
+import { z } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
@@ -457,4 +459,17 @@ export async function testEphemeralOptionSupport(
     await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: true });
   });
+}
+
+/**
+ * Check that an object matches a schema. Return silently on success, throw
+ * `ValidationError` on failure.
+ */
+export function expectMatchingSchema(
+  obj: unknown,
+  schema: z.ZodObject<any>,
+): void {
+  const result = schema.safeParse(obj);
+  if (result.success) return;
+  throw fromZodError(result.error);
 }
