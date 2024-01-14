@@ -5,7 +5,7 @@ import {
   DisabledCooldownDump,
   DynamicCooldownManager,
 } from "../../src/middleware/cooldown.middleware";
-import { getAllPermute2 } from "../../src/utils/iteration.utils";
+import { getAllPermute2, unorderedEquals } from "../../src/utils/iteration.utils";
 import { expectMatchingSchema } from "../test-utils";
 import {
   channelCooldownDumpSchema,
@@ -65,7 +65,8 @@ describe("switching between spec types", () => {
       expectMatchingSchema(manager.dump(), endSchema);
     });
 
-    if (startType !== "disabled" && endType !== "disabled") {
+    // Special policy for preserving bypassers when switching b/w global & user.
+    if (unorderedEquals([startType, endType], ["global", "user"])) {
       it(`should preserve bypassers when ${startType} -> ${endType}`, () => {
         const newBypasserUid = "3344556677";
         manager.set(startSpec);

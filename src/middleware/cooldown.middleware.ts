@@ -332,8 +332,11 @@ export class DynamicCooldownManager implements ICooldownManager {
   }
 
   public set(spec: CooldownSpec): void {
-    // Save bypassers. We can transfer them between cooldown types.
-    const bypassers = this.manager?.getBypassers() ?? [];
+    let bypassers: string[] = [];
+    // Special policy for switching between GLOBAL and USER: Save bypassers.
+    if (this.type === "global" || this.type === "user") {
+      bypassers = this.manager?.getBypassers() ?? [];
+    }
 
     this.setNewManager(spec);
 
@@ -341,19 +344,27 @@ export class DynamicCooldownManager implements ICooldownManager {
     this.manager?.clearCooldowns();
 
     // Transfer bypassers.
-    for (const memberId of bypassers) {
-      this.manager?.setBypass(true, memberId);
+    if (spec.type === "global" || spec.type === "user") {
+      for (const memberId of bypassers) {
+        this.manager?.setBypass(true, memberId);
+      }
     }
 
     // Add any new bypassers/overrides if provided in spec.
-    if (spec.type === "global" && spec.bypassers) {
-      for (const id of spec.bypassers) {
-        this.manager?.setBypass(true, id);
-      }
-    } else if (spec.type === "user" && spec.overrides) {
-      for (const [id, duration] of spec.overrides) {
-        this.manager?.setDuration(duration, id);
-      }
+    switch (spec.type) {
+      case "global":
+        if (!spec.bypassers) break;
+        for (const id of spec.bypassers) {
+          this.manager?.setBypass(true, id);
+        }
+        break;
+      case "user":
+      case "channel":
+        if (!spec.overrides) break;
+        for (const [id, duration] of spec.overrides) {
+          this.manager?.setDuration(duration, id);
+        }
+        break;
     }
   }
 
