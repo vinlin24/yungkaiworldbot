@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import { z } from "zod";
 
 import {
   GlobalCooldownDump,
@@ -79,6 +80,13 @@ export function expectGlobalCooldownDump(manager: ICooldownManager): void {
   expect(state.expiration.getTime()).toBeGreaterThan(now.getTime());
 }
 
+export const globalCooldownDumpSchema = z.object({
+  type: z.literal("global"),
+  seconds: z.number(),
+  expiration: z.date(),
+  bypassers: z.array(z.string()),
+});
+
 /**
  * Expect that the state dump of a per-user type cooldown initialized with the
  * dummy initial spec is of the expected structure.
@@ -105,6 +113,13 @@ export function expectUserCooldownDump(manager: ICooldownManager): void {
   }
 }
 
+export const userCooldownDumpSchema = z.object({
+  type: z.literal("user"),
+  defaultSeconds: z.number(),
+  expirations: z.map(z.string(), z.date()),
+  overrides: z.map(z.string(), z.number()),
+});
+
 /**
  * Expect that the state dump of a per-channel type cooldown initialized with
  * the dummy initial spec is of the expected structure.
@@ -130,3 +145,14 @@ export function expectChannelCooldownDump(manager: ICooldownManager): void {
     expect(expiration.getTime()).toBeGreaterThan(now.getTime());
   }
 }
+
+export const channelCooldownDumpSchema = z.object({
+  type: z.literal("channel"),
+  defaultSeconds: z.number(),
+  expirations: z.map(z.string(), z.date()),
+  overrides: z.map(z.string(), z.number()),
+});
+
+export const disabledCooldownDumpSchema = z.object({
+  type: z.literal("disabled"),
+});
