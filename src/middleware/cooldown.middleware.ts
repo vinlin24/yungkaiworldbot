@@ -60,6 +60,7 @@ export type CooldownDump =
 
 export interface ICooldownManager<SpecType extends CooldownSpec> {
   get type(): SpecType["type"];
+  get duration(): number;
   get onCooldown(): OnCooldownFunction | null;
   clearCooldowns(): void;
   getBypassers(): string[];
@@ -87,6 +88,8 @@ export abstract class CooldownManagerABC<SpecType extends CooldownSpec>
     return this.spec.onCooldown ?? null;
   }
 
+  public abstract get duration(): number;
+
   public abstract clearCooldowns(): void;
   public abstract getBypassers(): string[];
   public abstract setDuration(seconds: number, discordId?: string): void;
@@ -104,7 +107,16 @@ export class GlobalCooldownManager
   /** User IDs for users that bypass global cooldown type. */
   private bypassers = new Set<string>();
 
-  constructor(spec: GlobalCooldownSpec) { super(spec); }
+  constructor(spec: GlobalCooldownSpec) {
+    super(spec);
+    for (const uid of spec.bypassers ?? []) {
+      this.bypassers.add(uid);
+    }
+  }
+
+  public override get duration(): number {
+    return this.spec.seconds;
+  }
 
   public override clearCooldowns(): void {
     this.expiration = new Date(0);
@@ -165,7 +177,18 @@ export class PerUserCooldownManager
   /** Per-user timestamps of cooldown expiration for user type cooldowns. */
   private expirations = new Map<string, Date>();
 
-  constructor(spec: PerUserCooldownSpec) { super(spec); }
+  constructor(spec: PerUserCooldownSpec) {
+    super(spec);
+    if (spec.overrides) {
+      for (const [uid, duration] of spec.overrides) {
+        this.overrides.set(uid, duration);
+      }
+    }
+  }
+
+  public override get duration(): number {
+    return this.spec.defaultSeconds;
+  }
 
   public override clearCooldowns(): void {
     this.expirations.clear();
@@ -288,6 +311,9 @@ export class DynamicCooldownManager implements ICooldownManager<CooldownSpec> {
 
   public get type(): CooldownSpec["type"] {
     return this.manager?.type ?? "disabled";
+  }
+  public get duration(): number {
+    return this.manager?.duration ?? Infinity;
   }
   public get onCooldown(): OnCooldownFunction | null {
     return this.manager?.onCooldown ?? null;
