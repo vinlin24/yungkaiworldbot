@@ -45,6 +45,9 @@ export function getAllPermute2<T>(array: T[]): [T, T][] {
 
 type HashableKey = number | string | boolean | bigint | null | undefined;
 
+/**
+ * Return whether two iterables contain the same elements, ignoring order.
+ */
 export function unorderedEquals<T extends HashableKey>(
   iterable1: Iterable<T>,
   iterable2: Iterable<T>,
