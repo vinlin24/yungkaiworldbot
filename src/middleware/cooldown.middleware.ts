@@ -28,15 +28,16 @@ export type PerUserCooldownSpec = {
   type: "user";
   /** Default per-user cooldown duration (seconds). */
   defaultSeconds: number;
-  /** UID-to-duration mapping for cooldown duration (seconds.) overrides. */
-  overrides?: ReadonlyMap<string, number>,
+  /** UID-to-duration mapping for cooldown duration (seconds) overrides. */
+  overrides?: ReadonlyMap<string, number>;
   /** Callback to run if cooldown is queried and found to be active. */
   onCooldown?: OnCooldownFunction;
 };
 
-export type DisabledCooldownSpec = {
+type DisabledCooldownSpec = {
   type: "disabled";
-}
+  onCooldown?: undefined; // For consistency sake.
+};
 
 export type CooldownSpec =
   | GlobalCooldownSpec
@@ -50,6 +51,270 @@ export type GlobalCooldownDump
 export type PerUserCooldownDump
   = Omit<Required<PerUserCooldownSpec>, "onCooldown">
   & { expirations: ReadonlyMap<string, Date> };
+
+export type DisabledCooldownDump = { type: "disabled" };
+
+export type CooldownDump =
+  | GlobalCooldownDump
+  | PerUserCooldownDump
+  | DisabledCooldownDump;
+
+export interface ICooldownManager<SpecType extends CooldownSpec> {
+  get type(): SpecType["type"];
+  get onCooldown(): OnCooldownFunction | null;
+  clearCooldowns(): void;
+  getBypassers(): string[];
+  setDuration(seconds: number, discordId?: string): void;
+  setBypass(bypass: boolean, discordId: string): void;
+  isActive(message: Message): boolean;
+  refresh(message: Message): void;
+  dump(): CooldownDump;
+}
+
+export abstract class CooldownManagerABC<SpecType extends CooldownSpec>
+  implements ICooldownManager<SpecType> {
+
+  public readonly spec: SpecType;
+
+  constructor(initialSpec: SpecType) {
+    this.spec = lodash.cloneDeep(initialSpec);
+  }
+
+  public get type(): SpecType["type"] {
+    return this.spec.type;
+  }
+
+  public get onCooldown(): OnCooldownFunction | null {
+    return this.spec.onCooldown ?? null;
+  }
+
+  public abstract clearCooldowns(): void;
+  public abstract getBypassers(): string[];
+  public abstract setDuration(seconds: number, discordId?: string): void;
+  public abstract setBypass(bypass: boolean, discordId: string): void;
+  public abstract isActive(message: Message): boolean;
+  public abstract refresh(message: Message): void;
+  public abstract dump(): CooldownDump;
+}
+
+export class GlobalCooldownManager
+  extends CooldownManagerABC<GlobalCooldownSpec> {
+
+  /** Timestamp of cooldown expiration for global type cooldowns. */
+  private expiration = new Date(0);
+  /** User IDs for users that bypass global cooldown type. */
+  private bypassers = new Set<string>();
+
+  constructor(spec: GlobalCooldownSpec) { super(spec); }
+
+  public override clearCooldowns(): void {
+    this.expiration = new Date(0);
+  }
+
+  public override getBypassers(): string[] {
+    return Array.from(this.bypassers);
+  }
+
+  public override setDuration(seconds: number): void {
+    this.spec.seconds = seconds;
+  }
+
+  public override setBypass(bypass: boolean, userId: string): void {
+    if (bypass) this.bypassers.add(userId);
+    else this.bypassers.delete(userId);
+  }
+
+  public override isActive(message: Message<boolean>): boolean {
+    const now = new Date();
+    const authorId = message.author.id;
+    // Bypass cooldown, proceed to handling event.
+    if (this.bypassers.has(authorId)) {
+      return false;
+    }
+    // Listener on cooldown.
+    if (now < this.expiration) {
+      return true;
+    }
+    return false;
+  }
+
+  public override refresh(message: Message<boolean>): void {
+    const now = new Date();
+    const authorId = message.author.id;
+    // Bypassers shouldn't interfere with the ongoing cooldown for others.
+    if (this.bypassers.has(authorId)) {
+      return;
+    }
+    this.expiration = addDateSeconds(now, this.spec.seconds);
+  }
+
+  public override dump(): GlobalCooldownDump {
+    return {
+      type: "global",
+      expiration: this.expiration,
+      bypassers: Array.from(this.bypassers),
+      seconds: this.spec.seconds,
+    };
+  }
+}
+
+export class PerUserCooldownManager
+  extends CooldownManagerABC<PerUserCooldownSpec> {
+
+  /** Per-user cooldown duration overrides for user cooldown type. */
+  private overrides = new Map<string, number>();
+  /** Per-user timestamps of cooldown expiration for user type cooldowns. */
+  private expirations = new Map<string, Date>();
+
+  constructor(spec: PerUserCooldownSpec) { super(spec); }
+
+  public override clearCooldowns(): void {
+    this.expirations.clear();
+  }
+
+  public override getBypassers(): string[] {
+    const idsWithDurationZero: string[] = [];
+    for (const [uid, duration] of this.overrides) {
+      if (duration === 0) {
+        idsWithDurationZero.push(uid);
+      }
+    }
+    return idsWithDurationZero;
+  }
+
+  public override setDuration(seconds: number, userId?: string): void {
+    if (userId === undefined) {
+      this.spec.defaultSeconds = seconds;
+    } else {
+      this.overrides.set(userId, seconds);
+    }
+  }
+
+  public override setBypass(bypass: boolean, userId: string): void {
+    if (bypass) this.overrides.set(userId, 0);
+    else this.overrides.delete(userId); // User falls back to defaultSeconds.
+  }
+
+  public override isActive(message: Message): boolean {
+    const now = new Date();
+    const authorId = message.author.id;
+    const expiration = this.expirations.get(authorId);
+    if (expiration && now < expiration) {
+      return true;
+    }
+    return false;
+  }
+
+  public override refresh(message: Message): void {
+    const now = new Date();
+    const authorId = message.author.id;
+    const duration = this.overrides.get(authorId) ?? this.spec.defaultSeconds;
+    const expiration = addDateSeconds(now, duration);
+    this.expirations.set(authorId, expiration);
+  }
+
+  public override dump(): PerUserCooldownDump {
+    return {
+      type: "user",
+      expirations: this.expirations,
+      overrides: this.overrides,
+      defaultSeconds: this.spec.defaultSeconds,
+    };
+  }
+}
+
+export class DynamicCooldownManager implements ICooldownManager<CooldownSpec> {
+  private manager?: CooldownManagerABC<CooldownSpec>;
+
+  private setNewManager(spec: CooldownSpec): void {
+    switch (spec.type) {
+      case "global":
+        this.manager = new GlobalCooldownManager(spec);
+        return;
+      case "user":
+        this.manager = new PerUserCooldownManager(spec);
+        return;
+      case "disabled":
+        this.manager = undefined;
+        return;
+    }
+  }
+
+  constructor(initialSpec?: CooldownSpec) {
+    if (initialSpec) this.set(initialSpec);
+  }
+
+  public set(spec: CooldownSpec): void {
+    // Save bypassers. We can transfer them between cooldown types.
+    const bypassers = this.manager?.getBypassers() ?? [];
+
+    this.setNewManager(spec);
+
+    // When switching specs, invalidate current expirations.
+    this.manager?.clearCooldowns();
+
+    // Transfer bypassers.
+    for (const memberId of bypassers) {
+      this.manager?.setBypass(true, memberId);
+    }
+
+    // Add any new bypassers/overrides if provided in spec.
+    if (spec.type === "global" && spec.bypassers) {
+      for (const uid of spec.bypassers) {
+        this.manager?.setBypass(true, uid);
+      }
+    } else if (spec.type === "user" && spec.overrides) {
+      for (const [uid, duration] of spec.overrides) {
+        this.manager?.setDuration(duration, uid);
+      }
+    }
+  }
+
+  public update(spec: Partial<CooldownSpec>): void {
+    if (!this.manager) {
+      const message = "attempted to update a spec that hasn't been set yet";
+      log.error(`${message}.`);
+      throw new Error(message);
+    }
+
+    // Overwrite only the keys that are provided in the new spec.
+    const updatedCompleteSpec = {
+      ...this.manager.spec,
+      ...spec,
+    } as CooldownSpec;
+    this.set(updatedCompleteSpec);
+  }
+
+  // FORWARD THE REST OF THE INTERFACE.
+
+  public get type(): CooldownSpec["type"] {
+    return this.manager?.type ?? "disabled";
+  }
+  public get onCooldown(): OnCooldownFunction | null {
+    return this.manager?.onCooldown ?? null;
+  }
+  public isActive(message: Message): boolean {
+    return !!this.manager?.isActive(message);
+  }
+  public refresh(message: Message): void {
+    this.manager?.refresh(message);
+  }
+  public clearCooldowns(): void {
+    this.manager?.clearCooldowns();
+  }
+  public getBypassers(): string[] {
+    return this.manager?.getBypassers() ?? [];
+  }
+  public setDuration(seconds: number, discordId?: string | undefined): void {
+    this.manager?.setDuration(seconds, discordId);
+  }
+  public setBypass(bypass: boolean, discordId: string): void {
+    this.manager?.setBypass(bypass, discordId);
+  }
+  public dump(): CooldownDump {
+    return this.manager?.dump() ?? { type: "disabled" };
+  }
+}
 
 export class CooldownManager {
   /** The spec the manager is currently observing. */
