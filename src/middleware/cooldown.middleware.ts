@@ -209,8 +209,8 @@ export abstract class PerIDCooldownManager<
   constructor(spec: SpecType) {
     super(spec);
     if (spec.overrides) {
-      for (const [uid, duration] of spec.overrides) {
-        this.overrides.set(uid, duration);
+      for (const [id, duration] of spec.overrides) {
+        this.overrides.set(id, duration);
       }
     }
   }
@@ -347,12 +347,12 @@ export class DynamicCooldownManager implements ICooldownManager {
 
     // Add any new bypassers/overrides if provided in spec.
     if (spec.type === "global" && spec.bypassers) {
-      for (const uid of spec.bypassers) {
-        this.manager?.setBypass(true, uid);
+      for (const id of spec.bypassers) {
+        this.manager?.setBypass(true, id);
       }
     } else if (spec.type === "user" && spec.overrides) {
-      for (const [uid, duration] of spec.overrides) {
-        this.manager?.setDuration(duration, uid);
+      for (const [id, duration] of spec.overrides) {
+        this.manager?.setDuration(duration, id);
       }
     }
   }
