@@ -28,3 +28,17 @@ export function getAllMembers(mentionable: GuildMember | Role): GuildMember[] {
   if (mentionable instanceof GuildMember) return [mentionable];
   return Array.from(mentionable.members.values());
 }
+
+/**
+ * Get all possible permutations of size 2 of `array`.
+ */
+export function getAllPermute2<T>(array: T[]): [T, T][] {
+  const combinations: [T, T][] = [];
+  for (let i = 0; i < array.length; i++) {
+    for (let j = 0; j < array.length; j++) {
+      if (i === j) continue;
+      combinations.push([array[i], array[j]]);
+    }
+  }
+  return combinations;
+}

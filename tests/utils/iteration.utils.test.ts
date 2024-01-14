@@ -1,5 +1,9 @@
 import { Collection, Role } from "discord.js";
-import { getAllMembers, iterateEnum } from "../../src/utils/iteration.utils";
+import {
+  getAllMembers,
+  getAllPermute2,
+  iterateEnum,
+} from "../../src/utils/iteration.utils";
 
 describe.skip("iterating over an enum", () => {
   enum DummyEnum { A = 0, B, C }
@@ -25,5 +29,17 @@ describe("resolving a mentionable to members", () => {
     } as unknown as Role;
     const result = getAllMembers(mockRole);
     expect(result).toEqual(["dummy1", "dummy2"]);
+  });
+});
+
+describe("getting all permutation pairs from an array", () => {
+  it("should get all permutation pairs", () => {
+    const result = getAllPermute2([1, 2, 3]);
+    const pairs = [
+      [1, 2], [1, 3],
+      [2, 1], [2, 3],
+      [3, 1], [3, 2],
+    ];
+    expect(result.sort()).toEqual(pairs.sort());
   });
 });
