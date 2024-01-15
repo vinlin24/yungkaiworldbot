@@ -97,15 +97,17 @@ environment variable names, we use this suffix convention:
 
 ### package.json Scripts
 
-| Shell Command   | Description                                                                                  |
-| --------------- | -------------------------------------------------------------------------------------------- |
-| `npm run dev`   | Start the bot runtime. This interprets the TypeScript source directly for fastest startup.   |
-| `npm run sync`  | Deploy application commands to Discord's backend. This does not start the bot runtime.       |
-| `npm run clean` | Clear JavaScript build files.                                                                |
-| `npm run build` | Compile TypeScript source to JavaScript.                                                     |
-| `npm start`     | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
-| `npm test`      | Run tests.                                                                                   |
-| `npm run now`   | Run existing JavaScript build files right away.                                              |
+| Shell Command      | Description                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `npm run dev`      | Start the bot runtime. This interprets the TypeScript source directly for fastest startup.   |
+| `npm run sync`     | Deploy application commands to Discord's backend. This does not start the bot runtime.       |
+| `npm run clean`    | Clear JavaScript build files.                                                                |
+| `npm run build`    | Compile TypeScript source to JavaScript.                                                     |
+| `npm start`        | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
+| `npm run now`      | Run existing JavaScript build files right away.                                              |
+| `npm test`         | Run tests.                                                                                   |
+| `npm run lint`     | Run the linter to report errors/warnings.                                                    |
+| `npm run lint:fix` | Run the linter and fix all fixable errors in-place.                                          |
 
 
 ### Command Registration vs. Bot Runtime
