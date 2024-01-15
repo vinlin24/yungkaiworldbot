@@ -32,8 +32,7 @@ const log = getLogger(__filename);
 const MAX_DESCRIPTION_LENGTH = 4096;
 
 function formatStatus(now: Date, expiration: Date): string {
-  if (now >= expiration)
-    return "Inactive ✅";
+  if (now >= expiration) return "Inactive ✅";
   const mention = toTimestampMention(expiration);
   const relativeMention = toRelativeTimestampMention(expiration);
   return `Active until ${mention} (${relativeMention}) ⌛`;
@@ -131,14 +130,14 @@ function splitIntoEmbedPages(
   formattedDumpEntries: string[],
   maxCharsPerPage: number = MAX_DESCRIPTION_LENGTH,
 ): EmbedBuilder[] {
-  const embeds: EmbedBuilder[] = []
+  const embeds: EmbedBuilder[] = [];
   let description = "";
   for (const entry of formattedDumpEntries) {
     const { length } = entry;
     if (length > maxCharsPerPage) {
       log.warning( // TODO: not very helpful not knowing which dump lol.
         `a formatted cooldown dump has length ${length} > ` +
-        `${maxCharsPerPage}, cannot fit it into an embed page, skipped.`
+        `${maxCharsPerPage}, cannot fit it into an embed page, skipped.`,
       );
       continue;
     }
@@ -167,12 +166,12 @@ const listCooldowns = new CommandBuilder();
 const slashCommandDefinition = new SlashCommandBuilder()
   .setName("cooldowns")
   .setDescription(
-    "List current cooldowns associated with message creation events."
+    "List current cooldowns associated with message creation events.",
   )
   .addStringOption(input => input
     .setName("listener")
     .setDescription("ID of the listener (omit to list ALL cooldowns).")
-    .setAutocomplete(true)
+    .setAutocomplete(true),
   );
 addBroadcastOption(slashCommandDefinition);
 

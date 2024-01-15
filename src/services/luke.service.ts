@@ -12,11 +12,11 @@ export class LukeService {
 
   public getMeowChance = (): number => {
     return this.meowChance;
-  }
+  };
 
   public setMeowChance = (probability: number): void => {
     this.meowChance = probability;
-  }
+  };
 
   public processDadJoke = async (message: Message): Promise<boolean> => {
     // Use .member instead of .author so .displayName works as expected.
@@ -25,7 +25,7 @@ export class LukeService {
     const TRIGGER_REGEXP = /^i(?:['’]| a)?m(\s+not)?\s+(.+)/i;
     const matches = TRIGGER_REGEXP.exec(message.content);
     if (matches === null) return false;
-    const [_, notPresent, captured] = matches;
+    const [, notPresent, captured] = matches;
 
     let response: string;
 
@@ -36,20 +36,20 @@ export class LukeService {
     }
 
     // Affirmative version of the joke.
+    else if (captured.match(/^(back|awake|up|here)[.~!?-]*$/i)) {
+      response = `Welcome back, ${author.displayName}!`;
+    }
     else {
-      if (captured.match(/^(back|awake|up|here)[.~!?-]*$/i))
-        response = `Welcome back, ${author.displayName}!`;
-      else
-        response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
+      response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
     }
 
     await replySilently(message, response);
     log.debug(
       `${formatContext(message)}: replied with Dad joke ` +
-      `(${notPresent ? "negative" : "affirmative"} version).`
+      `(${notPresent ? "negative" : "affirmative"} version).`,
     );
     return true;
-  }
-};
+  };
+}
 
 export default new LukeService();

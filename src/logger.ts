@@ -36,7 +36,7 @@ function getLogFormat({ colorized }: { colorized: boolean }) {
     formats.push(winston.format.colorize());
   }
   formats.push(winston.format.printf(info =>
-    `[${info.timestamp}] ${info.moduleName} ${info.level}: ${info.message}`
+    `[${info.timestamp}] ${info.moduleName} ${info.level}: ${info.message}`,
   ));
   return winston.format.combine(...formats);
 }
@@ -54,7 +54,8 @@ if (config.NODE_ENV === "development") {
     filename: VOLATILE_LOG_PATH,
     format: getLogFormat({ colorized: false }),
   }));
-} else if (config.NODE_ENV === "production") {
+}
+else if (config.NODE_ENV === "production") {
   transports.push(new DailyRotateFile({
     dirname: LOGS_DIR_PATH,
     filename: "production-%DATE%.log",

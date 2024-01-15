@@ -13,12 +13,17 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "import-newlines"
   ],
   "rules": {
     "indent": [
       "error",
-      2
+      2,
+      {
+        "SwitchCase": 1,
+        "ImportDeclaration": 1
+      }
     ],
     "linebreak-style": [
       "error",
@@ -57,6 +62,7 @@
       "multi-line",
       "consistent"
     ],
+    "nonblock-statement-body-position": "error",
     "dot-location": [
       "error",
       "property"
@@ -76,9 +82,7 @@
       }
     ],
     "no-console": "off",
-    "no-empty-function": "error",
     "no-floating-decimal": "error",
-    "no-inline-comments": "error",
     "no-lonely-if": "error",
     "no-multi-spaces": "error",
     "no-multiple-empty-lines": [
@@ -89,7 +93,11 @@
         "maxBOF": 0
       }
     ],
-    "no-shadow": [
+    // NOTE: The default no-shadow for some reason reports enums as "already
+    // declared in the upper scope." The fix via @typescript/eslint's version
+    // comes from: https://stackoverflow.com/a/63961972/14226122
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": [
       "error",
       {
         "allow": [
@@ -112,7 +120,6 @@
     "space-before-function-paren": [
       "error",
       {
-        "anonymous": "never",
         "named": "never",
         "asyncArrow": "always"
       }
@@ -122,6 +129,23 @@
     "space-unary-ops": "error",
     "spaced-comment": "error",
     "yoda": "error",
+    "max-len": [
+      "warn",
+      {
+        "code": 80,
+        "ignoreComments": false,
+        // Exempt default imports (can't do much about that). This regexp
+        // actually exempts all import statements, but the import-newlines
+        // plugin will catch named imports that exceed max-len.
+        "ignorePattern": "^import [^\\n\\r]*? from \".+\"\\s*;$"
+      }
+    ],
+    "import-newlines/enforce": [
+      "error",
+      {
+        "max-len": 80
+      }
+    ],
     // Use explicit any with care, but still allow for special circumstances.
     "@typescript-eslint/no-explicit-any": "off"
   }

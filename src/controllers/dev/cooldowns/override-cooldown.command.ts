@@ -1,9 +1,4 @@
-import {
-  Events,
-  GuildMember,
-  Role,
-  SlashCommandBuilder
-} from "discord.js";
+import { Events, GuildMember, Role, SlashCommandBuilder } from "discord.js";
 
 import { BotClient } from "../../../bot/client";
 import {
@@ -19,13 +14,13 @@ import { listenerIdAutocomplete } from "./cooldowns.autocomplete";
 const overrideCooldown = new CommandBuilder();
 
 const slashCommandDefinition = new SlashCommandBuilder()
-  .setName(`override-listener-cooldown`)
-  .setDescription(`Set cooldown overrides for a message creation listener.`)
+  .setName("override-listener-cooldown")
+  .setDescription("Set cooldown overrides for a message creation listener.")
   .addStringOption(input => input
     .setName("listener")
     .setDescription("Listener ID.")
     .setRequired(true)
-    .setAutocomplete(true)
+    .setAutocomplete(true),
   )
   .addMentionableOption(input => input
     .setName("mentionable")
@@ -34,19 +29,19 @@ const slashCommandDefinition = new SlashCommandBuilder()
     // implementation of /cooldowns (which returns an unpaginated text
     // response) error out from exceeded message length limit.
     .setDescription("Member or role to set overrides for.")
-    .setRequired(true)
+    .setRequired(true),
   )
   .addNumberOption(input => input
     .setName("duration")
     .setDescription(
       "User-specific cooldown duration override " +
-      "(in seconds) (USER type cooldown only)."
+      "(in seconds) (USER type cooldown only).",
     )
-    .setMinValue(0)
+    .setMinValue(0),
   )
   .addBooleanOption(input => input
     .setName("bypass")
-    .setDescription("Allow this user to bypass cooldown duration.")
+    .setDescription("Allow this user to bypass cooldown duration."),
   );
 addBroadcastOption(slashCommandDefinition);
 
@@ -105,8 +100,7 @@ overrideCooldown.execute(async (interaction) => {
       });
       return;
     }
-    for (const member of members)
-      cooldown.setDuration(duration, member.id);
+    for (const member of members) {cooldown.setDuration(duration, member.id);}
     await interaction.reply({
       content:
         `Set **${listenerId}** cooldown duration override for ` +
@@ -119,8 +113,7 @@ overrideCooldown.execute(async (interaction) => {
   }
 
   if (bypass !== null) {
-    for (const member of members)
-      cooldown.setBypass(bypass, member.id);
+    for (const member of members) {cooldown.setBypass(bypass, member.id);}
     await interaction.reply({
       content:
         `${bypass ? "Enabled" : "Disabled"} **${listenerId}** bypass ` +

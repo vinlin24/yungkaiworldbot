@@ -39,5 +39,5 @@ export function reactWith(emoji: EmojiResolvable)
   return async (message) => {
     await message.react(emoji);
     log.debug(`${formatContext(message)}: reacted with ${emoji}.`);
-  }
+  };
 }

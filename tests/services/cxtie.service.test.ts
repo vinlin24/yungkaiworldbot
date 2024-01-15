@@ -1,6 +1,10 @@
 import { Message } from "discord.js";
 import { DeepMockProxy, mockDeep } from "jest-mock-extended";
-import { CxtieService, SLAY_EMOJI_ID, SUP_EMOJI_ID } from "../../src/services/cxtie.service";
+import {
+  CxtieService,
+  SLAY_EMOJI_ID,
+  SUP_EMOJI_ID,
+} from "../../src/services/cxtie.service";
 import { CustomEmoji, toEscapedEmoji } from "../../src/utils/emojis.utils";
 
 let cxtieService: CxtieService;

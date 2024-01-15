@@ -33,13 +33,13 @@ export function isPollutionImmuneChannel(
   channel: GuildTextBasedChannel,
 ): boolean {
   // Might be best to not annoy the kiddos too much.
-  if (channel.name.indexOf("general") !== -1)
-    return true;
+  if (channel.name.indexOf("general") !== -1) return true;
 
   // Don't pollute important channels.
   const importantSubstrings = ["introductions", "announcements", "welcome"];
-  if (importantSubstrings.some(s => channel.name.indexOf(s) !== -1))
+  if (importantSubstrings.some(s => channel.name.indexOf(s) !== -1)) {
     return true;
+  }
 
   // TODO: Maybe also somehow ignore "serious" channels (such as forum posts
   // tagged with Mental Health).
@@ -72,7 +72,7 @@ export function channelPollutionAllowedOrBypass(
   ...bypasserUids: string[]
 ): MessageFilterFunction {
   return function (message) {
-    const channel = message.channel as GuildTextBasedChannel
+    const channel = message.channel as GuildTextBasedChannel;
     const pollutionAllowed = !isPollutionImmuneChannel(channel);
     const canBypass = bypasserUids.includes(message.author.id);
     return pollutionAllowed || canBypass;
@@ -93,15 +93,15 @@ export function randomly(successChance:
     ? successChance
     : () => successChance;
 
-  return async function (_) {
+  return async function () {
     const chance = await getSuccessChance();
     if (chance < 0 || chance > 1) {
       throw new Error(
-        `success chance must be in range [0, 1] but received ${successChance}`
+        `success chance must be in range [0, 1] but received ${successChance}`,
       );
     }
     return Math.random() < chance;
-  }
+  };
 }
 
 /**
@@ -112,7 +112,7 @@ export function containsCustomEmoji(emojiId: string): MessageFilterFunction {
   return function (message) {
     const emojis = parseCustomEmojis(message.content);
     return emojis.some(e => e.id === emojiId);
-  }
+  };
 }
 
 /**
@@ -122,5 +122,5 @@ export function containsCustomEmoji(emojiId: string): MessageFilterFunction {
 export function containsEmoji(unicodeEmoji: string): MessageFilterFunction {
   return function (message) {
     return message.content.includes(unicodeEmoji);
-  }
+  };
 }

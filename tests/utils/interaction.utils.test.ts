@@ -1,7 +1,10 @@
 jest.mock("../../src/utils/logging.utils");
 
 import { Message, MessageFlags, MessageReplyOptions } from "discord.js";
-import { replySilently, replySilentlyWith } from "../../src/utils/interaction.utils";
+import {
+  replySilently,
+  replySilentlyWith,
+} from "../../src/utils/interaction.utils";
 
 const mockMessage = {
   reply: jest.fn(),

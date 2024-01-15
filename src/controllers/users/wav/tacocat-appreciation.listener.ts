@@ -1,7 +1,7 @@
 import config from "../../../config";
 import {
   contentMatching,
-  messageFrom
+  messageFrom,
 } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { replySilentlyWith } from "../../../utils/interaction.utils";

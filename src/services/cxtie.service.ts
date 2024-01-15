@@ -8,7 +8,7 @@ const log = getLogger(__filename);
 
 // NOTE: These emojis are from outside yung kai world so they are not part of
 // our custom emojis mapping.
-export const SUP_EMOJI_ID = "1171056612761403413"
+export const SUP_EMOJI_ID = "1171056612761403413";
 export const SLAY_EMOJI_ID = "1176908139896000623";
 
 export class CxtieService {
@@ -29,7 +29,7 @@ export class CxtieService {
       return isCringe;
     });
     return containsCringe;
-  }
+  };
 }
 
 export default new CxtieService();

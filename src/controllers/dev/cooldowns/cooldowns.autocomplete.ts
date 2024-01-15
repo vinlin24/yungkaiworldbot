@@ -9,7 +9,7 @@ export async function listenerIdAutocomplete(
 
   const listenersMap = client.getListenerSpecs(Events.MessageCreate);
   const listenersWithCD = listenersMap.filter(
-    l => l.cooldown && l.cooldown.type !== "disabled"
+    l => l.cooldown && l.cooldown.type !== "disabled",
   );
   const choiceObjs = listenersWithCD
     .filter(({ id }) => id.startsWith(focusedValue))

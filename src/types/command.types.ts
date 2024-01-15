@@ -150,7 +150,8 @@ export class CommandBuilder {
   ): this {
     if (isAnySlashCommandBuilder(definition)) {
       this.definition = definition.toJSON();
-    } else {
+    }
+    else {
       this.definition = definition;
     }
     return this;
@@ -163,7 +164,8 @@ export class CommandBuilder {
     // a lone predicate or as a complete CommandCheck object.
     if (typeof check === "function") {
       this.checks.push({ predicate: check });
-    } else {
+    }
+    else {
       this.checks.push(check);
     }
     return this;

@@ -1,8 +1,4 @@
-import {
-  Awaitable,
-  Events,
-  Message,
-} from "discord.js";
+import { Awaitable, Events, Message } from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
@@ -236,7 +232,8 @@ export abstract class PerIDCooldownManager<
   public override setDuration(seconds: number, discordId?: string): void {
     if (discordId === undefined) {
       this.spec.defaultSeconds = seconds;
-    } else {
+    }
+    else {
       this.overrides.set(discordId, seconds);
     }
   }
@@ -247,9 +244,9 @@ export abstract class PerIDCooldownManager<
   }
 
   public override dump(): DumpType {
-    // @ts-ignore "{ ...} is assignable to the constraint of type 'DumpType',
-    // but 'DumpType' could be instantiated with a different subtype of
-    // constraint 'PerIDCooldownDump'. ts(2322)""
+    // @ts-expect-error "{ ...} is assignable to the constraint of type
+    // 'DumpType', but 'DumpType' could be instantiated with a different subtype
+    // of constraint 'PerIDCooldownDump'. ts(2322)""
     return {
       type: this.type,
       expirations: this.expirations,
@@ -437,7 +434,8 @@ export function useCooldown(
   let manager: CooldownManager;
   if (value instanceof CooldownManager) {
     manager = value;
-  } else {
+  }
+  else {
     manager = new CooldownManager();
     manager.set(value);
   }

@@ -37,7 +37,7 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
     await this.runFilters(...args)
       && await this.runCallback(...args)
       && await this.runCleanups(...args);
-  };
+  }
 
   protected async runFilters(...args: ClientEvents[Type]): Promise<boolean> {
     if (!this.spec.filters) return true;
@@ -48,10 +48,11 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
       try {
         const passed = await predicate(...args);
         if (passed) continue;
-      } catch (error) {
+      }
+      catch (error) {
         log.error(
           `error in predicate of ${this.spec.id} listener filter` +
-          `(position ${index}), counting as failure.`
+          `(position ${index}), counting as failure.`,
         );
         this.handleListenerError(error as Error);
         return false;
@@ -61,10 +62,11 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
       if (onFail) {
         try {
           await onFail(...args);
-        } catch (error) {
+        }
+        catch (error) {
           log.error(
             `error in fail handler of ${this.spec.id} listener filter ` +
-            `(position ${index}).`
+            `(position ${index}).`,
           );
           this.handleListenerError(error as Error);
         }
@@ -79,7 +81,8 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
       const success = await this.spec.execute(...args);
       // Listeners that decide not to return a flag treated as always success.
       return success ?? true;
-    } catch (error) {
+    }
+    catch (error) {
       log.error(`error in ${this.spec.id} listener callback.`);
       this.handleListenerError(error as Error);
       return false;
@@ -94,7 +97,8 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
       if (!afterExecute) continue;
       try {
         await afterExecute(...args);
-      } catch (error) {
+      }
+      catch (error) {
         log.error(`listener post-execute hook (position ${index}) errored.`);
         await this.handleListenerError(error as Error);
         // DON'T short circuit. Since the execute callback succeeded, give all

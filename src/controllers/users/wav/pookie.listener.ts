@@ -7,6 +7,7 @@ import {
 import { contentMatching } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
+import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
@@ -15,6 +16,7 @@ const onPookie = new MessageListenerBuilder().setId("pookie");
 onPookie.filter(contentMatching(/^pookie$/i));
 onPookie.execute(async (message) => {
   await message.react(GUILD_EMOJIS.NEKO_UWU);
+  log.debug(`${formatContext(message)}: reacted to pookie.`);
 });
 
 const cooldown = new CooldownManager({

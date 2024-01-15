@@ -1,9 +1,9 @@
 declare global {
   type EnvironmentVariables = {
 
-    //////////////////////////
+    // ////////////////////////
     //     SDLC Related     //
-    //////////////////////////
+    // ////////////////////////
 
     /**
      * Environment corresponding to the current software development lifecycle
@@ -19,9 +19,9 @@ declare global {
      * */
     LOGGER_LEVEL?: "error" | "warning" | "info" | "debug";
 
-    /////////////////////////
+    // ///////////////////////
     //     Bot Related     //
-    /////////////////////////
+    // ///////////////////////
 
     /**
      * Discord bot token generated on the Discord Developer Dashboard.
@@ -37,9 +37,9 @@ declare global {
      */
     YUNG_KAI_WORLD_GID: string;
 
-    //////////////////////////////
+    // ////////////////////////////
     //     Discord Role IDs     //
-    //////////////////////////////
+    // ////////////////////////////
 
     /**
      * Role ID for bot developers.
@@ -58,9 +58,9 @@ declare global {
      */
     BABY_MOD_RID: string;
 
-    //////////////////////////////
+    // ////////////////////////////
     //     Discord User IDs     //
-    //////////////////////////////
+    // ////////////////////////////
 
     LUKE_UID: string;
     KLEE_UID: string;
@@ -73,9 +73,9 @@ declare global {
     KAI_UID: string;
     NI_UID: string;
 
-    /////////////////////////////
+    // ///////////////////////////
     //     Discord Bot IDs     //
-    /////////////////////////////
+    // ///////////////////////////
 
     MUDAE_UID: string;
   };

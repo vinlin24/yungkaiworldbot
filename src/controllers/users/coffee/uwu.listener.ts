@@ -7,7 +7,10 @@ import {
   useCooldown,
 } from "../../../middleware/cooldown.middleware";
 import { contentMatching } from "../../../middleware/filters.middleware";
-import { ListenerSpec, MessageListenerBuilder } from "../../../types/listener.types";
+import {
+  ListenerSpec,
+  MessageListenerBuilder,
+} from "../../../types/listener.types";
 import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
@@ -16,7 +19,7 @@ async function reactWithVomit(message: Message) {
   await message.react("🤢");
   await message.react("🤮");
   log.debug(`${formatContext(message)}: reacted to uwu.`);
-};
+}
 
 const cooldown = new CooldownManager({
   type: "global",

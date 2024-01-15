@@ -18,7 +18,7 @@ const log = getLogger(__filename);
 async function replyWithNo(message: Message) {
   await replySilently(message, "no");
   log.debug(`${formatContext(message)}: denied chat revival.`);
-};
+}
 
 function containsChatReviveWithPossibleMarkdown(message: Message): boolean {
   const chatReviveWithPossibleMD = /^(?:#+ )?chat revive[.!?~]*$/i;

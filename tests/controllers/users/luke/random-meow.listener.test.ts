@@ -12,7 +12,7 @@ describe("random-meow listener", () => {
   beforeEach(() => {
     mock = new MockMessage(randomMeowerSpec)
       .mockAuthor({ uid: config.LUKE_UID });
-  })
+  });
 
   afterEach(() => {
     jest.spyOn(global.Math, "random").mockRestore();

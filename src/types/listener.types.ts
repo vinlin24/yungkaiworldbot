@@ -145,7 +145,8 @@ export class ListenerBuilder<Type extends keyof ClientEvents> {
     // a lone predicate or as a complete `ListenerFilter` object.
     if (typeof filter === "function") {
       this.filters.push({ predicate: filter });
-    } else {
+    }
+    else {
       this.filters.push(filter);
     }
     return this;
@@ -206,11 +207,9 @@ export class MessageListenerBuilder
    * that wants to query/update the cooldown through the bot client at runtime.
    */
   public cooldown(arg: CooldownManager | CooldownSpec): this {
-    let manager: CooldownManager
-    if (arg instanceof CooldownManager)
-      manager = arg;
-    else
-      manager = new CooldownManager(arg);
+    let manager: CooldownManager;
+    if (arg instanceof CooldownManager) manager = arg;
+    else manager = new CooldownManager(arg);
     this.filter(useCooldown(manager));
     this.cooldownManager = manager;
     return this;

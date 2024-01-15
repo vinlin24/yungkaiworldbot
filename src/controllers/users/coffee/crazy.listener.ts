@@ -19,20 +19,27 @@ async function replyWithNextLineInCrazyCopypasta(message: Message) {
   const withoutEndPunct = chars.replace(/[.!?~-]$/, "");
 
   let response: string;
-  if (chars.endsWith("crazy?"))
+  if (chars.endsWith("crazy?")) {
     response = "I was crazy once.";
-  else if (/.*crazy[.!~-]*$/i.exec(message.content))
+  }
+  else if (/.*crazy[.!~-]*$/i.exec(message.content)) {
     response = "Crazy?";
-  else if (withoutEndPunct === "i was crazy once")
+  }
+  else if (withoutEndPunct === "i was crazy once") {
     response = "They locked me in a room";
-  else if (withoutEndPunct === "they locked me in a room")
+  }
+  else if (withoutEndPunct === "they locked me in a room") {
     response = "A rubber room";
-  else if (withoutEndPunct === "a rubber room")
+  }
+  else if (withoutEndPunct === "a rubber room") {
     response = "A rubber room with rats";
-  else if (withoutEndPunct === "a rubber room with rats")
+  }
+  else if (withoutEndPunct === "a rubber room with rats") {
     response = "And rats make me crazy";
-  else
-    return
+  }
+  else {
+    return;
+  }
 
   await replySilently(message, response);
   log.debug(`${formatContext(message)}: replied with '${response}'.`);

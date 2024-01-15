@@ -16,7 +16,7 @@ import { GuildMember, Role } from "discord.js";
  * NOTE: This doesn't seem to work as expected! When iterating over a numeric
  * enum, the numbers seem to be included as part of the keys.
  */
-export function iterateEnum<T extends {}>(enumerable: T)
+export function iterateEnum<T extends object>(enumerable: T)
   : [keyof T, T[keyof T]][] {
   return Object.entries(enumerable) as [keyof T, T[keyof T]][];
 }

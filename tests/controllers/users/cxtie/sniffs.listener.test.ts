@@ -1,12 +1,15 @@
 import config from "../../../../src/config";
 import onSniffsSpec from "../../../../src/controllers/users/cxtie/sniffs.listener";
-import { GUILD_EMOJIS, toEscapedEmoji } from "../../../../src/utils/emojis.utils";
+import {
+  GUILD_EMOJIS,
+  toEscapedEmoji,
+} from "../../../../src/utils/emojis.utils";
 import { MockMessage } from "../../../test-utils";
 
 describe("sniffs listener", () => {
   afterEach(() => {
     jest.spyOn(global.Math, "random").mockRestore();
-  })
+  });
 
   it("should only listen to Cxtie", async () => {
     const mock = new MockMessage(onSniffsSpec).mockContent("i'm not cxtie");
