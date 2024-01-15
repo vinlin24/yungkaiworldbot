@@ -1,4 +1,7 @@
-import { CooldownManager, useCooldown } from "../../../middleware/cooldown.middleware";
+import {
+  CooldownManager,
+  useCooldown,
+} from "../../../middleware/cooldown.middleware";
 import {
   channelPollutionAllowed,
   contentMatching,

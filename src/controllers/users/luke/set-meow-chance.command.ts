@@ -24,8 +24,8 @@ setMeowChance.define(new SlashCommandBuilder()
       .setRequired(true)
       .setMinValue(0)
       .setMaxValue(1)
-      .setDescription("Probability expressed as a decimal.")
-  )
+      .setDescription("Probability expressed as a decimal."),
+  ),
 );
 
 setMeowChance.check(checkPrivilege(RoleLevel.BABY_MOD));
@@ -39,7 +39,7 @@ setMeowChance.execute(async (interaction) => {
   log.info(`${context}: set Luke meow chance to ${newProbability}.`);
 
   interaction.reply(
-    `Updated Luke meow chance from ${oldProbability} to ${newProbability}.`
+    `Updated Luke meow chance from ${oldProbability} to ${newProbability}.`,
   );
 });
 

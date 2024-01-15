@@ -3,11 +3,7 @@ import {
   toRelativeTimestampMention,
   toTimestampMention,
 } from "../../../src/utils/markdown.utils";
-import {
-  MockInteraction,
-  TestClient,
-  addMockGetter,
-} from "../../test-utils";
+import { MockInteraction, TestClient, addMockGetter } from "../../test-utils";
 
 describe("/ping command", () => {
   let mock: MockInteraction;

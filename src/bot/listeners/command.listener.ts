@@ -13,8 +13,9 @@ import { BotClient } from "../client";
 const log = getLogger(__filename);
 
 async function dispatchCommand(interaction: Interaction): Promise<void> {
-  if (!interaction.isChatInputCommand() && !interaction.isAutocomplete())
+  if (!interaction.isChatInputCommand() && !interaction.isAutocomplete()) {
     return;
+  }
 
   const client = interaction.client as BotClient;
   const commandName = interaction.commandName;
@@ -28,14 +29,17 @@ async function dispatchCommand(interaction: Interaction): Promise<void> {
   if (interaction.isChatInputCommand()) {
     try {
       await runner.run(interaction);
-    } catch (error) {
+    }
+    catch (error) {
       log.crit("unexpected error in command dispatch pipeline.");
       console.error(error);
     }
-  } else if (interaction.isAutocomplete()) {
+  }
+  else if (interaction.isAutocomplete()) {
     try {
       await runner.resolveAutocomplete(interaction);
-    } catch (error) {
+    }
+    catch (error) {
       log.crit("unexpected error in autocomplete dispatch pipeline.");
       console.error(error);
     }

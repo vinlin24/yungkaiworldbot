@@ -22,7 +22,7 @@ function getCurrentBranchName(): string | null {
     const stderr = process.stderr?.toString().trim();
     log.warning(
       `\`${command}\` failed with exit code ${process.status}` +
-      (stderr ? `: ${stderr}` : "")
+      (stderr ? `: ${stderr}` : ""),
     );
     return null;
   }
@@ -80,10 +80,8 @@ export abstract class IClientWithIntentsAndRunners extends Client {
     const ignoreSelf: ListenerFilter<Events.MessageCreate> = {
       predicate: message => !this.isMessageFromSelf(message),
     };
-    if (!runner.spec.filters)
-      runner.spec.filters = [ignoreSelf]
-    else
-      runner.spec.filters.push(ignoreSelf);
+    if (!runner.spec.filters) runner.spec.filters = [ignoreSelf];
+    else runner.spec.filters.push(ignoreSelf);
   }
 
   public registerListeners(): void {
@@ -94,7 +92,8 @@ export abstract class IClientWithIntentsAndRunners extends Client {
 
       if (runner.spec.once) {
         this.once(runner.spec.type, runner.callbackToRegister);
-      } else {
+      }
+      else {
         this.on(runner.spec.type, runner.callbackToRegister);
       }
       log.debug(`registered event listener '${id}'.`);

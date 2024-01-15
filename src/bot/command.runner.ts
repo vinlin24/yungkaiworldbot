@@ -47,7 +47,7 @@ export class CommandRunner {
     if (!interaction.replied) {
       log.warning(
         `${context}: execute didn't reply to interaction, ` +
-        "using generic response."
+        "using generic response.",
       );
       await interaction.reply({ content: "👍", ephemeral: true });
     }
@@ -77,7 +77,8 @@ export class CommandRunner {
     const runFailHandler = async (onFail: CommandCheckFailHandler) => {
       try {
         await onFail(interaction);
-      } catch (error) {
+      }
+      catch (error) {
         log.error(`${context}: error in check fail handler.`);
         await this.handleCommandError(interaction, error as Error);
       }
@@ -89,7 +90,8 @@ export class CommandRunner {
       let checkPassed;
       try {
         checkPassed = await predicate(interaction);
-      } catch (error) {
+      }
+      catch (error) {
         log.error(`${context}: check (position ${index}) errored.`);
         await this.handleCommandError(interaction, error as Error);
         return false; // Short-circuit.
@@ -116,7 +118,8 @@ export class CommandRunner {
       // Commands that decide not to return a flag treated as always succeeding.
       success = flag ?? true;
       log.debug(`${context}: finished command callback, success=${success}.`);
-    } catch (error) {
+    }
+    catch (error) {
       log.error(`${context}: error in command execute callback.`);
       await this.handleCommandError(interaction, error as Error);
       return false;
@@ -136,9 +139,10 @@ export class CommandRunner {
       if (!afterExecute) continue;
       try {
         await afterExecute(interaction);
-      } catch (error) {
+      }
+      catch (error) {
         log.error(
-          `${context}: command post-execute hook (position ${index}) errored.`
+          `${context}: command post-execute hook (position ${index}) errored.`,
         );
         await this.handleCommandError(interaction, error as Error);
         // DON'T short-circuit. Since the execute callback succeeded, give all
@@ -158,7 +162,8 @@ export class CommandRunner {
         content: "There was an error while executing this command!",
         ephemeral: true,
       });
-    } else {
+    }
+    else {
       await interaction.reply({
         content: "There was an error while executing this command!",
         ephemeral: true,

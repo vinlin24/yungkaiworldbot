@@ -1,22 +1,13 @@
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
+import { CommandBuilder, CommandSpec } from "../../types/command.types";
 
-import {
-  CommandBuilder, CommandSpec
-} from "../../types/command.types";
-
-import getLogger from "../../logger";
 import { IClientWithIntentsAndRunners } from "../../types/client.abc";
 import {
   toRelativeTimestampMention,
   toTimestampMention,
 } from "../../utils/markdown.utils";
 import { addBroadcastOption } from "../../utils/options.utils";
-
-const log = getLogger(__filename);
 
 const slashCommandDefinition = new SlashCommandBuilder()
   .setName("ping")
@@ -35,8 +26,9 @@ async function respondWithDevDetails(
   // startup. Supposedly this is because the client has not sent its first
   // heartbeat yet.
   if (latency === -1) {
-    text += `\n* Latency: (still being calculated...)`
-  } else {
+    text += "\n* Latency: (still being calculated...)";
+  }
+  else {
     text += `\n* Latency: **${latency}** ms`;
     if (latency == 69) { // Easter egg.
       text += " (nice)";

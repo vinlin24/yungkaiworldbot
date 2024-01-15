@@ -6,7 +6,7 @@ describe("dab listener", () => {
   let mock: MockMessage;
   beforeEach(() => {
     mock = new MockMessage(onDabSpec);
-  })
+  });
 
   it("shouldn't respond if the content isn't dab", async () => {
     mock.mockContent("lorem ipsum").mockAuthorBot(false);

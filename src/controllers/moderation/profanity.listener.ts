@@ -38,13 +38,13 @@ function checkAndLogProfanityMatches(message: Message): boolean {
       englishDataset.getPayloadWithPhraseMetadata(match);
     if (!phraseMetadata) continue;
     entries.push(
-      `${phraseMetadata.originalWord}@[${startIndex}:${endIndex}]`
+      `${phraseMetadata.originalWord}@[${startIndex}:${endIndex}]`,
     );
   }
 
   const context = formatContext(message);
   log.info(
-    `${context}: detected profanity in ${message.url}: ${entries.join(", ")}`
+    `${context}: detected profanity in ${message.url}: ${entries.join(", ")}`,
   );
   return true;
 }

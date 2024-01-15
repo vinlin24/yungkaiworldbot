@@ -5,7 +5,10 @@ import {
   CooldownSpec,
   DisabledCooldownDump,
 } from "../../src/middleware/cooldown.middleware";
-import { getAllPermute2, unorderedEquals } from "../../src/utils/iteration.utils";
+import {
+  getAllPermute2,
+  unorderedEquals,
+} from "../../src/utils/iteration.utils";
 import { expectMatchingSchema } from "../test-utils";
 import {
   channelCooldownDumpSchema,

@@ -18,11 +18,10 @@ async function reactWithLOFI(message: Message) {
   await message.react("🇫");
   await message.react("🇮");
   log.debug(`${formatContext(message)}: reacted with LOFI.`);
-};
+}
 
 async function isLukeOrCoffeeReplyingToEachOther(message: Message) {
-  if (!message.reference)
-    return false;
+  if (!message.reference) return false;
 
   const referenceId = message.reference.messageId!;
   const referencedMessage = await message.channel.messages.fetch(referenceId);

@@ -49,7 +49,8 @@ onSniffs.execute(async (message) => {
   if (wouldSniffBack) {
     await replySilently(message, responseToEcho);
     log.info(`${context}: echoed '${responseToEcho}'.`);
-  } else {
+  }
+  else {
     await replySilently(message, "daily cxtie appreciation");
     log.info(`${context}: appreciated cxtie.`);
   }

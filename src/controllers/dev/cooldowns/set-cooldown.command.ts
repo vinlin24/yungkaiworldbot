@@ -18,13 +18,13 @@ import { listenerIdAutocomplete } from "./cooldowns.autocomplete";
 const setCooldown = new CommandBuilder();
 
 const slashCommandDefinition = new SlashCommandBuilder()
-  .setName(`set-listener-cooldown`)
+  .setName("set-listener-cooldown")
   .setDescription("Set the cooldown spec for the a message creation listener.")
   .addStringOption(input => input
     .setName("listener")
     .setDescription("Listener ID.")
     .setRequired(true)
-    .setAutocomplete(true)
+    .setAutocomplete(true),
   )
   .addStringOption(input => input
     .setName("type")
@@ -35,12 +35,12 @@ const slashCommandDefinition = new SlashCommandBuilder()
       { name: "Per-user", value: "user" },
       { name: "Per-channel", value: "channel" },
       { name: "Disabled", value: "disabled" },
-    )
+    ),
   )
   .addNumberOption(input => input
     .setName("seconds")
     .setDescription("Default duration of cooldown (in seconds).")
-    .setMinValue(0)
+    .setMinValue(0),
   );
 addBroadcastOption(slashCommandDefinition);
 

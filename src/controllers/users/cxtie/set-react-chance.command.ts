@@ -24,8 +24,8 @@ setReactChance.define(new SlashCommandBuilder()
     .setRequired(true)
     .setMinValue(0)
     .setMaxValue(1)
-    .setDescription("Probability expressed as a decimal.")
-  )
+    .setDescription("Probability expressed as a decimal."),
+  ),
 );
 
 setReactChance.check(checkPrivilege(RoleLevel.BABY_MOD));
@@ -40,7 +40,7 @@ setReactChance.execute(async (interaction) => {
 
   await interaction.reply(
     "Updated anti-Cxtie react chance from " +
-    `${oldProbability} to ${newProbability}.`
+    `${oldProbability} to ${newProbability}.`,
   );
 });
 

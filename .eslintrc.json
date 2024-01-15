@@ -1,0 +1,152 @@
+{
+  "env": {
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "import-newlines"
+  ],
+  "rules": {
+    "indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1,
+        "ImportDeclaration": 1
+      }
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "arrow-spacing": [
+      "warn",
+      {
+        "before": true,
+        "after": true
+      }
+    ],
+    "brace-style": [
+      "error",
+      "stroustrup",
+      {
+        "allowSingleLine": true
+      }
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ],
+    "comma-spacing": "error",
+    "comma-style": "error",
+    "curly": [
+      "error",
+      "multi-line",
+      "consistent"
+    ],
+    "nonblock-statement-body-position": "error",
+    "dot-location": [
+      "error",
+      "property"
+    ],
+    "handle-callback-err": "off",
+    "keyword-spacing": "error",
+    "max-nested-callbacks": [
+      "error",
+      {
+        "max": 4
+      }
+    ],
+    "max-statements-per-line": [
+      "error",
+      {
+        "max": 2
+      }
+    ],
+    "no-console": "off",
+    "no-floating-decimal": "error",
+    "no-lonely-if": "error",
+    "no-multi-spaces": "error",
+    "no-multiple-empty-lines": [
+      "error",
+      {
+        "max": 2,
+        "maxEOF": 1,
+        "maxBOF": 0
+      }
+    ],
+    // NOTE: The default no-shadow for some reason reports enums as "already
+    // declared in the upper scope." The fix via @typescript/eslint's version
+    // comes from: https://stackoverflow.com/a/63961972/14226122
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": [
+      "error",
+      {
+        "allow": [
+          "err",
+          "resolve",
+          "reject"
+        ]
+      }
+    ],
+    "no-trailing-spaces": [
+      "error"
+    ],
+    "no-var": "error",
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
+    "prefer-const": "error",
+    "space-before-blocks": "error",
+    "space-before-function-paren": [
+      "error",
+      {
+        "named": "never",
+        "asyncArrow": "always"
+      }
+    ],
+    "space-in-parens": "error",
+    "space-infix-ops": "error",
+    "space-unary-ops": "error",
+    "spaced-comment": "error",
+    "yoda": "error",
+    "max-len": [
+      "warn",
+      {
+        "code": 80,
+        "ignoreComments": false,
+        // Exempt default imports (can't do much about that). This regexp
+        // actually exempts all import statements, but the import-newlines
+        // plugin will catch named imports that exceed max-len.
+        "ignorePattern": "^import [^\\n\\r]*? from \".+\"\\s*;$"
+      }
+    ],
+    "import-newlines/enforce": [
+      "error",
+      {
+        "max-len": 80
+      }
+    ],
+    // Use explicit any with care, but still allow for special circumstances.
+    "@typescript-eslint/no-explicit-any": "off"
+  }
+}

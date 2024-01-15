@@ -13,11 +13,7 @@ import {
   MessageReference,
   MessageReplyOptions,
 } from "discord.js";
-import {
-  DeepMockProxy,
-  Matcher,
-  mockDeep,
-} from "jest-mock-extended";
+import { DeepMockProxy, Matcher, mockDeep } from "jest-mock-extended";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -144,12 +140,12 @@ export class MockInteraction {
   }
 }
 
-export function addMockGetter<ObjectType extends {}, ValueType>(
+export function addMockGetter<ObjectType extends object, ValueType>(
   obj: ObjectType,
   key: keyof ObjectType,
   value: ValueType,
 ): void;
-export function addMockGetter<ObjectType extends {}, ValueType>(
+export function addMockGetter<ObjectType extends object, ValueType>(
   obj: ObjectType,
   key: keyof ObjectType,
   getter: () => ValueType,
@@ -159,16 +155,19 @@ export function addMockGetter<ObjectType extends {}, ValueType>(
  * not supporting mocking getters yet. This can also be used to overwrite
  * read-only properties.
  */
-export function addMockGetter<ObjectType extends {}, ValueType>(
+export function addMockGetter<ObjectType extends object, ValueType>(
   obj: ObjectType,
   key: keyof ObjectType,
   getter: ValueType | (() => ValueType),
 ): jest.Mock<ValueType, [], any> {
   const mockGetter = jest.fn<ValueType, []>();
-  if (getter instanceof Function)
+  if (getter instanceof Function) {
     mockGetter.mockImplementation(getter);
-  else
+  }
+  else {
     mockGetter.mockReturnValue(getter);
+  }
+
   Object.defineProperty(obj, key, {
     get: mockGetter,
     configurable: true, // Allow redefining existing properties.
@@ -269,12 +268,15 @@ export class MockMessage {
    * Mock the message's author attached to the underlying message object.
    */
   public mockAuthor(options: MockAuthorOptions): this {
-    if (options.uid !== undefined)
+    if (options.uid !== undefined) {
       this.message.author.id = options.uid;
-    if (options.displayName !== undefined)
+    }
+    if (options.displayName !== undefined) {
       addMockGetter(this.message.author, "displayName", options.displayName);
-    if (options.bot !== undefined)
+    }
+    if (options.bot !== undefined) {
       this.message.author.bot = options.bot;
+    }
     return this;
   }
 
@@ -290,7 +292,7 @@ export class MockMessage {
       messageId: "MOCK-MESSAGE-ID",
     };
     this.message.reference = reference;
-    // @ts-ignore fetch literally resolves Message. For SOME reason,
+    // @ts-expect-error fetch literally resolves Message. For SOME reason,
     // mockImplementation wants the callback to resolve Collection<string,
     // Message>.
     this.message.channel.messages.fetch.mockImplementation(async (id) => {
@@ -377,7 +379,8 @@ export class MockMessage {
     let options: Partial<MessageReplyOptions>;
     if (typeof arg === "string") {
       options = { content: arg };
-    } else {
+    }
+    else {
       options = arg;
     }
     this.expectRepliedWith({

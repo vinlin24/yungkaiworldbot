@@ -33,7 +33,7 @@ export enum RoleLevel {
    * Is one of the bot developers (aka "bot master").
    */
   DEV,
-};
+}
 
 export const LEVEL_TO_RID: Record<
   Exclude<RoleLevel, RoleLevel.NONE>,
@@ -51,8 +51,9 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
     for (const [level, roleId] of iterateEnum(LEVEL_TO_RID)) {
       // As long as the level required by the command is less than any of the
       // levels for which the caller has a role, then they pass.
-      if (commandLevel <= level && member.roles.cache.has(roleId))
+      if (commandLevel <= level && member.roles.cache.has(roleId)) {
         return true;
+      }
     }
     return false;
   }

@@ -33,7 +33,7 @@ it("should clear the activity as long as the flag is set", async () => {
   mock
     .mockCallerRoles(config.BOT_DEV_RID)
     .mockOption("Boolean", "clear_activity", true)
-    .mockOption("String", "activity_name", "unit testing!")
+    .mockOption("String", "activity_name", "unit testing!");
   await mock.simulateCommand();
   expect(mock.interaction.client.user.setActivity).toHaveBeenLastCalledWith();
   mock.expectReplied();

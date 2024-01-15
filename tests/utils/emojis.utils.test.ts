@@ -1,4 +1,8 @@
-import { CustomEmoji, parseCustomEmojis, toEscapedEmoji } from "../../src/utils/emojis.utils";
+import {
+  CustomEmoji,
+  parseCustomEmojis,
+  toEscapedEmoji,
+} from "../../src/utils/emojis.utils";
 
 describe("parsing custom emojis", () => {
   it("should return all custom emojis in string", () => {

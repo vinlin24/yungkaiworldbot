@@ -42,20 +42,20 @@ const slashCommandDefinition = new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("activity_type")
     .setDescription("Activity type (determines the verb used).")
-    .addChoices(...activityChoices)
+    .addChoices(...activityChoices),
   )
   .addStringOption(input => input
     .setName("activity_name")
-    .setDescription("Text to follow the activity verb.")
+    .setDescription("Text to follow the activity verb."),
   )
   .addStringOption(input => input
     .setName("status")
     .setDescription("Status of the bot.")
-    .addChoices(...statusChoices)
+    .addChoices(...statusChoices),
   )
   .addBooleanOption(input => input
     .setName("clear_activity")
-    .setDescription("Clear current activity (ignores other activity options)")
+    .setDescription("Clear current activity (ignores other activity options)"),
   );
 
 async function updateBotPresence(
@@ -76,7 +76,8 @@ async function updateBotPresence(
   // Ignore the other activity options and just clear the activity.
   if (clearActivity) {
     client.user.setActivity();
-  } else {
+  }
+  else {
     // Activity requires a name. Type is optional. If the caller specifies a
     // type without a name, we can't make the API call, so it's an error.
     if (activityType && !activityName) {
@@ -98,7 +99,7 @@ async function updateBotPresence(
       });
       log.info(
         `${context}: set bot activity to ` +
-        `(${activityTypeValue}, ${activityName}).`
+        `(${activityTypeValue}, ${activityName}).`,
       );
     }
   }

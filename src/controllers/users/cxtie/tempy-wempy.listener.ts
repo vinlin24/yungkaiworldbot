@@ -27,13 +27,14 @@ onTempyWempy.execute(async (message) => {
     await message.react("🇴");
     await message.react("🇵");
     reacted = true;
-  } else {
+  }
+  else {
     await replySilently(message, "Stop calling me that.");
     reacted = false;
   }
   log.debug(
     `${formatContext(message)}: protested being called "tempy wempy" ` +
-    `(${reacted ? "reacted" : "replied"}).`
+    `(${reacted ? "reacted" : "replied"}).`,
   );
 });
 

@@ -12,7 +12,7 @@ export function parseCustomEmojis(content: string): Required<CustomEmoji>[] {
   const matches = content.matchAll(CUSTOM_EMOJI_REGEXP);
   const emojis: Required<CustomEmoji>[] = [];
   for (const match of matches) {
-    const [_, a, name, id] = match;
+    const [, a, name, id] = match;
     const animated = !!a;
     emojis.push({ name, id, animated });
   }

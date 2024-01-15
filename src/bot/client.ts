@@ -46,10 +46,12 @@ export class BotClient extends IClientWithIntentsAndRunners {
     try {
       this.registerListeners();
       return true;
-    } catch (error) {
+    }
+    catch (error) {
       if (error instanceof DuplicateListenerIDError) {
         log.error(`duplicate listener ID: ${error.duplicateId}`);
-      } else {
+      }
+      else {
         log.crit(`unexpected error in registering events: ${error}`);
         console.error(error);
       }
@@ -66,7 +68,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
 
     try {
       log.info(
-        `started refreshing ${commandsJSON.length} application (/) commands.`
+        `started refreshing ${commandsJSON.length} application (/) commands.`,
       );
 
       // The put method is used to fully refresh all commands in the guild with
@@ -77,9 +79,10 @@ export class BotClient extends IClientWithIntentsAndRunners {
       ) as unknown[];
 
       log.info(
-        `successfully reloaded ${data.length} application (/) commands.`
+        `successfully reloaded ${data.length} application (/) commands.`,
       );
-    } catch (error) {
+    }
+    catch (error) {
       log.crit("failed to refresh application commands.");
       console.error(error);
     }

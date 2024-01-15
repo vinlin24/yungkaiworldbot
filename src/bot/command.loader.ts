@@ -37,7 +37,7 @@ export class CommandLoader {
         commandPaths.push(fullPath);
         log.debug(
           "discovered command implementation file: " +
-          `${path.relative(this.commandsBaseDirectoryPath, fullPath)}.`
+          `${path.relative(this.commandsBaseDirectoryPath, fullPath)}.`,
         );
         continue;
       }
@@ -59,6 +59,7 @@ export class CommandLoader {
     const commandPaths = this.discoverCommandFiles();
 
     for (const fullPath of commandPaths) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const commandSpec = require(fullPath).default as unknown;
       const validationError = this.validateImport(commandSpec);
       if (validationError) {

@@ -21,7 +21,7 @@ describe("rizz listener", () => {
   it("should react if content is 'tucks hair'", async () => {
     const mock = new MockMessage(onRizzSpec)
       .mockAuthorId(config.CXTIE_UID!)
-      .mockContent(`*tucks hair*`);
+      .mockContent("*tucks hair*");
     await mock.simulateEvent();
     mock.expectReactedWith(GUILD_EMOJIS.NEKO_GUN);
   });

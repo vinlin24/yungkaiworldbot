@@ -27,7 +27,7 @@ const slashCommandDefinition = new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("duration")
     .setDescription("Duration to count down from e.g. \"10s\".")
-    .setRequired(true)
+    .setRequired(true),
   );
 addEphemeralOption(slashCommandDefinition);
 
@@ -66,12 +66,12 @@ async function startCountdown(
     await interaction.channel!.send(`${mention}, your countdown has expired!`);
   }, seconds * 1000);
   log.info(
-    `${context}: set timeout for ${seconds} seconds (ends at ${endTimestamp}).`
+    `${context}: set timeout for ${seconds} seconds (ends at ${endTimestamp}).`,
   );
 
   const response =
     `Counting down to ${formatHoursMinsSeconds(seconds)} from now. ` +
-    `Expiring ${toRelativeTimestampMention(endTimestamp)}...`
+    `Expiring ${toRelativeTimestampMention(endTimestamp)}...`;
   await interaction.reply({ content: response, ephemeral });
 }
 

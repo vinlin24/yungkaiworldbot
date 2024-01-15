@@ -53,7 +53,7 @@ export class ListenerLoader {
         listenerPaths.push(fullPath);
         log.debug(
           "discovered event listener implementation file: " +
-          `${path.relative(this.listenersBaseDirectoryPath, fullPath)}.`
+          `${path.relative(this.listenersBaseDirectoryPath, fullPath)}.`,
         );
         continue;
       }
@@ -77,6 +77,7 @@ export class ListenerLoader {
     const listenerPaths = [...specialListenerPaths, ...customListenerPaths];
 
     for (const fullPath of listenerPaths) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const listenerSpec = require(fullPath).default as unknown;
       const validationError = this.validateImport(listenerSpec);
       if (validationError) {

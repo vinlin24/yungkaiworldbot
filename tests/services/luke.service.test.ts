@@ -7,7 +7,7 @@ import { addMockGetter } from "../test-utils";
 let lukeService: LukeService;
 beforeEach(() => {
   lukeService = new LukeService();
-})
+});
 
 describe("meow chance", () => {
   it("should start with the initial meow chance", () => {
@@ -17,7 +17,7 @@ describe("meow chance", () => {
 
   it("should reflect the updated meow chance", () => {
     lukeService.setMeowChance(0.42);
-    const newChance = lukeService.getMeowChance()
+    const newChance = lukeService.getMeowChance();
     expect(newChance).toBeCloseTo(0.42);
   });
 });
@@ -38,7 +38,7 @@ describe("dad joke handler", () => {
     content: string,
   ): void {
     expect(mockMessage.reply).toHaveBeenCalledWith(
-      expect.objectContaining({ content })
+      expect.objectContaining({ content }),
     );
   }
 
