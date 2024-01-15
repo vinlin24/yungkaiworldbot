@@ -1,4 +1,5 @@
 import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
+import { clamp } from "lodash";
 
 import { ListenerFilterFunction } from "../types/listener.types";
 import { parseCustomEmojis } from "../utils/emojis.utils";
@@ -47,7 +48,6 @@ export function isPollutionImmuneChannel(
   return false;
 }
 
-
 /**
  * Only listen to messages created in a channel where pollution is "acceptable".
  * That is, the predicate should fail on "important" channels such as
@@ -94,12 +94,8 @@ export function randomly(successChance:
     : () => successChance;
 
   return async function () {
-    const chance = await getSuccessChance();
-    if (chance < 0 || chance > 1) {
-      throw new Error(
-        `success chance must be in range [0, 1] but received ${successChance}`,
-      );
-    }
+    let chance = await getSuccessChance();
+    chance = clamp(chance, 0, 1);
     return Math.random() < chance;
   };
 }
