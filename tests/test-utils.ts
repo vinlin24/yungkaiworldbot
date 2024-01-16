@@ -1,7 +1,6 @@
 import {
   Awaitable,
   ChatInputCommandInteraction,
-  Collection,
   CommandInteractionOptionResolver,
   EmojiIdentifierResolvable,
   Events,
@@ -175,11 +174,13 @@ export function addMockGetter<ObjectType extends object, ValueType>(
   return mockGetter;
 }
 
+/**
+ * A client stub for testing. Its public interface has been replaced with Jest
+ * mocks.
+ */
 export class TestClient extends IClientWithIntentsAndRunners {
-  public override readonly commandRunners
-    = new Collection<string, CommandRunner>();
-  public override readonly listenerRunners
-    = new Collection<string, ListenerRunner<any>>();
+  public override deploySlashCommands = jest.fn();
+  public override prepareRuntime = jest.fn();
 }
 
 /**

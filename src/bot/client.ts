@@ -28,18 +28,13 @@ const CONTROLLERS_DIR_PATH = path.join(__dirname, "..", "controllers");
 const SPECIAL_LISTENERS_DIR_PATH = path.join(__dirname, "listeners");
 
 export class BotClient extends IClientWithIntentsAndRunners {
-  public override readonly commandRunners
-    = new Collection<string, CommandRunner>();
-  public override readonly listenerRunners
-    = new Collection<string, ListenerRunner<any>>();
-
   private commandLoader = new CommandLoader(CONTROLLERS_DIR_PATH);
   private listenerLoader = new ListenerLoader(
     CONTROLLERS_DIR_PATH,
     SPECIAL_LISTENERS_DIR_PATH,
   );
 
-  public prepareRuntime(): boolean {
+  public override prepareRuntime(): boolean {
     this.loadCommands();
     this.loadListeners();
 
@@ -59,7 +54,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  public async deploySlashCommands(): Promise<void> {
+  public override async deploySlashCommands(): Promise<void> {
     this.loadCommands();
     const commandsJSON = this.commandRunners.map(r => r.getDeployJSON());
 
