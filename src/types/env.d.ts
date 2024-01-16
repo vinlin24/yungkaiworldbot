@@ -72,6 +72,7 @@ declare global {
     J_UID: string;
     KAI_UID: string;
     NI_UID: string;
+    S_UID: string;
 
     // ///////////////////////////
     //     Discord Bot IDs     //
