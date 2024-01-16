@@ -70,7 +70,7 @@ class ClientReloadPipeline {
 
   private async clearDefinitions(): Promise<boolean> {
     try {
-      this.client.clearDefinitions();
+      await this.client.clearDefinitions();
       return true;
     }
     catch (error) {
