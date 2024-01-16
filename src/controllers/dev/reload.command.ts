@@ -30,14 +30,27 @@ class ClientReloadPipeline {
 
   /**
    * Run the reload pipeline, handling errors and replying the the interaction.
+   * Parameter `redeploy` specifies whether to also sync slash command
+   * definitions with Discord's backend. This is not the default as to prevent
+   * being rate-limited.
    *
    * Postcondition: The interaction will be replied to regardless of success.
    */
-  public async run(): Promise<void> {
-    const success
-      = await this.clearDefinitions()
-      && await this.deploySlashCommands()
-      && await this.prepareRuntime();
+  public async run(redeploy: boolean): Promise<void> {
+    log.warning(`${this.context}: reloading client (redeploy=${redeploy})...`);
+
+    let success: boolean;
+    if (redeploy) {
+      success
+        = await this.clearDefinitions()
+        && await this.deploySlashCommands()
+        && await this.prepareRuntime();
+    }
+    else {
+      success
+        = await this.clearDefinitions()
+        && await this.prepareRuntime();
+    }
     if (!success) return;
 
     await this.interaction.reply({ content: "👍", ephemeral: true });
@@ -96,11 +109,17 @@ const reload = new CommandBuilder();
 
 reload.define(new SlashCommandBuilder()
   .setName("reload")
-  .setDescription("Reload all commands and event listeners."),
+  .setDescription("Reload all commands and event listeners.")
+  .addBooleanOption(input => input
+    .setName("redeploy_slash_commands")
+    .setDescription("Whether to redeploy slash commands as well."),
+  ),
 );
 reload.check(checkPrivilege(RoleLevel.DEV));
 reload.execute(async (interaction) => {
-  await new ClientReloadPipeline(interaction).run();
+  const redeploy = !!interaction.options.getBoolean("redeploy_slash_commands");
+  const handler = new ClientReloadPipeline(interaction);
+  await handler.run(redeploy);
 });
 
 const reloadSpec = reload.toSpec();
