@@ -5,6 +5,7 @@ import { ValidationError, fromZodError } from "zod-validation-error";
 
 import getLogger from "../logger";
 import { ListenerSpec, listenerSpecSchema } from "../types/listener.types";
+import { dynamicRequire } from "../utils/meta.utils";
 
 const log = getLogger(__filename);
 
@@ -70,15 +71,15 @@ export class ListenerLoader {
     return null;
   }
 
-  public load(): ListenerSpec<any>[] {
+  public async load(): Promise<ListenerSpec<any>[]> {
     const specs: ListenerSpec<any>[] = [];
     const customListenerPaths = this.discoverListenerFiles();
     const specialListenerPaths = this.discoverSpecialListenerFiles();
     const listenerPaths = [...specialListenerPaths, ...customListenerPaths];
 
     for (const fullPath of listenerPaths) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const listenerSpec = require(fullPath).default as unknown;
+      const module = await dynamicRequire(fullPath);
+      const listenerSpec = module.default;
       const validationError = this.validateImport(listenerSpec);
       if (validationError) {
         log.crit(`failed to import listener module ${fullPath}.`);

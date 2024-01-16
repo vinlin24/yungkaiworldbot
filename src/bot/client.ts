@@ -34,9 +34,9 @@ export class BotClient extends IClientWithIntentsAndRunners {
     SPECIAL_LISTENERS_DIR_PATH,
   );
 
-  public override prepareRuntime(): boolean {
-    this.loadCommands();
-    this.loadListeners();
+  public override async prepareRuntime(): Promise<boolean> {
+    await this.loadCommands();
+    await this.loadListeners();
 
     try {
       this.registerListeners();
@@ -55,7 +55,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
   }
 
   public override async deploySlashCommands(): Promise<void> {
-    this.loadCommands();
+    await this.loadCommands();
     const commandsJSON = this.commandRunners.map(r => r.getDeployJSON());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
@@ -83,8 +83,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadCommands(): void {
-    const commandSpecs = this.commandLoader.load();
+  private async loadCommands(): Promise<void> {
+    const commandSpecs = await this.commandLoader.load();
     for (const spec of commandSpecs) {
       const commandName = spec.definition.name;
       this.commandRunners.set(commandName, new CommandRunner(spec));
@@ -92,8 +92,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadListeners(): void {
-    const allListenerSpecs = this.listenerLoader.load();
+  private async loadListeners(): Promise<void> {
+    const allListenerSpecs = await this.listenerLoader.load();
     for (const spec of allListenerSpecs) {
       const { id, type } = spec;
       this.listenerRunners.set(id, new ListenerRunner(spec));
@@ -108,7 +108,7 @@ export class BotClient extends IClientWithIntentsAndRunners {
     return asSpecs.filter(spec => spec.type === type);
   }
 
-  public override clearDefinitions(): void {
+  public override async clearDefinitions(): Promise<void> {
     // Clear the command mapping. Unlike for listeners, there's no "undoing
     // registration" since commands and synced to Discord's backend. Instead,
     // our command runner should intelligently handle commands that may be valid

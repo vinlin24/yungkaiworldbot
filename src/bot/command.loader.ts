@@ -5,6 +5,7 @@ import { ValidationError, fromZodError } from "zod-validation-error";
 
 import getLogger from "../logger";
 import { CommandSpec, commandSpecSchema } from "../types/command.types";
+import { dynamicRequire } from "../utils/meta.utils";
 
 const log = getLogger(__filename);
 
@@ -54,13 +55,13 @@ export class CommandLoader {
     return null;
   }
 
-  public load(): CommandSpec[] {
+  public async load(): Promise<CommandSpec[]> {
     const specs: CommandSpec[] = [];
     const commandPaths = this.discoverCommandFiles();
 
     for (const fullPath of commandPaths) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const commandSpec = require(fullPath).default as unknown;
+      const module = await dynamicRequire(fullPath);
+      const commandSpec = module.default;
       const validationError = this.validateImport(commandSpec);
       if (validationError) {
         log.crit(`failed to import command module ${fullPath}.`);

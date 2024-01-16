@@ -105,7 +105,7 @@ export abstract class IClientWithIntentsAndRunners extends Client {
    * expected that after this method is called, the bot is in a well-defined
    * state to log in and start its main event loop.
    */
-  public abstract prepareRuntime(): boolean;
+  public abstract prepareRuntime(): Promise<boolean>;
   /**
    * Load command definitions and deploy them to Discord's backend. It is
    * expected that this method does NOT start the bot's main runtime.
@@ -115,5 +115,5 @@ export abstract class IClientWithIntentsAndRunners extends Client {
   /**
    * Undo the setup from `prepareRuntime`.
    */
-  public abstract clearDefinitions(): void;
+  public abstract clearDefinitions(): Promise<void>;
 }
