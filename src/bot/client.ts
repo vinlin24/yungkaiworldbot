@@ -107,6 +107,24 @@ export class BotClient extends IClientWithIntentsAndRunners {
     if (!type) return asSpecs;
     return asSpecs.filter(spec => spec.type === type);
   }
+
+  public override clearDefinitions(): void {
+    // Clear the command mapping. Unlike for listeners, there's no "undoing
+    // registration" since commands and synced to Discord's backend. Instead,
+    // our command runner should intelligently handle commands that may be valid
+    // from Discord's POV but not from our runner's POV>
+    const numCommands = this.commandRunners.size;
+    this.commandRunners.clear();
+    log.warning(`removed ${numCommands} commands from client mapping.`);
+
+    // Undo callback registration before clearing the mapping.
+    for (const runner of this.listenerRunners.values()) {
+      this.removeListener(runner.spec.type, runner.callbackToRegister);
+    }
+    const numListeners = this.listenerRunners.size;
+    this.listenerRunners.clear();
+    log.warning(`removed ${numListeners} listeners from client mapping.`);
+  }
 }
 
 /**

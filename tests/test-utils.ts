@@ -181,6 +181,7 @@ export function addMockGetter<ObjectType extends object, ValueType>(
 export class TestClient extends IClientWithIntentsAndRunners {
   public override deploySlashCommands = jest.fn();
   public override prepareRuntime = jest.fn();
+  public override clearDefinitions = jest.fn();
 }
 
 /**

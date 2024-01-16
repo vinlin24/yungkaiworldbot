@@ -111,4 +111,9 @@ export abstract class IClientWithIntentsAndRunners extends Client {
    * expected that this method does NOT start the bot's main runtime.
    */
   public abstract deploySlashCommands(): Promise<void>;
+
+  /**
+   * Undo the setup from `prepareRuntime`.
+   */
+  public abstract clearDefinitions(): void;
 }
