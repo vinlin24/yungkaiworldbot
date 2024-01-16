@@ -18,7 +18,7 @@ import { fromZodError } from "zod-validation-error";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
-import { IClientWithIntentsAndRunners } from "../src/types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../src/types/client.abc";
 import { CommandSpec } from "../src/types/command.types";
 import { ListenerSpec } from "../src/types/listener.types";
 
@@ -70,7 +70,7 @@ export class MockInteraction {
    *
    * Mock the client attached to the interaction.
    */
-  public mockClient(client: IClientWithIntentsAndRunners): this {
+  public mockClient(client: ClientWithIntentsAndRunnersABC): this {
     addMockGetter(this.interaction, "client", client);
     return this;
   }
@@ -184,7 +184,7 @@ export function addMockGetter<ObjectType extends object, ValueType>(
  * A client stub for testing. Its public interface has been replaced with Jest
  * mocks.
  */
-export class TestClient extends IClientWithIntentsAndRunners {
+export class TestClient extends ClientWithIntentsAndRunnersABC {
   public override deploySlashCommands = jest.fn();
   public override prepareRuntime = jest.fn();
   public override clearDefinitions = jest.fn();

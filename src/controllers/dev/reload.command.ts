@@ -9,7 +9,7 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../middleware/privilege.middleware";
-import { IClientWithIntentsAndRunners } from "../../types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
 import { CommandBuilder } from "../../types/command.types";
 import { formatContext } from "../../utils/logging.utils";
 
@@ -20,11 +20,11 @@ const log = getLogger(__filename);
  * process.
  */
 class ClientReloadPipeline {
-  private client: IClientWithIntentsAndRunners;
+  private client: ClientWithIntentsAndRunnersABC;
   private context: string;
 
   constructor(private interaction: ChatInputCommandInteraction) {
-    this.client = interaction.client as IClientWithIntentsAndRunners;
+    this.client = interaction.client as ClientWithIntentsAndRunnersABC;
     this.context = formatContext(interaction);
   }
 

@@ -4,7 +4,7 @@ import { ClientEvents, Collection, REST, Routes } from "discord.js";
 
 import config from "../config";
 import getLogger from "../logger";
-import { IClientWithIntentsAndRunners } from "../types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../types/client.abc";
 import {
   DuplicateListenerIDError,
   ListenerSpec,
@@ -27,7 +27,7 @@ const CONTROLLERS_DIR_PATH = path.join(__dirname, "..", "controllers");
  */
 const SPECIAL_LISTENERS_DIR_PATH = path.join(__dirname, "listeners");
 
-export class BotClient extends IClientWithIntentsAndRunners {
+export class BotClient extends ClientWithIntentsAndRunnersABC {
   private commandLoader = new CommandLoader(CONTROLLERS_DIR_PATH);
   private listenerLoader = new ListenerLoader(
     CONTROLLERS_DIR_PATH,

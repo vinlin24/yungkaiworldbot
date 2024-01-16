@@ -29,7 +29,7 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-export abstract class IClientWithIntentsAndRunners extends Client {
+export abstract class ClientWithIntentsAndRunnersABC extends Client {
   public readonly commandRunners
     = new Collection<string, CommandRunner>();
   public readonly listenerRunners
