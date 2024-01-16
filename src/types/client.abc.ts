@@ -103,7 +103,8 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
   /**
    * Perform any loading and initialization necessary for bot startup. It is
    * expected that after this method is called, the bot is in a well-defined
-   * state to log in and start its main event loop.
+   * state to log in and start its main event loop. Return whether the operation
+   * succeeded.
    */
   public abstract prepareRuntime(): Promise<boolean>;
   /**
@@ -111,7 +112,6 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
    * expected that this method does NOT start the bot's main runtime.
    */
   public abstract deploySlashCommands(): Promise<void>;
-
   /**
    * Undo the setup from `prepareRuntime`.
    */
