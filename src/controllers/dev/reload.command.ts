@@ -12,6 +12,7 @@ import {
 import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
 import { CommandBuilder } from "../../types/command.types";
 import { formatContext } from "../../utils/logging.utils";
+import { getCurrentBranchName } from "../../utils/meta.utils";
 
 const log = getLogger(__filename);
 
@@ -39,6 +40,8 @@ class ClientReloadPipeline {
   public async run(redeploy: boolean): Promise<void> {
     log.warning(`${this.context}: reloading client (redeploy=${redeploy})...`);
 
+    const branchName = getCurrentBranchName();
+
     let success: boolean;
     if (redeploy) {
       success
@@ -52,6 +55,9 @@ class ClientReloadPipeline {
         && await this.prepareRuntime();
     }
     if (!success) return;
+
+    this.client.branchName = branchName;
+    log.info(`${this.context}: updated client branch name to '${branchName}'.`);
 
     await this.interaction.reply({ content: "👍", ephemeral: true });
     log.warning(`${this.context}: successfully reloaded client.`);

@@ -1,9 +1,14 @@
+jest.mock("../../../src/utils/meta.utils");
+
 import { EmbedBuilder } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
 import config from "../../../src/config";
 import reloadSpec from "../../../src/controllers/dev/reload.command";
+import { getCurrentBranchName } from "../../../src/utils/meta.utils";
 import { MockInteraction } from "../../test-utils";
+
+const mockedGetCurrentBranchName = jest.mocked(getCurrentBranchName);
 
 let mock: MockInteraction;
 
@@ -52,6 +57,15 @@ it("shouldn't deploy commands if option not explicitly set", async () => {
   expect(mock.client.deploySlashCommands).not.toHaveBeenCalled();
   expect(mock.client.prepareRuntime).toHaveBeenCalled();
   mock.expectRepliedWith({ ephemeral: true });
+});
+
+it("should update the client's branch name", async () => {
+  mock.mockCallerRoles(config.BOT_DEV_RID);
+  mockedGetCurrentBranchName.mockReturnValueOnce("DUMMY-BRANCH-NAME");
+
+  await mock.simulateCommand();
+
+  expect(mock.client.branchName).toEqual("DUMMY-BRANCH-NAME");
 });
 
 describe("error handling", () => {

@@ -1,5 +1,3 @@
-import child_process from "node:child_process";
-
 import {
   Client,
   Collection,
@@ -11,23 +9,10 @@ import {
 import { CommandRunner } from "../bot/command.runner";
 import { ListenerRunner } from "../bot/listener.runner";
 import getLogger from "../logger";
+import { getCurrentBranchName } from "../utils/meta.utils";
 import { ListenerFilter } from "./listener.types";
 
 const log = getLogger(__filename);
-
-function getCurrentBranchName(): string | null {
-  const command = "git rev-parse --abbrev-ref HEAD";
-  const process = child_process.spawnSync(command, { shell: true });
-  if (process.status !== 0) {
-    const stderr = process.stderr?.toString().trim();
-    log.warning(
-      `\`${command}\` failed with exit code ${process.status}` +
-      (stderr ? `: ${stderr}` : ""),
-    );
-    return null;
-  }
-  return process.stdout.toString().trim();
-}
 
 export abstract class ClientWithIntentsAndRunnersABC extends Client {
   public readonly commandRunners
@@ -45,7 +30,7 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
    * Name of the Git branch that was checked out when this program was started.
    * This value is `null` if no Git repository is detected.
    */
-  public readonly branchName = getCurrentBranchName();
+  public branchName = getCurrentBranchName();
 
   constructor() {
     super({
