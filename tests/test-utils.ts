@@ -1,7 +1,6 @@
 import {
   Awaitable,
   ChatInputCommandInteraction,
-  Collection,
   CommandInteractionOptionResolver,
   EmojiIdentifierResolvable,
   Events,
@@ -19,7 +18,7 @@ import { fromZodError } from "zod-validation-error";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
-import { IClientWithIntentsAndRunners } from "../src/types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../src/types/client.abc";
 import { CommandSpec } from "../src/types/command.types";
 import { ListenerSpec } from "../src/types/listener.types";
 
@@ -44,10 +43,16 @@ export class MockInteraction {
   public readonly interaction: DeepMockProxy<ChatInputCommandInteraction>;
   /** The command this interaction is to be passed into. */
   public readonly command: CommandRunner;
+  /** The client stub attached to the mock interaction. */
+  public readonly client: DeepMockProxy<TestClient>;
 
   constructor(spec: CommandSpec) {
     this.interaction = mockDeep<ChatInputCommandInteraction>();
     this.command = new CommandRunner(spec);
+
+    // Override attached client with stub.
+    this.client = mockDeep<TestClient>();
+    addMockGetter(this.interaction, "client", this.client);
   }
 
   /**
@@ -65,7 +70,7 @@ export class MockInteraction {
    *
    * Mock the client attached to the interaction.
    */
-  public mockClient(client: IClientWithIntentsAndRunners): this {
+  public mockClient(client: ClientWithIntentsAndRunnersABC): this {
     addMockGetter(this.interaction, "client", client);
     return this;
   }
@@ -175,11 +180,14 @@ export function addMockGetter<ObjectType extends object, ValueType>(
   return mockGetter;
 }
 
-export class TestClient extends IClientWithIntentsAndRunners {
-  public override readonly commandRunners
-    = new Collection<string, CommandRunner>();
-  public override readonly listenerRunners
-    = new Collection<string, ListenerRunner<any>>();
+/**
+ * A client stub for testing. Its public interface has been replaced with Jest
+ * mocks.
+ */
+export class TestClient extends ClientWithIntentsAndRunnersABC {
+  public override deploySlashCommands = jest.fn();
+  public override prepareRuntime = jest.fn();
+  public override clearDefinitions = jest.fn();
 }
 
 /**

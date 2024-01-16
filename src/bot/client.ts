@@ -4,7 +4,7 @@ import { ClientEvents, Collection, REST, Routes } from "discord.js";
 
 import config from "../config";
 import getLogger from "../logger";
-import { IClientWithIntentsAndRunners } from "../types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../types/client.abc";
 import {
   DuplicateListenerIDError,
   ListenerSpec,
@@ -27,21 +27,16 @@ const CONTROLLERS_DIR_PATH = path.join(__dirname, "..", "controllers");
  */
 const SPECIAL_LISTENERS_DIR_PATH = path.join(__dirname, "listeners");
 
-export class BotClient extends IClientWithIntentsAndRunners {
-  public override readonly commandRunners
-    = new Collection<string, CommandRunner>();
-  public override readonly listenerRunners
-    = new Collection<string, ListenerRunner<any>>();
-
+export class BotClient extends ClientWithIntentsAndRunnersABC {
   private commandLoader = new CommandLoader(CONTROLLERS_DIR_PATH);
   private listenerLoader = new ListenerLoader(
     CONTROLLERS_DIR_PATH,
     SPECIAL_LISTENERS_DIR_PATH,
   );
 
-  public prepareRuntime(): boolean {
-    this.loadCommands();
-    this.loadListeners();
+  public override async prepareRuntime(): Promise<boolean> {
+    await this.loadCommands();
+    await this.loadListeners();
 
     try {
       this.registerListeners();
@@ -59,8 +54,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  public async deploySlashCommands(): Promise<void> {
-    this.loadCommands();
+  public override async deploySlashCommands(): Promise<void> {
+    await this.loadCommands();
     const commandsJSON = this.commandRunners.map(r => r.getDeployJSON());
 
     const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
@@ -88,8 +83,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadCommands(): void {
-    const commandSpecs = this.commandLoader.load();
+  private async loadCommands(): Promise<void> {
+    const commandSpecs = await this.commandLoader.load();
     for (const spec of commandSpecs) {
       const commandName = spec.definition.name;
       this.commandRunners.set(commandName, new CommandRunner(spec));
@@ -97,8 +92,8 @@ export class BotClient extends IClientWithIntentsAndRunners {
     }
   }
 
-  private loadListeners(): void {
-    const allListenerSpecs = this.listenerLoader.load();
+  private async loadListeners(): Promise<void> {
+    const allListenerSpecs = await this.listenerLoader.load();
     for (const spec of allListenerSpecs) {
       const { id, type } = spec;
       this.listenerRunners.set(id, new ListenerRunner(spec));
@@ -111,6 +106,24 @@ export class BotClient extends IClientWithIntentsAndRunners {
     const asSpecs = this.listenerRunners.mapValues(runner => runner.spec);
     if (!type) return asSpecs;
     return asSpecs.filter(spec => spec.type === type);
+  }
+
+  public override async clearDefinitions(): Promise<void> {
+    // Clear the command mapping. Unlike for listeners, there's no "undoing
+    // registration" since commands and synced to Discord's backend. Instead,
+    // our command runner should intelligently handle commands that may be valid
+    // from Discord's POV but not from our runner's POV>
+    const numCommands = this.commandRunners.size;
+    this.commandRunners.clear();
+    log.warning(`removed ${numCommands} commands from client mapping.`);
+
+    // Undo callback registration before clearing the mapping.
+    for (const runner of this.listenerRunners.values()) {
+      this.removeListener(runner.spec.type, runner.callbackToRegister);
+    }
+    const numListeners = this.listenerRunners.size;
+    this.listenerRunners.clear();
+    log.warning(`removed ${numListeners} listeners from client mapping.`);
   }
 }
 

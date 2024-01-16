@@ -29,11 +29,11 @@ function getCurrentBranchName(): string | null {
   return process.stdout.toString().trim();
 }
 
-export abstract class IClientWithIntentsAndRunners extends Client {
-  public abstract readonly commandRunners
-    : Collection<string, CommandRunner>;
-  public abstract readonly listenerRunners
-    : Collection<string, ListenerRunner<any>>;
+export abstract class ClientWithIntentsAndRunnersABC extends Client {
+  public readonly commandRunners
+    = new Collection<string, CommandRunner>();
+  public readonly listenerRunners
+    = new Collection<string, ListenerRunner<any>>();
 
   /**
    * The timestamp since when the bot has been ready. This is to be set by the
@@ -99,4 +99,21 @@ export abstract class IClientWithIntentsAndRunners extends Client {
       log.debug(`registered event listener '${id}'.`);
     }
   }
+
+  /**
+   * Perform any loading and initialization necessary for bot startup. It is
+   * expected that after this method is called, the bot is in a well-defined
+   * state to log in and start its main event loop.
+   */
+  public abstract prepareRuntime(): Promise<boolean>;
+  /**
+   * Load command definitions and deploy them to Discord's backend. It is
+   * expected that this method does NOT start the bot's main runtime.
+   */
+  public abstract deploySlashCommands(): Promise<void>;
+
+  /**
+   * Undo the setup from `prepareRuntime`.
+   */
+  public abstract clearDefinitions(): Promise<void>;
 }

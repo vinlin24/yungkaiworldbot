@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 import { CommandBuilder, CommandSpec } from "../../types/command.types";
 
-import { IClientWithIntentsAndRunners } from "../../types/client.abc";
+import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
 import {
   toRelativeTimestampMention,
   toTimestampMention,
@@ -17,7 +17,7 @@ addBroadcastOption(slashCommandDefinition);
 async function respondWithDevDetails(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
-  const client = interaction.client as IClientWithIntentsAndRunners;
+  const client = interaction.client as ClientWithIntentsAndRunnersABC;
 
   let text = "Hello there!";
 
