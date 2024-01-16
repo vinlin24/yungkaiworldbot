@@ -44,14 +44,14 @@ export class MockInteraction {
   /** The command this interaction is to be passed into. */
   public readonly command: CommandRunner;
   /** The client stub attached to the mock interaction. */
-  public readonly client: TestClient;
+  public readonly client: DeepMockProxy<TestClient>;
 
   constructor(spec: CommandSpec) {
     this.interaction = mockDeep<ChatInputCommandInteraction>();
     this.command = new CommandRunner(spec);
 
     // Override attached client with stub.
-    this.client = new TestClient();
+    this.client = mockDeep<TestClient>();
     addMockGetter(this.interaction, "client", this.client);
   }
 
