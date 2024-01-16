@@ -12,6 +12,7 @@ import {
 import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
 import { CommandBuilder } from "../../types/command.types";
 import { formatContext } from "../../utils/logging.utils";
+import { getCurrentBranchName } from "../../utils/meta.utils";
 
 const log = getLogger(__filename);
 
@@ -39,6 +40,8 @@ class ClientReloadPipeline {
   public async run(redeploy: boolean): Promise<void> {
     log.warning(`${this.context}: reloading client (redeploy=${redeploy})...`);
 
+    const branchName = getCurrentBranchName();
+
     let success: boolean;
     if (redeploy) {
       success
@@ -52,6 +55,9 @@ class ClientReloadPipeline {
         && await this.prepareRuntime();
     }
     if (!success) return;
+
+    this.client.branchName = branchName;
+    log.info(`${this.context}: updated client branch name to '${branchName}'.`);
 
     await this.interaction.reply({ content: "👍", ephemeral: true });
     log.warning(`${this.context}: successfully reloaded client.`);
@@ -74,7 +80,7 @@ class ClientReloadPipeline {
       return true;
     }
     catch (error) {
-      log.crit(`${this.context}: failed to clear definitions.`);
+      log.crit(`${this.context}: error in clearing definitions.`);
       await this.logAndReplyWithError(error as Error);
       return false;
     }
@@ -86,7 +92,7 @@ class ClientReloadPipeline {
       return true;
     }
     catch (error) {
-      log.crit(`${this.context}: failed to deploy slash commands.`);
+      log.crit(`${this.context}: error in deploying slash commands.`);
       await this.logAndReplyWithError(error as Error);
       return false;
     }
@@ -94,14 +100,21 @@ class ClientReloadPipeline {
 
   private async prepareRuntime(): Promise<boolean> {
     try {
-      await this.client.prepareRuntime();
-      return true;
+      if (await this.client.prepareRuntime()) return true;
     }
     catch (error) {
-      log.crit(`${this.context}: failed to reload commands and/or listeners.`);
+      log.crit(`${this.context}: error in reloading commands/listeners.`);
       await this.logAndReplyWithError(error as Error);
       return false;
     }
+    // No error, but prepareRuntime reported failure.
+    log.crit(`${this.context}: failed to reload commands/listeners.`);
+    const customError = new Error(
+      "No exception was raised when reloading commands and/or listeners, " +
+      "but the process reported failure. Check the logs.",
+    );
+    await this.logAndReplyWithError(customError);
+    return false;
   }
 }
 

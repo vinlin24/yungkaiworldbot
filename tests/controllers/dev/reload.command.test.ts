@@ -1,12 +1,27 @@
+jest.mock("../../../src/utils/meta.utils");
+
 import { EmbedBuilder } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
 import config from "../../../src/config";
 import reloadSpec from "../../../src/controllers/dev/reload.command";
+import { getCurrentBranchName } from "../../../src/utils/meta.utils";
 import { MockInteraction } from "../../test-utils";
 
+const mockedGetCurrentBranchName = jest.mocked(getCurrentBranchName);
+
+let mock: MockInteraction;
+
+beforeEach(() => {
+  mock = new MockInteraction(reloadSpec);
+
+  // Need to explicitly specify a return value (otherwise the falsy undefined
+  // is used at runtime).
+  mock.client.prepareRuntime.mockResolvedValue(true);
+});
+
 it("should require privilege level >= DEV", async () => {
-  const mock = new MockInteraction(reloadSpec).mockCallerRoles(config.KAI_RID);
+  mock.mockCallerRoles(config.KAI_RID);
 
   await mock.simulateCommand();
 
@@ -21,7 +36,7 @@ it("should require privilege level >= DEV", async () => {
 });
 
 it("should clear defs, deploy commands, and reload defs", async () => {
-  const mock = new MockInteraction(reloadSpec)
+  mock
     .mockCallerRoles(config.BOT_DEV_RID)
     .mockOption("Boolean", "redeploy_slash_commands", true);
 
@@ -34,8 +49,7 @@ it("should clear defs, deploy commands, and reload defs", async () => {
 });
 
 it("shouldn't deploy commands if option not explicitly set", async () => {
-  const mock = new MockInteraction(reloadSpec)
-    .mockCallerRoles(config.BOT_DEV_RID);
+  mock.mockCallerRoles(config.BOT_DEV_RID);
 
   await mock.simulateCommand();
 
@@ -45,11 +59,18 @@ it("shouldn't deploy commands if option not explicitly set", async () => {
   mock.expectRepliedWith({ ephemeral: true });
 });
 
-describe("error handling", () => {
-  let mock: MockInteraction;
+it("should update the client's branch name", async () => {
+  mock.mockCallerRoles(config.BOT_DEV_RID);
+  mockedGetCurrentBranchName.mockReturnValueOnce("DUMMY-BRANCH-NAME");
 
+  await mock.simulateCommand();
+
+  expect(mock.client.branchName).toEqual("DUMMY-BRANCH-NAME");
+});
+
+describe("error handling", () => {
   beforeEach(() => {
-    mock = new MockInteraction(reloadSpec)
+    mock
       .mockCallerRoles(config.BOT_DEV_RID)
       .mockOption("Boolean", "redeploy_slash_commands", true);
 
@@ -95,4 +116,17 @@ describe("error handling", () => {
       }
     });
   }
+
+  it("should false from prepareRuntime as a failure", async () => {
+    mock.client.prepareRuntime.mockResolvedValueOnce(false);
+
+    await mock.simulateCommand();
+
+    expect(mock.client.prepareRuntime).toHaveBeenCalled(); // Or else pointless.
+    mock.expectRepliedWith({
+      // A custom error is raised internally.
+      embeds: expect.arrayContaining([expect.any(EmbedBuilder)]),
+      ephemeral: true,
+    });
+  });
 });
