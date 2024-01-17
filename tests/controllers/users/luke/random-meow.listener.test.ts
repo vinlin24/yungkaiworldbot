@@ -3,7 +3,7 @@ jest.mock("../../../../src/services/luke.service");
 import config from "../../../../src/config";
 import randomMeowerSpec from "../../../../src/controllers/users/luke/random-meow.listener";
 import lukeService from "../../../../src/services/luke.service";
-import { MockMessage } from "../../../test-utils";
+import { MockMessage, spyOnRandom } from "../../../test-utils";
 
 const mockedLukeService = jest.mocked(lukeService);
 
@@ -14,14 +14,10 @@ describe("random-meow listener", () => {
       .mockAuthor({ uid: config.LUKE_UID });
   });
 
-  afterEach(() => {
-    jest.spyOn(global.Math, "random").mockRestore();
-  });
-
   describe("should meow randomly based on chance computed by service", () => {
     it("should meow", async () => {
       mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
-      jest.spyOn(global.Math, "random").mockReturnValueOnce(0.01);
+      spyOnRandom().mockReturnValueOnce(0.01);
 
       await mock.simulateEvent();
 
@@ -30,7 +26,7 @@ describe("random-meow listener", () => {
 
     it("shouldn't meow", async () => {
       mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
-      jest.spyOn(global.Math, "random").mockReturnValueOnce(0.42);
+      spyOnRandom().mockReturnValueOnce(0.42);
 
       await mock.simulateEvent();
 
@@ -41,7 +37,7 @@ describe("random-meow listener", () => {
       mockedLukeService.getMeowChance
         .mockReturnValueOnce(0.05)
         .mockReturnValueOnce(0.95);
-      jest.spyOn(global.Math, "random").mockReturnValueOnce(0.50);
+      spyOnRandom().mockReturnValue(0.50);
 
       await mock.simulateEvent();
       mock.expectNotResponded();

@@ -25,7 +25,7 @@ import {
   // @ts-expect-error We injected this.
   realIsPollutionImmuneChannel,
 } from "../../src/middleware/filters.middleware";
-import { mockRandomReturnValueOnce, restoreRandomSpy } from "../test-utils";
+import { spyOnRandom } from "../test-utils";
 
 const mockedIsPollutionImmuneChannel = jest.mocked(isPollutionImmuneChannel);
 
@@ -155,19 +155,17 @@ describe("contentMatching middleware", () => {
 describe("randomly middleware", () => {
   const message = {} as Message;
 
-  afterEach(restoreRandomSpy);
-
   describe("using a constant success chance", () => {
     const closure = randomly(0.42);
 
     it("should pass", async () => {
-      mockRandomReturnValueOnce(0.05);
+      spyOnRandom().mockReturnValueOnce(0.05);
       const passed = await closure(message);
       expect(passed).toEqual(true);
     });
 
     it("should not pass", async () => {
-      mockRandomReturnValueOnce(0.95);
+      spyOnRandom().mockReturnValueOnce(0.95);
       const passed = await closure(message);
       expect(passed).toEqual(false);
     });
@@ -179,14 +177,14 @@ describe("randomly middleware", () => {
 
     it("should pass with callback returning 0.5", async () => {
       dynamicSuccessChance.mockReturnValueOnce(0.5);
-      mockRandomReturnValueOnce(0.05);
+      spyOnRandom().mockReturnValueOnce(0.05);
       const passed = await closure(message);
       expect(passed).toEqual(true);
     });
 
     it("should pass with callback returning 0.01", async () => {
       dynamicSuccessChance.mockReturnValueOnce(0.01);
-      mockRandomReturnValueOnce(0.05);
+      spyOnRandom().mockReturnValueOnce(0.05);
       const passed = await closure(message);
       expect(passed).toEqual(false);
     });

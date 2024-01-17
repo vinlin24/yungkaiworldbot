@@ -4,11 +4,11 @@ import {
   GUILD_EMOJIS,
   toEscapedEmoji,
 } from "../../../../src/utils/emojis.utils";
-import { MockMessage } from "../../../test-utils";
+import { MockMessage, spyOnRandom } from "../../../test-utils";
 
 describe("sniffs listener", () => {
   afterEach(() => {
-    jest.spyOn(global.Math, "random").mockRestore();
+    spyOnRandom().mockRestore();
   });
 
   it("should only listen to Cxtie", async () => {
@@ -21,7 +21,7 @@ describe("sniffs listener", () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent("sniffs")
       .mockAuthor({ uid: config.CXTIE_UID });
-    jest.spyOn(global.Math, "random").mockReturnValueOnce(0.99);
+    spyOnRandom().mockReturnValueOnce(0.99);
     await mock.simulateEvent();
     mock.expectRepliedSilentlyWith({ content: "sniffs" });
   });
@@ -30,7 +30,7 @@ describe("sniffs listener", () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent("sniffs")
       .mockAuthor({ uid: config.CXTIE_UID });
-    jest.spyOn(global.Math, "random").mockReturnValueOnce(0);
+    spyOnRandom().mockReturnValueOnce(0);
     await mock.simulateEvent();
     mock.expectRepliedSilentlyWith({ content: "daily cxtie appreciation" });
   });
@@ -43,7 +43,7 @@ describe("sniffs listener", () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent(`You ${sniffsEmoji} make me cry ${sniffsEmoji}!`)
       .mockAuthor({ uid: config.CXTIE_UID });
-    jest.spyOn(global.Math, "random").mockReturnValueOnce(0.99);
+    spyOnRandom().mockReturnValueOnce(0.99);
 
     await mock.simulateEvent();
 
