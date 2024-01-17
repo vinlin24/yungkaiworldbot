@@ -41,7 +41,7 @@ describe("random-meow listener", () => {
       mockedLukeService.getMeowChance
         .mockReturnValueOnce(0.05)
         .mockReturnValueOnce(0.95);
-      jest.spyOn(global.Math, "random").mockReturnValueOnce(0.50);
+      jest.spyOn(global.Math, "random").mockReturnValue(0.50);
 
       await mock.simulateEvent();
       mock.expectNotResponded();
