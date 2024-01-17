@@ -487,16 +487,7 @@ export function expectMatchingSchema(
 
 /**
  * Mock the next return value of `Math.random()`.
- *
- * Postcondition: the Jest spy on `Math.random` is restored sometime afterwards.
  */
 export function mockRandomReturnValueOnce(returnValue: number): void {
   jest.spyOn(global.Math, "random").mockReturnValueOnce(returnValue);
-}
-
-/**
- * Restore spying on `Math.random`.
- */
-export function restoreRandomSpy(): void {
-  jest.spyOn(global.Math, "random").mockRestore();
 }

@@ -25,7 +25,7 @@ import {
   // @ts-expect-error We injected this.
   realIsPollutionImmuneChannel,
 } from "../../src/middleware/filters.middleware";
-import { mockRandomReturnValueOnce, restoreRandomSpy } from "../test-utils";
+import { mockRandomReturnValueOnce } from "../test-utils";
 
 const mockedIsPollutionImmuneChannel = jest.mocked(isPollutionImmuneChannel);
 
@@ -154,8 +154,6 @@ describe("contentMatching middleware", () => {
 
 describe("randomly middleware", () => {
   const message = {} as Message;
-
-  afterEach(restoreRandomSpy);
 
   describe("using a constant success chance", () => {
     const closure = randomly(0.42);
