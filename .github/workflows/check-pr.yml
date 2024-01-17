@@ -48,3 +48,6 @@ jobs:
 
       - name: Run linter
         run: npm run lint
+
+      - name: Check that TypeScript can compile
+        run: npm run build
