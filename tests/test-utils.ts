@@ -486,8 +486,17 @@ export function expectMatchingSchema(
 }
 
 /**
+ * @deprecated Use `spyOnRandom` instead.
+ *
  * Mock the next return value of `Math.random()`.
  */
 export function mockRandomReturnValueOnce(returnValue: number): void {
   jest.spyOn(global.Math, "random").mockReturnValueOnce(returnValue);
+}
+
+/**
+ * Return a spy instance for `Math.random`.
+ */
+export function spyOnRandom(): jest.SpyInstance {
+  return jest.spyOn(global.Math, "random");
 }

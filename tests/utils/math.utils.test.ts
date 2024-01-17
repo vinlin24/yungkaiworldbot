@@ -1,12 +1,9 @@
 import { randRange } from "../../src/utils/math.utils";
+import { spyOnRandom } from "../test-utils";
 
 describe("generating a random integer within a range", () => {
   beforeEach(() => {
-    jest.spyOn(global.Math, "random").mockReturnValue(0.50);
-  });
-
-  afterEach(() => {
-    jest.spyOn(global.Math, "random").mockRestore();
+    spyOnRandom().mockReturnValue(0.50);
   });
 
   it("should reject lower bounds that aren't integers", () => {
