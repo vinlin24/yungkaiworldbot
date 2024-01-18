@@ -257,14 +257,6 @@ export class MockMessage {
   /**
    * @deprecated Use the more general `mockAuthor` method instead.
    */
-  public mockAuthorBot(isBot: boolean): this {
-    this.message.author.bot = isBot;
-    return this;
-  }
-
-  /**
-   * @deprecated Use the more general `mockAuthor` method instead.
-   */
   public mockAuthorId(uid: string): this {
     this.message.author.id = uid;
     return this;
