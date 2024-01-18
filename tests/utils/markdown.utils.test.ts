@@ -7,11 +7,8 @@ import {
   joinUserMentions,
   parseMention,
   toBulletedList,
-  toChannelMention,
   toRelativeTimestampMention,
-  toRoleMention,
   toTimestampMention,
-  toUserMention,
 } from "../../src/utils/markdown.utils";
 
 const mockedToUnixSeconds = jest.mocked(toUnixSeconds);
@@ -19,21 +16,6 @@ const DUMMY_UNIX_TIME = 4242424242;
 mockedToUnixSeconds.mockReturnValue(DUMMY_UNIX_TIME);
 
 describe("Discord object mention helpers", () => {
-  it("should return a correct role mention", () => {
-    const result = toRoleMention("12345");
-    expect(result).toEqual("<@&12345>");
-  });
-
-  it("should return a correct user mention", () => {
-    const result = toUserMention("12345");
-    expect(result).toEqual("<@12345>");
-  });
-
-  it("should return a correct channel mention", () => {
-    const result = toChannelMention("12345");
-    expect(result).toEqual("<#12345>");
-  });
-
   it("should join user mentions", () => {
     const result = joinUserMentions(["123", "456", "789"]);
     expect(result).toEqual("<@123>, <@456>, <@789>");

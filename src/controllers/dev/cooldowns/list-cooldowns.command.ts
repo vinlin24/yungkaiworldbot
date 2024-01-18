@@ -1,5 +1,12 @@
 import { pagination } from "@devraelfreeze/discordjs-pagination";
-import { EmbedBuilder, Events, SlashCommandBuilder, User } from "discord.js";
+import {
+  EmbedBuilder,
+  Events,
+  SlashCommandBuilder,
+  User,
+  channelMention,
+  userMention,
+} from "discord.js";
 
 import { BotClient } from "../../../bot/client";
 import getLogger from "../../../logger";
@@ -16,10 +23,8 @@ import { formatContext } from "../../../utils/logging.utils";
 import {
   joinUserMentions,
   toBulletedList,
-  toChannelMention,
   toRelativeTimestampMention,
   toTimestampMention,
-  toUserMention,
 } from "../../../utils/markdown.utils";
 import { addBroadcastOption } from "../../../utils/options.utils";
 import { listenerIdAutocomplete } from "./cooldowns.autocomplete";
@@ -92,14 +97,14 @@ function formatPerUserCooldownDump(
   now: Date,
   dump: PerUserCooldownDump,
 ): string {
-  return formatPerIDCooldownDump(now, dump, toUserMention, "PER-USER");
+  return formatPerIDCooldownDump(now, dump, userMention, "PER-USER");
 }
 
 function formatPerChannelCooldownDump(
   now: Date,
   dump: PerChannelCooldownDump,
 ): string {
-  return formatPerIDCooldownDump(now, dump, toChannelMention, "PER-CHANNEL");
+  return formatPerIDCooldownDump(now, dump, channelMention, "PER-CHANNEL");
 }
 
 function formatListenerCooldownDump(

@@ -1,11 +1,10 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import { CommandInteraction, GuildMember, roleMention } from "discord.js";
 
 import config from "../config";
 import getLogger from "../logger";
 import { CommandCheck } from "../types/command.types";
 import { iterateEnum } from "../utils/iteration.utils";
 import { formatContext } from "../utils/logging.utils";
-import { toRoleMention } from "../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
@@ -65,10 +64,10 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
       throw new Error("commandLevel was NONE, check shouldn't have failed.");
     }
     const minimumRoleId = LEVEL_TO_RID[commandLevel];
-    const roleMention = toRoleMention(minimumRoleId);
+    const mention = roleMention(minimumRoleId);
     const reason = (
       "minimum required privilege level: " +
-      `\`${RoleLevel[commandLevel]}\` (${roleMention})`
+      `\`${RoleLevel[commandLevel]}\` (${mention})`
     );
     const response = (
       `**${member.user.username}**, you're not allowed to use this command!` +

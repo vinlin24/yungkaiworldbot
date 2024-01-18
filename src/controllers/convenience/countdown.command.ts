@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  userMention,
+} from "discord.js";
 import parseDuration from "parse-duration";
 
 import getLogger from "../../logger";
@@ -8,10 +12,7 @@ import {
   formatHoursMinsSeconds,
 } from "../../utils/dates.utils";
 import { formatContext } from "../../utils/logging.utils";
-import {
-  toRelativeTimestampMention,
-  toUserMention,
-} from "../../utils/markdown.utils";
+import { toRelativeTimestampMention } from "../../utils/markdown.utils";
 import { addEphemeralOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
@@ -61,7 +62,7 @@ async function startCountdown(
 
   const endTimestamp = addDateSeconds(new Date(), seconds);
   setTimeout(async () => {
-    const mention = toUserMention(interaction.member!.user.id);
+    const mention = userMention(interaction.member!.user.id);
     log.debug(`${context}: countdown from ${seconds} ago expired.`);
     await interaction.channel!.send(`${mention}, your countdown has expired!`);
   }, seconds * 1000);
