@@ -3,14 +3,23 @@
 
 import { toUnixSeconds } from "./dates.utils";
 
+/**
+ * @deprecated discord.js already provides this utility via `roleMention()`.
+ */
 export function toRoleMention(roleId: string): string {
   return `<@&${roleId}>`;
 }
 
+/**
+ * @deprecated discord.js already provides this utility via `userMention()`.
+ */
 export function toUserMention(userId: string): string {
   return `<@${userId}>`;
 }
 
+/**
+ * @deprecated discord.js already provides this utility via `channelMention()`.
+ */
 export function toChannelMention(channelId: string): string {
   return `<#${channelId}>`;
 }
