@@ -1,7 +1,12 @@
 // Also see:
 // https://v13.discordjs.guide/miscellaneous/parsing-mention-arguments.html
 
-import { userMention } from "discord.js";
+import {
+  TimestampStyles,
+  TimestampStylesString,
+  userMention,
+} from "discord.js";
+
 import { toUnixSeconds } from "./dates.utils";
 
 export type Mentionable = {
@@ -55,43 +60,29 @@ export function joinUserMentions(userIds?: Iterable<string>): string {
   return Array.from(userIds).map(userMention).join(", ");
 }
 
-/**
- * See: https://gist.github.com/LeviSnoot/d9147767abeef2f770e9ddcd91eb85aa.
- */
-export enum TimestampFormat {
-  /** 12-hour Example: 9:01 AM */
-  SHORT_TIME = "t",
-  /** 12-hour Example: 9:01:00 AM */
-  LONG_TIME = "T",
-  /** 12-hour Example: 11/28/2018 */
-  SHORT_DATE = "d",
-  /** 12-hour Example: November 28, 2018 */
-  LONG_DATE = "D",
-  /** 12-hour Example: November 28, 2018 9:01 AM */
-  SHORT_DATETIME = "f",
-  /** 12-hour Example: Wednesday, November 28, 2018 9:01 AM */
-  LONG_DATETIME = "F",
-  /** 12-hour Example: 3 years ago */
-  RELATIVE = "R",
-}
+export type TimestampMention<F extends TimestampStylesString | null = null>
+  = F extends null ? `<t:${number}>` : `<t:${number}:${F}>`;
 
+export function toTimestampMention(date: Date): `<t:${number}>`;
+export function toTimestampMention<F extends TimestampStylesString>(
+  date: Date,
+  format: F,
+): TimestampMention<F>;
 export function toTimestampMention(
   date: Date,
-  format?: TimestampFormat,
-): string {
+  format?: TimestampStylesString,
+): TimestampMention<any> {
   const unixTimestamp = toUnixSeconds(date);
-  let result = `<t:${unixTimestamp}`;
   if (format) {
-    result += `:${format}`;
+    return `<t:${unixTimestamp}:${format}>`;
   }
-  result += ">";
-  return result;
+  return `<t:${unixTimestamp}>`;
 }
 
-export function toRelativeTimestampMention(date: Date): string {
+export function toRelativeTimestampMention(date: Date): TimestampMention<"R"> {
   // I assume this format is among the most common ones besides the default one,
   // so it's nice to have a shorthand function partial.
-  return toTimestampMention(date, TimestampFormat.RELATIVE);
+  return toTimestampMention(date, TimestampStyles.RelativeTime);
 }
 
 export function toBulletedList(lines: string[], level: number = 0): string {

@@ -1,9 +1,9 @@
 jest.mock("../../src/utils/dates.utils");
 
+import { TimestampStyles } from "discord.js";
 import { toUnixSeconds } from "../../src/utils/dates.utils";
 import {
   Mentionable,
-  TimestampFormat,
   joinUserMentions,
   parseMention,
   toBulletedList,
@@ -29,7 +29,7 @@ describe("Discord timestamp helpers", () => {
   });
 
   it("should use the correct timestamp format if specified", () => {
-    for (const formatCode of Object.values(TimestampFormat)) {
+    for (const formatCode of Object.values(TimestampStyles)) {
       const result = toTimestampMention(new Date(), formatCode);
       expect(result).toEqual(`<t:${DUMMY_UNIX_TIME}:${formatCode}>`);
     }
