@@ -1,9 +1,5 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
-import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
 import { messageFrom } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import {
@@ -56,11 +52,7 @@ onSniffs.execute(async (message) => {
   }
   return true;
 });
-
-const cooldown = new CooldownManager({ type: "global", seconds: 300 });
-
-onSniffs.filter(useCooldown(cooldown));
-onSniffs.saveCooldown(cooldown);
+onSniffs.cooldown({ type: "global", seconds: 300 });
 
 const onSniffsSpec = onSniffs.toSpec();
 export default onSniffsSpec;
