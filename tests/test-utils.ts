@@ -255,14 +255,6 @@ export class MockMessage {
   }
 
   /**
-   * @deprecated Use the more general `mockAuthor` method instead.
-   */
-  public mockAuthorId(uid: string): this {
-    this.message.author.id = uid;
-    return this;
-  }
-
-  /**
    * ARRANGE.
    *
    * Mock the message's author attached to the underlying message object.
