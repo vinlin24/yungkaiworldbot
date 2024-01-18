@@ -15,7 +15,10 @@ helloWorld.execute(async (message) => {
   const tacoMention = toUserMention(config.TACO_UID);
   await message.reply({
     content: tacoMention,
-    allowedMentions: { repliedUser: false }, // But do allow Taco mention!
+    allowedMentions: {
+      repliedUser: false,
+      users: [config.TACO_UID],
+    },
     flags: MessageFlags.SuppressNotifications,
   });
 });
