@@ -2,6 +2,7 @@ jest.mock("../../src/utils/logging.utils");
 
 import { Message, MessageFlags, MessageReplyOptions } from "discord.js";
 import {
+  echoContent,
   replySilently,
   replySilentlyWith,
 } from "../../src/utils/interaction.utils";
@@ -38,6 +39,23 @@ describe("replying silently (as a callback)", () => {
 
     expect(mockMessage.reply).toHaveBeenCalledWith(
       expect.objectContaining<MessageReplyOptions>({
+        allowedMentions: expect.objectContaining({ parse: [] }),
+        flags: MessageFlags.SuppressNotifications,
+      }),
+    );
+  });
+});
+
+describe("echoing a message's content", () => {
+  it("should echo the message's content", async () => {
+    const mockMessageWithContent = {
+      ...mockMessage,
+      content: "hello there",
+    } as Message;
+    await echoContent(mockMessageWithContent);
+    expect(mockMessageWithContent.reply).toHaveBeenCalledWith(
+      expect.objectContaining<MessageReplyOptions>({
+        content: "hello there",
         allowedMentions: expect.objectContaining({ parse: [] }),
         flags: MessageFlags.SuppressNotifications,
       }),

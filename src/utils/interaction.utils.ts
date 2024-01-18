@@ -41,3 +41,12 @@ export function reactWith(emoji: EmojiResolvable)
     log.debug(`${formatContext(message)}: reacted with ${emoji}.`);
   };
 }
+
+/**
+ * Silently reply to the message with the message's own content.
+ */
+export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
+  = async function (message) {
+    await replySilently(message, message.content);
+    log.debug(`${formatContext(message)}: echoed '${message.content}'.`);
+  };
