@@ -427,6 +427,10 @@ export function useCooldown(
 /**
  * Add a cooldown mechanism to this event listener. This filter passes only if
  * cooldown isn't currently active.
+ *
+ * NOTE: If adding this middleware to a message creation listener, it might be
+ * better to use its custom `.cooldown()` method as that also saves the cooldown
+ * manager instance such that it can be dynamically updated at runtime later.
  */
 export function useCooldown(
   value: CooldownManager | CooldownSpec,

@@ -186,19 +186,6 @@ export class MessageListenerBuilder
 
   constructor() { super(Events.MessageCreate); }
 
-  /**
-   * @deprecated Use `.cooldown()` instead.
-   *
-   * Save the dynamic cooldown manager for message creation listeners. If you
-   * want to be able to change this listener's cooldown spec at runtime (such as
-   * through commands), then you should include this call in addition to the
-   * middleware passed to the filters.
-   */
-  public saveCooldown(manager: CooldownManager): this {
-    this.cooldownManager = manager;
-    return this;
-  }
-
   public cooldown(manager: CooldownManager): this;
   public cooldown(spec: CooldownSpec): this;
   /**

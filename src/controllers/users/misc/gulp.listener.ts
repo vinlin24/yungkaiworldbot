@@ -1,9 +1,5 @@
 import config from "../../../config";
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   contentMatching,
   messageFrom,
 } from "../../../middleware/filters.middleware";
@@ -15,10 +11,7 @@ const onGulp = new MessageListenerBuilder().setId("gulp");
 onGulp.filter(messageFrom(config.BUNNY_UID));
 onGulp.filter(contentMatching(/^gulp$/i));
 onGulp.execute(replySilentlyWith("gulp"));
-
-const cooldown = new CooldownManager({ type: "global", seconds: 600 });
-onGulp.filter(useCooldown(cooldown));
-onGulp.saveCooldown(cooldown);
+onGulp.cooldown({ type: "global", seconds: 600 });
 
 const onGulpSpec = onGulp.toSpec();
 export default onGulpSpec;

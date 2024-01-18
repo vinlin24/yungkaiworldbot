@@ -1,8 +1,4 @@
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   channelPollutionAllowed,
   contentMatching,
 } from "../../../middleware/filters.middleware";
@@ -17,14 +13,10 @@ noXNo.execute(async (message) => {
   const { displayName } = message.author;
   await replySilently(message, `no ${displayName} no`);
 });
-
-const cooldown = new CooldownManager({
+noXNo.cooldown({
   type: "user",
   defaultSeconds: 60,
 });
-
-noXNo.filter(useCooldown(cooldown));
-noXNo.saveCooldown(cooldown);
 
 const noXNoSpec = noXNo.toSpec();
 export default noXNoSpec;

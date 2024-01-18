@@ -1,8 +1,6 @@
+import { TimestampStyles, time } from "discord.js";
+
 import pingSpec from "../../../src/controllers/dev/ping.command";
-import {
-  toRelativeTimestampMention,
-  toTimestampMention,
-} from "../../../src/utils/markdown.utils";
 import { MockInteraction, TestClient, addMockGetter } from "../../test-utils";
 
 describe("/ping command", () => {
@@ -24,12 +22,12 @@ describe("/ping command", () => {
 
     await mock.simulateCommand();
 
-    const timestamp = toTimestampMention(dummyReadySince);
-    const relativeTimestamp = toRelativeTimestampMention(dummyReadySince);
+    const timestamp = time(dummyReadySince);
+    const relativeTime = time(dummyReadySince, TimestampStyles.RelativeTime);
     const expectedParts = [
       `Latency: **${dummyPing}**`,
       `Branch: \`${dummyBranchName}\``,
-      `Ready: ${timestamp} (${relativeTimestamp})`,
+      `Ready: ${timestamp} (${relativeTime})`,
     ];
     for (const part of expectedParts) {
       mock.expectRepliedWith({

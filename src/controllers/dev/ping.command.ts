@@ -1,12 +1,13 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  TimestampStyles,
+  time,
+} from "discord.js";
 
 import { CommandBuilder, CommandSpec } from "../../types/command.types";
 
 import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
-import {
-  toRelativeTimestampMention,
-  toTimestampMention,
-} from "../../utils/markdown.utils";
 import { addBroadcastOption } from "../../utils/options.utils";
 
 const slashCommandDefinition = new SlashCommandBuilder()
@@ -42,8 +43,8 @@ async function respondWithDevDetails(
   }
 
   if (readySince) {
-    const timestamp = toTimestampMention(readySince);
-    const relativeTimestamp = toRelativeTimestampMention(readySince);
+    const timestamp = time(readySince);
+    const relativeTimestamp = time(readySince, TimestampStyles.RelativeTime);
     text += `\n* Ready: ${timestamp} (${relativeTimestamp})`;
   }
 

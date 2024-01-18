@@ -3,10 +3,6 @@ import { Events, Message } from "discord.js";
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   ListenerSpec,
   MessageListenerBuilder,
 } from "../../../types/listener.types";
@@ -25,23 +21,16 @@ function containsChatReviveWithPossibleMarkdown(message: Message): boolean {
   return !!message.content.match(chatReviveWithPossibleMD);
 }
 
-const cooldown = new CooldownManager({
-  type: "user",
-  defaultSeconds: 600,
-  overrides: new Map([[config.CXTIE_UID, 0]]),
-});
-
 const chatReviveSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("chat-revive")
     .filter(containsChatReviveWithPossibleMarkdown)
     .execute(replyWithNo)
-    // TODO: We might as well make saveCooldown (and maybe rename to
-    // useCooldown) automatically handle .filter(useCooldown(cooldown)) behind
-    // the scenes for us. Having to specify both .filter() and .saveCooldown()
-    // is redundant.
-    .filter(useCooldown(cooldown))
-    .saveCooldown(cooldown)
+    .cooldown({
+      type: "user",
+      defaultSeconds: 600,
+      overrides: new Map([[config.CXTIE_UID, 0]]),
+    })
     .toSpec();
 
 export default chatReviveSpec;

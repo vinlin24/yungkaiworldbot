@@ -2,10 +2,6 @@ import { Events } from "discord.js";
 
 import config from "../../../config";
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   contentMatching,
   messageFrom,
 } from "../../../middleware/filters.middleware";
@@ -15,16 +11,13 @@ import {
 } from "../../../types/listener.types";
 import { replySilentlyWith } from "../../../utils/interaction.utils";
 
-const cooldown = new CooldownManager({ type: "global", seconds: 600 });
-
 const uffSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("uff")
     .filter(messageFrom(config.COFFEE_UID))
-    .filter(contentMatching(/^uff$/i))
+    .filter(contentMatching(/^uff+$/i))
     .execute(replySilentlyWith("woof"))
-    .filter(useCooldown(cooldown))
-    .saveCooldown(cooldown)
+    .cooldown({ type: "global", seconds: 600 })
     .toSpec();
 
 export default uffSpec;

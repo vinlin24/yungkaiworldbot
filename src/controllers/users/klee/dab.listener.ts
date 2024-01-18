@@ -1,10 +1,6 @@
 import config from "../../../config";
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   channelPollutionAllowedOrBypass,
   contentMatching,
   ignoreBots,
@@ -30,7 +26,7 @@ onDab.execute(async (message) => {
   log.debug(`${formatContext(message)}: dabbed back.`);
 });
 
-const cooldown = new CooldownManager({
+onDab.cooldown({
   type: "global",
   seconds: 600,
   bypassers: [config.KLEE_UID],
@@ -38,9 +34,6 @@ const cooldown = new CooldownManager({
     await message.react(GUILD_EMOJIS.NEKO_L);
   },
 });
-
-onDab.filter(useCooldown(cooldown));
-onDab.saveCooldown(cooldown);
 
 const onDabSpec = onDab.toSpec();
 export default onDabSpec;

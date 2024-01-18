@@ -2,10 +2,6 @@ import { GuildTextBasedChannel } from "discord.js";
 
 import getLogger from "../../../logger";
 import {
-  CooldownManager,
-  useCooldown,
-} from "../../../middleware/cooldown.middleware";
-import {
   contentMatching,
   isPollutionImmuneChannel,
 } from "../../../middleware/filters.middleware";
@@ -37,10 +33,7 @@ onTempyWempy.execute(async (message) => {
     `(${reacted ? "reacted" : "replied"}).`,
   );
 });
-
-const cooldown = new CooldownManager({ type: "global", seconds: 60 });
-onTempyWempy.filter(useCooldown(cooldown));
-onTempyWempy.saveCooldown(cooldown);
+onTempyWempy.cooldown({ type: "global", seconds: 60 });
 
 const onTempyWempySpec = onTempyWempy.toSpec();
 export default onTempyWempySpec;
