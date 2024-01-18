@@ -1,6 +1,8 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
+  TimestampStyles,
+  time,
   userMention,
 } from "discord.js";
 import parseDuration from "parse-duration";
@@ -12,7 +14,6 @@ import {
   formatHoursMinsSeconds,
 } from "../../utils/dates.utils";
 import { formatContext } from "../../utils/logging.utils";
-import { toRelativeTimestampMention } from "../../utils/markdown.utils";
 import { addEphemeralOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
@@ -72,7 +73,7 @@ async function startCountdown(
 
   const response =
     `Counting down to ${formatHoursMinsSeconds(seconds)} from now. ` +
-    `Expiring ${toRelativeTimestampMention(endTimestamp)}...`;
+    `Expiring ${time(endTimestamp, TimestampStyles.RelativeTime)}...`;
   await interaction.reply({ content: response, ephemeral });
 }
 
