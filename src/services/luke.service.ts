@@ -28,25 +28,28 @@ export class LukeService {
     const [, notPresent, captured] = matches;
 
     let response: string;
+    let jokeType: "negative" | "affirmative" | "welcome";
 
     // Negative version of the joke.
     if (notPresent) {
       response =
         `Of course you're not ${captured}, you're ${author.displayName}!`;
+      jokeType = "negative";
     }
 
     // Affirmative version of the joke.
-    else if (captured.match(/^(back|awake|up|here)[.~!?-]*$/i)) {
+    else if (captured.match(/^(back|awake|up|here|alive)[.~!?-]*$/i)) {
       response = `Welcome back, ${author.displayName}!`;
+      jokeType = "welcome";
     }
     else {
       response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
+      jokeType = "affirmative";
     }
 
     await replySilently(message, response);
     log.debug(
-      `${formatContext(message)}: replied with Dad joke ` +
-      `(${notPresent ? "negative" : "affirmative"} version).`,
+      `${formatContext(message)}: replied with Dad joke (${jokeType} version).`,
     );
     return true;
   };
