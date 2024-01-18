@@ -1,13 +1,7 @@
 // Also see:
 // https://v13.discordjs.guide/miscellaneous/parsing-mention-arguments.html
 
-import {
-  TimestampStyles,
-  TimestampStylesString,
-  userMention,
-} from "discord.js";
-
-import { toUnixSeconds } from "./dates.utils";
+import { TimestampStylesString, userMention } from "discord.js";
 
 export type Mentionable = {
   type: "user";
@@ -62,28 +56,6 @@ export function joinUserMentions(userIds?: Iterable<string>): string {
 
 export type TimestampMention<F extends TimestampStylesString | null = null>
   = F extends null ? `<t:${number}>` : `<t:${number}:${F}>`;
-
-export function toTimestampMention(date: Date): `<t:${number}>`;
-export function toTimestampMention<F extends TimestampStylesString>(
-  date: Date,
-  format: F,
-): TimestampMention<F>;
-export function toTimestampMention(
-  date: Date,
-  format?: TimestampStylesString,
-): TimestampMention<any> {
-  const unixTimestamp = toUnixSeconds(date);
-  if (format) {
-    return `<t:${unixTimestamp}:${format}>`;
-  }
-  return `<t:${unixTimestamp}>`;
-}
-
-export function toRelativeTimestampMention(date: Date): TimestampMention<"R"> {
-  // I assume this format is among the most common ones besides the default one,
-  // so it's nice to have a shorthand function partial.
-  return toTimestampMention(date, TimestampStyles.RelativeTime);
-}
 
 export function toBulletedList(lines: string[], level: number = 0): string {
   const indent = "  ".repeat(level);

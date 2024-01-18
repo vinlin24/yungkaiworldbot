@@ -3,8 +3,10 @@ import {
   EmbedBuilder,
   Events,
   SlashCommandBuilder,
+  TimestampStyles,
   User,
   channelMention,
+  time,
   userMention,
 } from "discord.js";
 
@@ -23,8 +25,6 @@ import { formatContext } from "../../../utils/logging.utils";
 import {
   joinUserMentions,
   toBulletedList,
-  toRelativeTimestampMention,
-  toTimestampMention,
 } from "../../../utils/markdown.utils";
 import { addBroadcastOption } from "../../../utils/options.utils";
 import { listenerIdAutocomplete } from "./cooldowns.autocomplete";
@@ -38,8 +38,8 @@ const MAX_DESCRIPTION_LENGTH = 4096;
 
 function formatStatus(now: Date, expiration: Date): string {
   if (now >= expiration) return "Inactive ✅";
-  const mention = toTimestampMention(expiration);
-  const relativeMention = toRelativeTimestampMention(expiration);
+  const mention = time(expiration);
+  const relativeMention = time(expiration, TimestampStyles.RelativeTime);
   return `Active until ${mention} (${relativeMention}) ⌛`;
 }
 

@@ -1,14 +1,11 @@
 jest.mock("../../src/utils/dates.utils");
 
-import { TimestampStyles } from "discord.js";
 import { toUnixSeconds } from "../../src/utils/dates.utils";
 import {
   Mentionable,
   joinUserMentions,
   parseMention,
   toBulletedList,
-  toRelativeTimestampMention,
-  toTimestampMention,
 } from "../../src/utils/markdown.utils";
 
 const mockedToUnixSeconds = jest.mocked(toUnixSeconds);
@@ -19,25 +16,6 @@ describe("Discord object mention helpers", () => {
   it("should join user mentions", () => {
     const result = joinUserMentions(["123", "456", "789"]);
     expect(result).toEqual("<@123>, <@456>, <@789>");
-  });
-});
-
-describe("Discord timestamp helpers", () => {
-  it("should use the correct timestamp if format is omitted", () => {
-    const result = toTimestampMention(new Date());
-    expect(result).toEqual(`<t:${DUMMY_UNIX_TIME}>`);
-  });
-
-  it("should use the correct timestamp format if specified", () => {
-    for (const formatCode of Object.values(TimestampStyles)) {
-      const result = toTimestampMention(new Date(), formatCode);
-      expect(result).toEqual(`<t:${DUMMY_UNIX_TIME}:${formatCode}>`);
-    }
-  });
-
-  it("should use the relative timestamp format", () => {
-    const result = toRelativeTimestampMention(new Date());
-    expect(result).toEqual(`<t:${DUMMY_UNIX_TIME}:R>`);
   });
 });
 
