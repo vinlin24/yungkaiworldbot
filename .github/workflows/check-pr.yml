@@ -20,6 +20,7 @@ jobs:
       KAI_RID: ${{ vars.KAI_RID }}
       ALPHA_MOD_RID: ${{ vars.ALPHA_MOD_RID }}
       BABY_MOD_RID: ${{ vars.BABY_MOD_RID }}
+      BOT_SPAM_CID: ${{ vars.BOT_SPAM_CID }}
       LUKE_UID: ${{ vars.LUKE_UID }}
       KLEE_UID: ${{ vars.KLEE_UID }}
       COFFEE_UID: ${{ vars.COFFEE_UID }}
