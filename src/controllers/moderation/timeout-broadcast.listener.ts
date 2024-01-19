@@ -115,8 +115,8 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   const target = await guild.members.fetch(targetId!);
 
   const dmChannel = await getDMChannel(target);
-  const broadcastChannel
-    = await guild.channels.fetch(config.BOT_SPAM_CID) as GuildTextBasedChannel;
+  const broadcastChannel = await guild.channels.fetch(config.BOT_SPAM_CID) as
+    GuildTextBasedChannel | null;
   if (!broadcastChannel) {
     log.error(`no channel found with CID=${config.BOT_SPAM_CID}.`);
     return false;
