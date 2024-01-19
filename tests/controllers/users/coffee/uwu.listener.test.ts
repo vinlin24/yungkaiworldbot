@@ -29,3 +29,15 @@ it("should react with kofi if coffee says uwu", async () => {
   await mock.simulateEvent();
   mock.expectReactedWith(GUILD_EMOJIS.KOFI);
 });
+
+it("it should trigger on repeated wu", async () => {
+  mock.mockContent("uwuwuwuwu");
+  await mock.simulateEvent();
+  mock.expectReactedWith("🤢", "🤮");
+});
+
+it("should trigger on spaced uwu", async () => {
+  mock.mockContent("u   w   u");
+  await mock.simulateEvent();
+  mock.expectReactedWith("🤢", "🤮");
+});

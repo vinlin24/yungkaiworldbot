@@ -35,7 +35,7 @@ async function reactBasedOnAuthor(message: Message): Promise<void> {
 const uwuSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("uwu")
-    .filter(contentMatching(/^uwu+$/i))
+    .filter(contentMatching(/\bu *(w *u)+u*\b/i))
     .execute(reactBasedOnAuthor)
     .cooldown({
       type: "global",
