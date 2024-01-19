@@ -1,6 +1,7 @@
 import { Awaitable, ClientEvents, Events } from "discord.js";
-
+import lodash from "lodash";
 import { z } from "zod";
+
 import {
   CooldownManager,
   CooldownSpec,
@@ -183,8 +184,15 @@ export class MessageListenerBuilder
   extends ListenerBuilder<Events.MessageCreate> {
 
   private cooldownManager?: CooldownManager;
+  private optIntoDMs: boolean = false;
 
-  constructor() { super(Events.MessageCreate); }
+  constructor() {
+    super(Events.MessageCreate);
+    // Prepend the DM ignore policy (backwards compatibility: some existing
+    // filters perform checks that would break if the channel were a DM
+    // channel, so this check needs to be done before theirs).
+    this.filter(this.ignoreDMFilter);
+  }
 
   public cooldown(manager: CooldownManager): this;
   public cooldown(spec: CooldownSpec): this;
@@ -202,12 +210,29 @@ export class MessageListenerBuilder
     return this;
   }
 
+  /**
+   * Opt into listening to messages in DM channels. The default behavior is to
+   * ignore DM channel messages.
+   */
+  public listenToDMs(): this {
+    this.optIntoDMs = true;
+    return this;
+  }
+
   public override toSpec(): ListenerSpec<Events.MessageCreate> {
-    return {
+    const spec = {
       ...super.toSpec(),
       cooldown: this.cooldownManager,
     };
+    if (this.optIntoDMs) {
+      lodash.remove(spec.filters!, elem => elem === this.ignoreDMFilter);
+    }
+    return spec;
   }
+
+  private ignoreDMFilter: ListenerFilter<Events.MessageCreate> = {
+    predicate: async message => !message.channel.isDMBased(),
+  };
 }
 
 export class DuplicateListenerIDError extends Error {

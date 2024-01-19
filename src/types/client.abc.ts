@@ -40,6 +40,8 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.DirectMessages,
       ],
     });
     this.setMaxListeners(Infinity); // Pacify warning.

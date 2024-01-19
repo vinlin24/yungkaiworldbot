@@ -1,4 +1,11 @@
-import { EmojiResolvable, Events, Message, MessageFlags } from "discord.js";
+import {
+  DMChannel,
+  EmojiResolvable,
+  Events,
+  GuildMember,
+  Message,
+  MessageFlags,
+} from "discord.js";
 
 import getLogger from "../logger";
 import { ListenerExecuteFunction } from "../types/listener.types";
@@ -50,3 +57,10 @@ export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
     await replySilently(message, message.content);
     log.debug(`${formatContext(message)}: echoed '${message.content}'.`);
   };
+
+/**
+ * Get the DM channel of a member.
+ */
+export async function getDMChannel(member: GuildMember): Promise<DMChannel> {
+  return member.dmChannel ?? await member.createDM();
+}
