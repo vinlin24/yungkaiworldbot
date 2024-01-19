@@ -1,6 +1,6 @@
 import onDabSpec from "../../../../src/controllers/users/klee/dab.listener";
 import { GUILD_EMOJIS } from "../../../../src/utils/emojis.utils";
-import { MockMessage, addMockGetter } from "../../../test-utils";
+import { MockMessage } from "../../../test-utils";
 
 describe("dab listener", () => {
   let mock: MockMessage;
@@ -21,8 +21,7 @@ describe("dab listener", () => {
   });
 
   it("should react with neko L in pollution-immune channel", async () => {
-    addMockGetter(mock.message, "channel", { name: "general" });
-    mock.mockContent("dab");
+    mock.mockContent("dab").mockChannel({ name: "general" });
     await mock.simulateEvent();
     mock.expectReactedWith(GUILD_EMOJIS.NEKO_L);
   });
