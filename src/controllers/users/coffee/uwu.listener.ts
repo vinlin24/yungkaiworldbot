@@ -7,21 +7,36 @@ import {
   ListenerSpec,
   MessageListenerBuilder,
 } from "../../../types/listener.types";
+import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
 import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-async function reactWithVomit(message: Message) {
+async function reactWithVomit(message: Message): Promise<void> {
   await message.react("🤢");
   await message.react("🤮");
-  log.debug(`${formatContext(message)}: reacted to uwu.`);
+  log.debug(`${formatContext(message)}: reacted with vomit to uwu.`);
+}
+
+async function reactWithKofi(message: Message): Promise<void> {
+  await message.react(GUILD_EMOJIS.KOFI);
+  log.debug(`${formatContext(message)}: reacted with kofi to uwu.`);
+}
+
+async function reactBasedOnAuthor(message: Message): Promise<void> {
+  if (message.author.id === config.COFFEE_UID) {
+    await reactWithKofi(message);
+  }
+  else {
+    await reactWithVomit(message);
+  }
 }
 
 const uwuSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("uwu")
     .filter(contentMatching(/^uwu+$/i))
-    .execute(reactWithVomit)
+    .execute(reactBasedOnAuthor)
     .cooldown({
       type: "global",
       seconds: 10,
