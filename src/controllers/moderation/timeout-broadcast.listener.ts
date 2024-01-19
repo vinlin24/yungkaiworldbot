@@ -128,16 +128,33 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
     flags: MessageFlags.SuppressNotifications,
   };
 
-  await dmChannel.send(payload);
-  log.debug(`DM'ed @${target.user.username} reason for timeout.`);
-  await broadcastChannel.send(payload);
-  log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+  const username = target.user.username;
+  let failed: boolean = false;
+  try {
+    await dmChannel.send(payload);
+    log.debug(`DM'ed @${username} reason for timeout.`);
+  }
+  catch (error) {
+    log.error(`failed to DM @${username} timeout details.`);
+    console.error(error);
+    failed = true;
+  }
+  try {
+    await broadcastChannel.send(payload);
+    log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+  }
+  catch (error) {
+    log.error(`failed to broadcast timeout details for @${username}`);
+    console.error(error);
+    failed = true;
+  }
+  if (failed) return false;
 
   if (details.type === "issued") {
-    log.info(`reported timeout issued for @${target.user.username}.`);
+    log.info(`reported timeout issued for @${username}.`);
   }
   else if (details.type === "removed") {
-    log.info(`reported timeout removed for @${target.user.username}.`);
+    log.info(`reported timeout removed for @${username}.`);
   }
   return true;
 });
