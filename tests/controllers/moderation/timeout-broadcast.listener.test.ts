@@ -136,16 +136,6 @@ describe("rejecting event", () => {
   });
 });
 
-describe("error handling", () => {
-  it("should do nothing if broadcast channel can't be  found", async () => {
-    // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
-    jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
-    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expect(mockDMChannel.send).not.toHaveBeenCalled();
-    expect(mockBroadcastChannel.send).not.toHaveBeenCalled();
-  });
-});
-
 function expectSentEmbedTo(
   channel: TextBasedChannel,
   matcher: Matcher<EmbedBuilder>,
@@ -159,19 +149,47 @@ function expectSentEmbedTo(
   );
 }
 
-describe("timeout issued", () => {
-  const issuedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
-    const requirements = [
-      embed.data.title?.includes(mockGuild.name),
-      embed.data.title?.includes("Timeout Issued"),
-      embed.data.description?.includes(userMention(dummyTarget.id)),
-      embed.data.description?.includes(userMention(dummyExecutor.id)),
-      embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
-      embed.data.description?.includes(time(dummyUntil)),
-    ];
-    return requirements.every(Boolean);
-  }, "issued embed matcher");
+const issuedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
+  const requirements = [
+    embed.data.title?.includes(mockGuild.name),
+    embed.data.title?.includes("Timeout Issued"),
+    embed.data.description?.includes(userMention(dummyTarget.id)),
+    embed.data.description?.includes(userMention(dummyExecutor.id)),
+    embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
+    embed.data.description?.includes(time(dummyUntil)),
+  ];
+  return requirements.every(Boolean);
+}, "issued embed matcher");
 
+const removedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
+  const requirements = [
+    embed.data.title?.includes(mockGuild.name),
+    embed.data.title?.includes("Timeout Removed"),
+    embed.data.description?.includes(userMention(dummyTarget.id)),
+    embed.data.description?.includes(userMention(dummyExecutor.id)),
+  ];
+  return requirements.every(Boolean);
+}, "removed embed matcher");
+
+describe("error handling", () => {
+  it("should do nothing if broadcast channel can't be  found", async () => {
+    // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
+    jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(mockDMChannel.send).not.toHaveBeenCalled();
+    expect(mockBroadcastChannel.send).not.toHaveBeenCalled();
+  });
+
+  it("should still try to broadcast even if DM fails", async () => {
+    const dummyError = new Error("DUMMY-ERROR");
+    jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+  });
+});
+
+describe("timeout issued", () => {
   it("should DM the targeted member", async () => {
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
@@ -184,16 +202,6 @@ describe("timeout issued", () => {
 });
 
 describe("timeout removed", () => {
-  const removedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
-    const requirements = [
-      embed.data.title?.includes(mockGuild.name),
-      embed.data.title?.includes("Timeout Removed"),
-      embed.data.description?.includes(userMention(dummyTarget.id)),
-      embed.data.description?.includes(userMention(dummyExecutor.id)),
-    ];
-    return requirements.every(Boolean);
-  }, "removed embed matcher");
-
   it("should DM the targeted member", async () => {
     await simulateEvent(mockTimeoutRemovedEntry, mockGuild);
     expectSentEmbedTo(mockDMChannel, removedEmbedMatcher);

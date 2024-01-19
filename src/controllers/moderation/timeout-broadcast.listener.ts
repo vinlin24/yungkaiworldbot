@@ -1,5 +1,6 @@
 import {
   AuditLogEvent,
+  DMChannel,
   EmbedBuilder,
   Events,
   Guild,
@@ -25,6 +26,10 @@ const log = getLogger(__filename);
 const timeoutBroadcast = new ListenerBuilder(Events.GuildAuditLogEntryCreate)
   .setId("timeout-broadcast");
 
+/**
+ * Discriminated union to ease the processing of the audit log entry change
+ * object.
+ */
 type TimeoutDetails = {
   type: "issued";
   until: Date;
@@ -102,6 +107,46 @@ function formatEmbed(
   return embed;
 }
 
+/**
+ * Handle sending the embed to both channels. If one fails, still attempt to
+ * send to the other. Return true if there was no issue, else false (some kind
+ * of error happened).
+ */
+async function sendEmbedToChannels(
+  dmChannel: DMChannel,
+  broadcastChannel: GuildTextBasedChannel,
+  embed: EmbedBuilder,
+  targetUsername: string,
+): Promise<boolean> {
+  const payload: MessageCreateOptions = {
+    embeds: [embed],
+    flags: MessageFlags.SuppressNotifications,
+  };
+
+  let failed: boolean = false;
+
+  try {
+    await dmChannel.send(payload);
+    log.debug(`DM'ed @${targetUsername} reason for timeout.`);
+  }
+  catch (error) {
+    log.error(`failed to DM @${targetUsername} timeout details.`);
+    console.error(error);
+    failed = true;
+  }
+  try {
+    await broadcastChannel.send(payload);
+    log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+  }
+  catch (error) {
+    log.error(`failed to broadcast timeout details for @${targetUsername}`);
+    console.error(error);
+    failed = true;
+  }
+
+  return !failed;
+}
+
 timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   if (guild.id !== config.YUNG_KAI_WORLD_GID) return false;
 
@@ -123,21 +168,21 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   }
 
   const embed = formatEmbed(details, executor, target, guild);
-  const payload: MessageCreateOptions = {
-    embeds: [embed],
-    flags: MessageFlags.SuppressNotifications,
-  };
+  const targetUsername = target.user.username;
 
-  await dmChannel.send(payload);
-  log.debug(`DM'ed @${target.user.username} reason for timeout.`);
-  await broadcastChannel.send(payload);
-  log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+  const success = await sendEmbedToChannels(
+    dmChannel,
+    broadcastChannel,
+    embed,
+    targetUsername,
+  );
+  if (!success) return false;
 
   if (details.type === "issued") {
-    log.info(`reported timeout issued for @${target.user.username}.`);
+    log.info(`reported timeout issued for @${targetUsername}.`);
   }
   else if (details.type === "removed") {
-    log.info(`reported timeout removed for @${target.user.username}.`);
+    log.info(`reported timeout removed for @${targetUsername}.`);
   }
   return true;
 });
