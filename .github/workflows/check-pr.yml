@@ -32,6 +32,7 @@ jobs:
       KAI_UID: ${{ vars.KAI_UID }}
       NI_UID: ${{ vars.NI_UID }}
       S_UID: ${{ vars.S_UID }}
+      WYS_UID: ${{ vars.WYS_UID }}
       MUDAE_UID: ${{ vars.MUDAE_UID }}
 
     steps:
