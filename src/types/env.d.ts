@@ -58,6 +58,19 @@ declare global {
      */
     CLIENT_UID: string;
     MUDAE_UID: string;
+
+    // //////////////////////////// //
+    //      3rd Party Services      //
+    // //////////////////////////// //
+
+    /**
+     * Connection string for MongoDB service.
+     */
+    DB_CONN_STRING: string;
+    /**
+     * Name of MongoDB database to use.
+     */
+    DB_NAME: string;
   };
 
   namespace NodeJS {

@@ -12,6 +12,8 @@ jobs:
       NODE_ENV: test  # Overwritten by Jest anyway.
       BOT_TOKEN: ${{ secrets.PROD_BOT_TOKEN }}
       APPLICATION_ID: ${{ secrets.PROD_APPLICATION_ID }}
+      DB_CONN_STRING: ${{ secrets.DB_CONN_STRING }}
+      DB_NAME: ${{ vars.DB_NAME }}
 
       LUKE_UID: ${{ vars.LUKE_UID }}
       KLEE_UID: ${{ vars.KLEE_UID }}
