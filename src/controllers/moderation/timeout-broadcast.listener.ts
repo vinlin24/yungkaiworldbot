@@ -114,7 +114,7 @@ function formatEmbed(
  */
 async function sendEmbedToChannels(
   dmChannel: DMChannel,
-  broadcastChannel: GuildTextBasedChannel,
+  broadcastChannel: GuildTextBasedChannel | null,
   embed: EmbedBuilder,
   targetUsername: string,
 ): Promise<boolean> {
@@ -134,9 +134,17 @@ async function sendEmbedToChannels(
     console.error(error);
     failed = true;
   }
+
+
   try {
-    await broadcastChannel.send(payload);
-    log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+    if (!broadcastChannel) {
+      log.error(`no channel found with CID=${config.BOT_SPAM_CID}.`);
+      failed = true;
+    }
+    else {
+      await broadcastChannel.send(payload);
+      log.debug(`broadcasted timeout in #${broadcastChannel.name}.`);
+    }
   }
   catch (error) {
     log.error(`failed to broadcast timeout details for @${targetUsername}`);
@@ -162,10 +170,6 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   const dmChannel = await getDMChannel(target);
   const broadcastChannel = await guild.channels.fetch(config.BOT_SPAM_CID) as
     GuildTextBasedChannel | null;
-  if (!broadcastChannel) {
-    log.error(`no channel found with CID=${config.BOT_SPAM_CID}.`);
-    return false;
-  }
 
   const embed = formatEmbed(details, executor, target, guild);
   const targetUsername = target.user.username;
