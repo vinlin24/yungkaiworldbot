@@ -172,11 +172,11 @@ const removedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
 }, "removed embed matcher");
 
 describe("error handling", () => {
-  it("should do nothing if broadcast channel can't be  found", async () => {
+  it("should still try to DM if broadcast channel not found", async () => {
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
     jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expect(mockDMChannel.send).not.toHaveBeenCalled();
+    expect(mockDMChannel.send).toHaveBeenCalled();
     expect(mockBroadcastChannel.send).not.toHaveBeenCalled();
   });
 
