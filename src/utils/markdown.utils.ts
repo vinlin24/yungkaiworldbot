@@ -1,7 +1,12 @@
 // Also see:
 // https://v13.discordjs.guide/miscellaneous/parsing-mention-arguments.html
 
-import { TimestampStylesString, userMention } from "discord.js";
+import {
+  TimestampStyles,
+  TimestampStylesString,
+  time,
+  userMention,
+} from "discord.js";
 
 export type Mentionable = {
   type: "user";
@@ -55,9 +60,20 @@ export function joinUserMentions(userIds?: Iterable<string>): string {
 }
 
 export type TimestampMention<F extends TimestampStylesString | null = null>
-  = F extends null ? `<t:${number}>` : `<t:${number}:${F}>`;
+  = F extends null ? `<t:${bigint}>` : `<t:${bigint}:${F}>`;
 
 export function toBulletedList(lines: string[], level: number = 0): string {
   const indent = "  ".repeat(level);
   return lines.map(line => `${indent}* ${line}`).join("\n");
+}
+
+/**
+ * Return a timestamp mention along with its relative version. Both are usually
+ * used together for formatting purposes, so might as well make this is a
+ * shorthand helper.
+ */
+export function timestampPair(
+  date: Date,
+): [basic: TimestampMention, relative: TimestampMention<"R">] {
+  return [time(date), time(date, TimestampStyles.RelativeTime)];
 }
