@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { ClientEvents, Collection, REST, Routes } from "discord.js";
 
-import env, { YUNG_KAI_WORLD_GID } from "../config";
+import env, { YUNG_KAI_WORLD_GID, connectToDatabase } from "../config";
 import getLogger from "../logger";
 import { ClientWithIntentsAndRunnersABC } from "../types/client.abc";
 import {
@@ -42,7 +42,6 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
 
     try {
       this.registerListeners();
-      return true;
     }
     catch (error) {
       if (error instanceof DuplicateListenerIDError) {
@@ -54,6 +53,18 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
       }
       return false;
     }
+
+    try {
+      await connectToDatabase();
+      log.info("connected to database.");
+    }
+    catch (error) {
+      log.crit("failed to connect to database.");
+      console.error(error);
+      return false;
+    }
+
+    return true;
   }
 
   public override async deploySlashCommands(): Promise<void> {
