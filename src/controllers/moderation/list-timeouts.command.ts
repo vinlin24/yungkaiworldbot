@@ -2,23 +2,20 @@ import {
   EmbedBuilder,
   GuildMember,
   SlashCommandBuilder,
-  TimestampStyles,
-  time,
   userMention,
 } from "discord.js";
 
 import getLogger from "../../logger";
 import { CommandBuilder } from "../../types/command.types";
 import { formatContext } from "../../utils/logging.utils";
-import { toBulletedList } from "../../utils/markdown.utils";
+import { timestampPair, toBulletedList } from "../../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
 function formatTimedOutMember(member: GuildMember): string {
   const mention = userMention(member.id);
   const until = member.communicationDisabledUntil!;
-  const untilMention = time(until);
-  const untilRelative = time(until, TimestampStyles.RelativeTime);
+  const [untilMention, untilRelative] = timestampPair(until);
   return `${mention} until ${untilMention} (${untilRelative})`;
 }
 

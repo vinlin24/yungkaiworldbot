@@ -1,10 +1,12 @@
 jest.mock("../../src/utils/dates.utils");
 
+import { TimestampStyles, time } from "discord.js";
 import { toUnixSeconds } from "../../src/utils/dates.utils";
 import {
   Mentionable,
   joinUserMentions,
   parseMention,
+  timestampPair,
   toBulletedList,
 } from "../../src/utils/markdown.utils";
 
@@ -79,5 +81,14 @@ describe("parsing mentionables", () => {
         expect(result).toEqual(null);
       });
     }
+  });
+});
+
+describe("timestamp-related utilities", () => {
+  it("should return a pair of timestamp mentions", () => {
+    const date = new Date();
+    const result = timestampPair(date);
+    const expected = [time(date), time(date, TimestampStyles.RelativeTime)];
+    expect(result).toEqual(expected);
   });
 });
