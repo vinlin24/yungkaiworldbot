@@ -38,7 +38,6 @@ async function startCountdown(
 
   const seconds = durationToSeconds(duration);
   if (seconds === null) {
-    log.info(`${context}: failed to parse \`${duration}\` as a duration.`);
     await interaction.reply({
       content: `Failed to interpret \`${duration}\` as a duration...`,
       ephemeral: true,

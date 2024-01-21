@@ -1,5 +1,8 @@
 import parseDuration from "parse-duration";
 
+import getLogger from "../logger";
+
+const log = getLogger(__filename);
 
 /**
  * Return a new `Date` object whose timestamp is `seconds` seconds after now.
@@ -101,5 +104,9 @@ export function durationToSeconds(
     return asNumber * multiplier;
   }
   const seconds = parseDuration(humanReadableDuration, "sec");
-  return seconds ?? null;
+  if (seconds === undefined) {
+    log.debug(`failed to parse \`${humanReadableDuration}\` as a duration.`);
+    return null;
+  }
+  return seconds;
 }
