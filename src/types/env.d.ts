@@ -126,6 +126,30 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv extends Readonly<EnvironmentVariables> { }
   }
+
+  /**
+   * Utility type for filtering environment variable key names based on the
+   * template literal type parameter.
+   */
+  type KeyWithFormat<Template extends string> = Exclude<{
+    [K in keyof EnvironmentVariables]: K extends Template ? K : never;
+  }[keyof EnvironmentVariables], undefined>;
+
+  /**
+   * Utility type for narrowing a string to the available CID environment
+   * variable keys.
+   */
+  type CIDKey = KeyWithFormat<`${string}_CID`>;
+  /**
+   * Utility type for narrowing a string to the available RID environment
+   * variable keys.
+   */
+  type RIDKey = KeyWithFormat<`${string}_RID`>;
+  /**
+   * Utility type for narrowing a string to the available UID environment
+   * variable keys.
+   */
+  type UIDKey = KeyWithFormat<`${string}_UID`>;
 }
 
 export { };
