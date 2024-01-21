@@ -6,9 +6,10 @@ jest.mock("../../../../src/utils/dates.utils", () => {
   };
 });
 
-import { TimestampStyles, User, time, userMention } from "discord.js";
+import { GuildMember, TimestampStyles, time, userMention } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
+import { cloneDeep } from "lodash";
 import config from "../../../../src/config";
 import timeoutImmunitySpec from "../../../../src/controllers/moderation/timeout/set-timeout-immunity.command";
 import timeoutService from "../../../../src/services/timeout.service";
@@ -22,9 +23,10 @@ let mock: MockInteraction;
 
 beforeEach(() => mock = new MockInteraction(timeoutImmunitySpec));
 
-const mockUser = {
+const mockMember = {
   id: "123456789",
-} as User;
+  timeout: jest.fn(),
+} as unknown as GuildMember;
 
 function expectServiceNotCalled(): void {
   expect(mockedTimeoutService.grantImmunity).not.toHaveBeenCalled();
@@ -36,7 +38,7 @@ it("should require privilege level >= ALPHA_MOD", async () => {
   mock
     .mockCaller({ roleIds: [config.BABY_MOD_RID] })
     .mockOption("Boolean", "immune", true)
-    .mockOption<User>("User", "user", mockUser);
+    .mockOption<GuildMember>("Member", "user", mockMember);
 
   await mock.simulateCommand();
 
@@ -47,51 +49,86 @@ it("should require privilege level >= ALPHA_MOD", async () => {
   expectServiceNotCalled();
 });
 
-it("should grant immunity", async () => {
-  mock
-    .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
-    .mockOption("Boolean", "immune", true)
-    .mockOption<User>("User", "user", mockUser)
-    .mockOption("String", "duration", "DUMMY-DURATION");
-
+describe("granting immunity", () => {
   const dummyDate = new Date(42);
-  const dateSpy = jest.spyOn(global, "Date");
-  dateSpy.mockImplementation(() => dummyDate);
-  mockedDurationToSeconds.mockReturnValueOnce(600);
+  const dummyExpiration = new Date(42 + 600 * 1000);
 
-  await mock.simulateCommand();
-
-  const expectedExpiration = new Date(42 + 600 * 1000);
   const responseMatcher = new Matcher<string>(value => {
     const requirements = [
-      userMention(mockUser.id),
-      time(expectedExpiration),
-      time(expectedExpiration, TimestampStyles.RelativeTime),
+      userMention(mockMember.id),
+      time(dummyExpiration),
+      time(dummyExpiration, TimestampStyles.RelativeTime),
     ] as const;
     return requirements.every(s => value.includes(s));
   }, "content matcher");
 
-  mock.expectRepliedWith({
-    content: responseMatcher as any,
-    allowedMentions: expect.objectContaining({ parse: [] }),
+  it("should grant immunity", async () => {
+    mock
+      .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
+      .mockOption("Boolean", "immune", true)
+      .mockOption<GuildMember>("Member", "user", mockMember)
+      .mockOption("String", "duration", "DUMMY-DURATION");
+
+    const dateSpy = jest.spyOn(global, "Date");
+    // NOTE: NEED to clone dummyDate addDateSeconds mutates the Date in-place
+    // somehow when Date is mocked. SPENT TOO LONG DEBUGGING THIS!!
+    dateSpy.mockImplementation(() => cloneDeep(dummyDate));
+    mockedDurationToSeconds.mockReturnValueOnce(600);
+
+    await mock.simulateCommand();
+
+    mock.expectRepliedWith({
+      content: responseMatcher as any,
+      allowedMentions: expect.objectContaining({ parse: [] }),
+    });
+    expect(mockedTimeoutService.grantImmunity).toHaveBeenCalledWith(
+      mockMember.id,
+      dummyExpiration,
+    );
   });
-  expect(mockedTimeoutService.grantImmunity).toHaveBeenCalledWith(
-    mockUser.id,
-    expectedExpiration,
-  );
+
+  it("should untime timed out users when granting immunity", async () => {
+    mock
+      .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
+      .mockOption("Boolean", "immune", true)
+      .mockOption("String", "duration", "DUMMY-DURATION")
+      .mockOption<GuildMember>("Member", "user", {
+        ...mockMember,
+        // communicationDisabledUntil: new Date(42 + 60 * 1000),
+      } as GuildMember);
+
+    const dateSpy = jest.spyOn(global, "Date");
+    // NOTE: NEED to clone dummyDate addDateSeconds mutates the Date in-place
+    // somehow when Date is mocked. SPENT TOO LONG DEBUGGING THIS!!
+    dateSpy.mockImplementation(() => cloneDeep(dummyDate));
+    mockedDurationToSeconds.mockReturnValueOnce(600);
+
+    await mock.simulateCommand();
+
+    mock.expectRepliedWith({
+      content: responseMatcher as any,
+      allowedMentions: expect.objectContaining({ parse: [] }),
+    });
+    expect(mockedTimeoutService.grantImmunity).toHaveBeenCalledWith(
+      mockMember.id,
+      dummyExpiration,
+    );
+    expect(mockMember.timeout).toHaveBeenCalledWith(null);
+  });
 });
 
 it("should revoke immunity", async () => {
   mock
     .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
     .mockOption("Boolean", "immune", false)
-    .mockOption<User>("User", "user", mockUser);
+    .mockOption<GuildMember>("Member", "user", mockMember);
 
   await mock.simulateCommand();
 
   mock.expectRepliedWith({
-    content: expect.stringContaining(userMention(mockUser.id)),
+    content: expect.stringContaining(userMention(mockMember.id)),
     allowedMentions: expect.objectContaining({ parse: [] }),
   });
-  expect(mockedTimeoutService.revokeImmunity).toHaveBeenCalledWith(mockUser.id);
+  expect(mockedTimeoutService.revokeImmunity)
+    .toHaveBeenCalledWith(mockMember.id);
 });

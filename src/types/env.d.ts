@@ -88,6 +88,10 @@ declare global {
     //      Discord Bot IDs      //
     // ///////////////////////// //
 
+    /**
+     * The UID of our bot user.
+     */
+    CLIENT_UID: string;
     MUDAE_UID: string;
   };
 

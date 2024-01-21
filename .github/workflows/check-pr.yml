@@ -33,6 +33,7 @@ jobs:
       NI_UID: ${{ vars.NI_UID }}
       S_UID: ${{ vars.S_UID }}
       WYS_UID: ${{ vars.WYS_UID }}
+      CLIENT_UID: ${{ vars.CLIENT_UID }}
       MUDAE_UID: ${{ vars.MUDAE_UID }}
 
     steps:

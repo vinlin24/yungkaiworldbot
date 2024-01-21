@@ -34,7 +34,7 @@ export class TimeoutService {
 
   public listImmunities(): Collection<string, Date> {
     const now = new Date();
-    return this.immunities.filter(expiration => expiration < now);
+    return this.immunities.filter(expiration => expiration > now);
   }
 }
 

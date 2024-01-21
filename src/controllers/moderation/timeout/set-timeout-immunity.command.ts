@@ -1,8 +1,8 @@
 import {
   ChatInputCommandInteraction,
+  GuildMember,
   PermissionFlagsBits,
   SlashCommandBuilder,
-  User,
   userMention,
 } from "discord.js";
 
@@ -42,7 +42,7 @@ timeoutImmunity.define(new SlashCommandBuilder()
 
 async function revokeImmunity(
   interaction: ChatInputCommandInteraction,
-  target: User,
+  target: GuildMember,
 ): Promise<boolean> {
   timeoutService.revokeImmunity(target.id);
   await interaction.reply({
@@ -54,7 +54,7 @@ async function revokeImmunity(
 
 async function grantImmunity(
   interaction: ChatInputCommandInteraction,
-  target: User,
+  target: GuildMember,
   humanDuration: string,
 ): Promise<boolean> {
   const seconds = durationToSeconds(humanDuration, "minute");
@@ -69,6 +69,9 @@ async function grantImmunity(
   const expiration = addDateSeconds(seconds);
   timeoutService.grantImmunity(target.id, expiration);
 
+  // Also try to untime the member if they happen to already be timed out.
+  await target.timeout(null);
+
   const [timestamp, relative] = timestampPair(expiration);
   const response =
     `Granted timeout immunity for ${userMention(target.id)} ` +
@@ -79,13 +82,14 @@ async function grantImmunity(
     content: response,
     allowedMentions: { parse: [] },
   });
+
   return true;
 }
 
 timeoutImmunity.check(checkPrivilege(RoleLevel.ALPHA_MOD));
 timeoutImmunity.execute(async interaction => {
   const immune = interaction.options.getBoolean("immune", true);
-  const target = interaction.options.getUser("user", true);
+  const target = interaction.options.getMember("user") as GuildMember;
   if (!immune) {
     return await revokeImmunity(interaction, target);
   }
