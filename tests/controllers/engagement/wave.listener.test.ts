@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
-import waveSpec from "../../../src/controllers/moderation/wave.listener";
+
+import waveSpec from "../../../src/controllers/engagement/wave.listener";
 import { MockMessage } from "../../test-utils";
 
 it("should wave at what looks like an introduction", async () => {
