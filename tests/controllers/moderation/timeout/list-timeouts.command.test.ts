@@ -1,3 +1,5 @@
+jest.mock("../../../../src/services/timeout.service");
+
 import {
   Collection,
   EmbedBuilder,
@@ -8,19 +10,21 @@ import {
 
 import { Matcher } from "jest-mock-extended";
 import listTimeoutsSpec from "../../../../src/controllers/moderation/timeout/list-timeouts.command";
-import { addDateSeconds } from "../../../../src/utils/dates.utils";
+import timeoutService from "../../../../src/services/timeout.service";
 import { MockInteraction } from "../../../test-utils";
 
-const now = new Date();
+const mockedTimeoutService = jest.mocked(timeoutService);
+
+const dummyNow = new Date(100);
 
 const mockTimedOut1 = {
   id: "123456789",
-  communicationDisabledUntil: addDateSeconds(now, 4242),
+  communicationDisabledUntil: new Date(100 + 4242 * 1000),
 } as GuildMember;
 
 const mockTimedOut2 = {
   id: "987654321",
-  communicationDisabledUntil: addDateSeconds(now, 6000),
+  communicationDisabledUntil: new Date(100 + 6000 * 1000),
 } as GuildMember;
 
 const mockNotTimedOut = {
@@ -32,7 +36,22 @@ const mockTimeoutExpired = {
   communicationDisabledUntil: new Date(0),
 } as GuildMember;
 
-it("should list all timeouts", async () => {
+const dummyImmunities = [
+  ["1234567890", new Date(100 + 60 * 1000)],
+  ["9876543210", new Date(100 + 120 * 1000)],
+  ["4242424242", new Date(100 + 100 * 1000)],
+] as const;
+
+beforeEach(() => {
+  jest.useFakeTimers();
+  jest.setSystemTime(dummyNow);
+});
+
+afterEach(() => {
+  jest.useRealTimers();
+});
+
+it("should list all timeouts and immunities", async () => {
   const mock = new MockInteraction(listTimeoutsSpec);
   mock.interaction.guild!.members.fetch.mockResolvedValueOnce(
     new Collection([
@@ -42,19 +61,39 @@ it("should list all timeouts", async () => {
       [mockTimeoutExpired.id, mockTimeoutExpired],
     ]),
   );
+  mockedTimeoutService.listImmunities.mockReturnValueOnce(
+    new Collection(dummyImmunities),
+  );
 
   await mock.simulateCommand();
 
   const embedMatcher = new Matcher<EmbedBuilder>(embed => {
-    const mention1 = userMention(mockTimedOut1.id);
-    const mention2 = userMention(mockTimedOut2.id);
-    const timestamp1 = time(mockTimedOut1.communicationDisabledUntil!);
-    const timestamp2 = time(mockTimedOut2.communicationDisabledUntil!);
+    const timedOutRequirements = [
+      userMention(mockTimedOut1.id),
+      userMention(mockTimedOut2.id),
+      time(mockTimedOut1.communicationDisabledUntil!),
+      time(mockTimedOut2.communicationDisabledUntil!),
+    ] as const;
 
-    return [mention1, mention2, timestamp1, timestamp2].every(mention => {
-      return embed.data.description?.includes(mention);
+    const timedOutGood = timedOutRequirements.every(mention => {
+      return embed.data.fields?.[0].value.includes(mention);
     });
+
+    const immunityRequirements = [
+      userMention(dummyImmunities[0][0]),
+      userMention(dummyImmunities[1][0]),
+      userMention(dummyImmunities[2][0]),
+      time(dummyImmunities[0][1]),
+      time(dummyImmunities[1][1]),
+      time(dummyImmunities[2][1]),
+    ] as const;
+    const immunityGood = immunityRequirements.every(mention => {
+      return embed.data.fields?.[1].value.includes(mention);
+    });
+
+    return timedOutGood && immunityGood;
   }, "embed matcher");
+
   mock.expectRepliedWith({
     // @ts-expect-error Expects APIEmbed but is actually EmbedBuilder.
     embeds: [embedMatcher],
@@ -62,19 +101,23 @@ it("should list all timeouts", async () => {
   });
 });
 
-it("should still have a description when no users are timed out", async () => {
+it("should still have field values when no users are timed out", async () => {
   const mock = new MockInteraction(listTimeoutsSpec);
   mock.interaction.guild!.members.fetch.mockResolvedValueOnce(
     new Collection([
       [mockNotTimedOut.id, mockNotTimedOut],
     ]),
   );
+  mockedTimeoutService.listImmunities.mockReturnValueOnce(new Collection());
 
   await mock.simulateCommand();
 
   const embedMatcher = new Matcher<EmbedBuilder>(embed => {
-    return !!embed.data?.description;
+    const timedOutGood = !!embed.data.fields?.[0].value;
+    const immunityGood = !!embed.data.fields?.[1].value;
+    return timedOutGood && immunityGood;
   }, "embed matcher");
+
   mock.expectRepliedWith({
     // @ts-expect-error Expects APIEmbed but is actually EmbedBuilder.
     embeds: [embedMatcher],
