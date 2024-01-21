@@ -1,5 +1,6 @@
 import {
   ChatInputCommandInteraction,
+  PermissionFlagsBits,
   SlashCommandBuilder,
   User,
   userMention,
@@ -19,6 +20,7 @@ const timeoutImmunity = new CommandBuilder();
 timeoutImmunity.define(new SlashCommandBuilder()
   .setName("timeout-immunity")
   .setDescription("Set temporary timeout immunity for a user.")
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addBooleanOption(input => input
     .setName("immune")
     .setDescription("True to grant immunity, False to revoke.")
