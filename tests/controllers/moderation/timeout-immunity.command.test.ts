@@ -61,7 +61,6 @@ it("should grant immunity", async () => {
 
   await mock.simulateCommand();
 
-  dateSpy.mockRestore();
   const expectedExpiration = new Date(42 + 600 * 1000);
   const responseMatcher = new Matcher<string>(value => {
     const requirements = [
