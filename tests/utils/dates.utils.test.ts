@@ -8,9 +8,20 @@ import {
 
 describe("add seconds to a Date", () => {
   it("should return a new, correct Date", () => {
-    const original = new Date();
+    const original = new Date(420);
     const added = addDateSeconds(original, 300);
     expect(added.getTime()).toEqual(original.getTime() + 300 * 1000);
+  });
+
+  it("should use the current time if date is omitted", () => {
+    const now = new Date();
+    const added = addDateSeconds(300);
+    // Account for possible latency between `now` and `addDateSeconds`
+    // execution. It seems to work even when set to 0, but just in case there's
+    // lag in the future.
+    const epsilon = 50;
+    const tolerance = 300 * 1000 + epsilon;
+    expect(added.getTime() - now.getTime()).toBeLessThanOrEqual(tolerance);
   });
 });
 

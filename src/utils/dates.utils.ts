@@ -1,10 +1,29 @@
 import parseDuration from "parse-duration";
 
+
+/**
+ * Return a new `Date` object whose timestamp is `seconds` seconds after now.
+ */
+export function addDateSeconds(seconds: number): Date;
 /**
  * Return a new `Date` object whose timestamp is `seconds` seconds after the
  * provided `date`.
  */
-export function addDateSeconds(date: Date, seconds: number): Date {
+export function addDateSeconds(date: Date, seconds: number): Date;
+
+export function addDateSeconds(arg1: Date | number, arg2?: number): Date {
+  let date: Date;
+  let seconds: number;
+
+  if (typeof arg1 === "number") {
+    date = new Date();
+    seconds = arg1;
+  }
+  else {
+    date = arg1;
+    seconds = arg2!;
+  }
+
   const newDate = new Date(date);
   newDate.setSeconds(newDate.getSeconds() + seconds);
   return newDate;
