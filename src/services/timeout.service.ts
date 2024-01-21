@@ -16,7 +16,10 @@ export class TimeoutService {
   public isImmune(uid: string): boolean {
     const now = new Date();
     const expiration = this.immunities.get(uid);
-    const expired = expiration && expiration >= now;
+    if (!expiration) {
+      return false;
+    }
+    const expired = expiration < now;
     if (expired) {
       this.immunities.delete(uid);
       log.debug(`removed expired immunity expiration for ${userMention(uid)}.`);
