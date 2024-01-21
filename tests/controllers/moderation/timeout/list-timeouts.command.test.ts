@@ -7,9 +7,9 @@ import {
 } from "discord.js";
 
 import { Matcher } from "jest-mock-extended";
-import listTimeoutsSpec from "../../../src/controllers/moderation/list-timeouts.command";
-import { addDateSeconds } from "../../../src/utils/dates.utils";
-import { MockInteraction } from "../../test-utils";
+import listTimeoutsSpec from "../../../../src/controllers/moderation/timeout/list-timeouts.command";
+import { addDateSeconds } from "../../../../src/utils/dates.utils";
+import { MockInteraction } from "../../../test-utils";
 
 const now = new Date();
 

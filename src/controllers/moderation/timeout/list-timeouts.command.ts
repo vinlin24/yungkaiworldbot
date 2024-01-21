@@ -5,10 +5,10 @@ import {
   userMention,
 } from "discord.js";
 
-import getLogger from "../../logger";
-import { CommandBuilder } from "../../types/command.types";
-import { formatContext } from "../../utils/logging.utils";
-import { timestampPair, toBulletedList } from "../../utils/markdown.utils";
+import getLogger from "../../../logger";
+import { CommandBuilder } from "../../../types/command.types";
+import { formatContext } from "../../../utils/logging.utils";
+import { timestampPair, toBulletedList } from "../../../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
