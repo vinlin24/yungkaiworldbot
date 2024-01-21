@@ -63,9 +63,37 @@ declare global {
     // //////////////////////////// //
 
     /**
-     * Channel ID of the channel where bot commands are generally directed.
+     * ID of the text channel where bot commands are generally directed.
      */
     BOT_SPAM_CID: string;
+    /**
+     * ID of the text channel where new members introduce themselves.
+     */
+    INTRODUCTIONS_CID: string;
+    /**
+     * ID of the text channel for general pictures, photographs, and GIFs.
+     */
+    MEDIA_CID: string;
+    /**
+     * ID of the text channel for artwork.
+     */
+    ARTWORK_CID: string;
+    /**
+     * ID of the text channel for pet pictures.
+     */
+    STINKYS_FRIENDS_CID: string;
+    /**
+     * ID of the text channel for music discussion or song links.
+     */
+    MUSIC_CHAT_CID: string;
+    /**
+     * ID of the text channel for gaming-related discussion.
+     */
+    GAMING_CID: string;
+    /**
+     * ID of the text channel for recipes and food pictures.
+     */
+    COOKING_TIME_CID: string;
 
     // ////////////////////////// //
     //      Discord User IDs      //
