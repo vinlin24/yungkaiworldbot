@@ -20,7 +20,7 @@ import { Matcher } from "jest-mock-extended";
 
 import { ListenerRunner } from "../../../src/bot/listener.runner";
 import config from "../../../src/config";
-import timeoutBroadcastSpec from "../../../src/controllers/moderation/timeout.listener";
+import timeoutBroadcastSpec from "../../../src/controllers/moderation/timeout-broadcast.listener";
 import { checkPrivilege } from "../../../src/middleware/privilege.middleware";
 import timeoutService from "../../../src/services/timeout.service";
 import { getDMChannel } from "../../../src/utils/interaction.utils";
