@@ -24,7 +24,10 @@ timeoutImmunities.execute(async interaction => {
 
   const immunities = timeoutService.listImmunities();
   const entries = immunities.map(formatMember);
-  const description = toBulletedList(entries);
+  const description = entries.length === 0
+    ? "There are currently no members immune to timeouts!"
+    : toBulletedList(entries);
+
   const embed = new EmbedBuilder()
     .setTitle("Temporary Timeout Immunities")
     .setDescription(description);

@@ -40,6 +40,9 @@ it("should list immunities", async () => {
     new Collection(dummyImmunities),
   );
 
+  await mock.simulateCommand();
+
+  expect(mockedTimeoutService.listImmunities).toHaveBeenCalled();
   const embedMatcher = new Matcher<EmbedBuilder>(embed => {
     for (const [uid, expiration] of dummyImmunities) {
       const timestamp = time(expiration);
@@ -50,9 +53,22 @@ it("should list immunities", async () => {
     }
     return true;
   }, "embed matcher");
+  mock.expectRepliedWith({
+    // @ts-expect-error Claims it wants APIEmbed but actually uses EmbedBuilder.
+    embeds: [embedMatcher],
+  });
+});
+
+it("should still have a description when no user are immune", async () => {
+  mockedTimeoutService.listImmunities.mockReturnValueOnce(new Collection());
 
   await mock.simulateCommand();
+
   expect(mockedTimeoutService.listImmunities).toHaveBeenCalled();
+  const embedMatcher = new Matcher<EmbedBuilder>(embed => {
+    return embed.data.description
+      === "There are currently no members immune to timeouts!";
+  }, "embed matcher");
   mock.expectRepliedWith({
     // @ts-expect-error Claims it wants APIEmbed but actually uses EmbedBuilder.
     embeds: [embedMatcher],
