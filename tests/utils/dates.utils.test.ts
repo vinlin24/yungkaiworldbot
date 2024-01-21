@@ -1,5 +1,7 @@
 import {
+  TIME_UNITS,
   addDateSeconds,
+  durationToSeconds,
   formatHoursMinsSeconds,
   toUnixSeconds,
 } from "../../src/utils/dates.utils";
@@ -69,4 +71,22 @@ describe("format hours, minutes, seconds from seconds value", () => {
     const formatted = formatHoursMinsSeconds(3661);
     expect(formatted).toEqual("1 hour, 1 minute, 1 second");
   });
+});
+
+describe("converting duration to seconds", () => {
+  for (const [unit, multiplier] of Object.entries(TIME_UNITS)) {
+    it(`should use ${unit}s if units are omitted`, () => {
+      const secs = durationToSeconds("420", unit as keyof typeof TIME_UNITS);
+      expect(secs).toEqual(420 * multiplier);
+    });
+  }
+
+  it("should return null if the duration is unparseable", () => {
+    const result = durationToSeconds("lorem ipsum");
+    expect(result).toEqual(null);
+  });
+
+  // The "internal" cases where we're just testing if the duration is converted
+  // to the correct number of seconds doesn't need to be tested because that's
+  // up the parse-duration dependency.
 });

@@ -5,28 +5,18 @@ import {
   time,
   userMention,
 } from "discord.js";
-import parseDuration from "parse-duration";
 
 import getLogger from "../../logger";
 import { CommandBuilder, CommandSpec } from "../../types/command.types";
 import {
   addDateSeconds,
+  durationToSeconds,
   formatHoursMinsSeconds,
 } from "../../utils/dates.utils";
 import { formatContext } from "../../utils/logging.utils";
 import { addEphemeralOption } from "../../utils/options.utils";
 
 const log = getLogger(__filename);
-
-function durationToSeconds(humanReadableDuration: string): number | null {
-  // If no unit is specified, assume it means seconds. parseDuration seems to
-  // interpret lone numbers as milliseconds, so a lone "10" becomes 0.01
-  // seconds, which would get rejected to the confusion of the caller.
-  const asNumber = Number(humanReadableDuration);
-  if (!isNaN(asNumber)) return asNumber;
-  const seconds = parseDuration(humanReadableDuration, "sec");
-  return seconds ?? null;
-}
 
 const slashCommandDefinition = new SlashCommandBuilder()
   .setName("countdown")

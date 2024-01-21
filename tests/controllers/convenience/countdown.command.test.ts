@@ -1,4 +1,9 @@
-jest.mock("../../../src/utils/dates.utils");
+jest.mock("../../../src/utils/dates.utils", () => {
+  return {
+    ...jest.requireActual("../../../src/utils/dates.utils"),
+    formatHoursMinsSeconds: jest.fn(),
+  };
+});
 
 import { userMention } from "discord.js";
 
