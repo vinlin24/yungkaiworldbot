@@ -1,14 +1,27 @@
 import {
+  TIME_UNITS,
   addDateSeconds,
+  durationToSeconds,
   formatHoursMinsSeconds,
   toUnixSeconds,
 } from "../../src/utils/dates.utils";
 
 describe("add seconds to a Date", () => {
   it("should return a new, correct Date", () => {
-    const original = new Date();
+    const original = new Date(420);
     const added = addDateSeconds(original, 300);
     expect(added.getTime()).toEqual(original.getTime() + 300 * 1000);
+  });
+
+  it("should use the current time if date is omitted", () => {
+    const now = new Date();
+    const added = addDateSeconds(300);
+    // Account for possible latency between `now` and `addDateSeconds`
+    // execution. It seems to work even when set to 0, but just in case there's
+    // lag in the future.
+    const epsilon = 50;
+    const tolerance = 300 * 1000 + epsilon;
+    expect(added.getTime() - now.getTime()).toBeLessThanOrEqual(tolerance);
   });
 });
 
@@ -69,4 +82,22 @@ describe("format hours, minutes, seconds from seconds value", () => {
     const formatted = formatHoursMinsSeconds(3661);
     expect(formatted).toEqual("1 hour, 1 minute, 1 second");
   });
+});
+
+describe("converting duration to seconds", () => {
+  for (const [unit, multiplier] of Object.entries(TIME_UNITS)) {
+    it(`should use ${unit}s if units are omitted`, () => {
+      const secs = durationToSeconds("420", unit as keyof typeof TIME_UNITS);
+      expect(secs).toEqual(420 * multiplier);
+    });
+  }
+
+  it("should return null if the duration is unparseable", () => {
+    const result = durationToSeconds("lorem ipsum");
+    expect(result).toEqual(null);
+  });
+
+  // The "internal" cases where we're just testing if the duration is converted
+  // to the correct number of seconds doesn't need to be tested because that's
+  // up the parse-duration dependency.
 });

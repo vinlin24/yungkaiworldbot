@@ -44,9 +44,16 @@ export const LEVEL_TO_RID: Record<
   [RoleLevel.BABY_MOD]: config.BABY_MOD_RID,
 };
 
-export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
-  function predicate(interaction: CommandInteraction): boolean {
-    const member = interaction.member as GuildMember;
+export function checkPrivilege(
+  commandLevel: RoleLevel,
+  member: GuildMember,
+): boolean;
+export function checkPrivilege(commandLevel: RoleLevel): CommandCheck;
+export function checkPrivilege(
+  commandLevel: RoleLevel,
+  memberToCheck?: GuildMember,
+): boolean | CommandCheck {
+  function isAuthorized(member: GuildMember): boolean {
     for (const [level, roleId] of iterateEnum(LEVEL_TO_RID)) {
       // As long as the level required by the command is less than any of the
       // levels for which the caller has a role, then they pass.
@@ -55,6 +62,15 @@ export function checkPrivilege(commandLevel: RoleLevel): CommandCheck {
       }
     }
     return false;
+  }
+
+  if (memberToCheck) {
+    return isAuthorized(memberToCheck);
+  }
+
+  function predicate(interaction: CommandInteraction): boolean {
+    const member = interaction.member as GuildMember;
+    return isAuthorized(member);
   }
 
   async function onFail(interaction: CommandInteraction): Promise<void> {

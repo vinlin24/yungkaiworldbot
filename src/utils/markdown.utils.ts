@@ -8,16 +8,25 @@ import {
   userMention,
 } from "discord.js";
 
-export type Mentionable = {
+export type UserMentionable = {
   type: "user";
   uid: string;
-} | {
+};
+
+export type RoleMentionable = {
   type: "role";
   rid: string;
-} | {
+};
+
+export type ChannelMentionable = {
   type: "channel";
   cid: string;
 };
+
+export type Mentionable =
+  | UserMentionable
+  | RoleMentionable
+  | ChannelMentionable;
 
 export function parseMention(mention: string): Mentionable | null {
   function isIntegerString(s: string): boolean {
