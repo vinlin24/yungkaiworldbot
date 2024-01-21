@@ -17,6 +17,11 @@ import {
 
 import config from "../../config";
 import getLogger from "../../logger";
+import {
+  RoleLevel,
+  checkPrivilege,
+} from "../../middleware/privilege.middleware";
+import timeoutService from "../../services/timeout.service";
 import { ListenerBuilder } from "../../types/listener.types";
 import { getDMChannel } from "../../utils/interaction.utils";
 import { toBulletedList } from "../../utils/markdown.utils";
@@ -85,18 +90,45 @@ class TimeoutLogEventHandler {
    */
   public async process(): Promise<boolean> {
     const embed = this.formatEmbed();
-
     const success = await this.sendEmbedToChannels(embed);
-    if (!success) return false;
 
+    if (success) {
+      const targetUsername = this.target.user.username;
+      if (this.details.type === "issued") {
+        log.info(`reported timeout issued for @${targetUsername}.`);
+      }
+      else if (this.details.type === "removed") {
+        log.info(`reported timeout removed for @${targetUsername}.`);
+      }
+    }
+
+    await this.undoTimeoutIfApplicable();
+    return success;
+  }
+
+  /**
+   * Consult policies to determine if the bot should undo the target's timeout,
+   * and if so, remove the timeout.
+   */
+  private async undoTimeoutIfApplicable(): Promise<void> {
+    const shouldUndoTimeout
+      = this.details.type === "issued"
+      && timeoutService.isImmune(this.target.id);
+
+    const executorUsername = this.executor.user.username;
     const targetUsername = this.target.user.username;
-    if (this.details.type === "issued") {
-      log.info(`reported timeout issued for @${targetUsername}.`);
+
+    if (shouldUndoTimeout) {
+      // Alpha mods and higher can bypass timeout immunity.
+      const alphaOverride = checkPrivilege(RoleLevel.ALPHA_MOD, this.executor);
+      if (alphaOverride) {
+        log.info(`@${executorUsername} bypasses @${targetUsername} immunity.`);
+      }
+      else {
+        await this.target.timeout(null);
+        log.info(`undid timeout for @${targetUsername}.`);
+      }
     }
-    else if (this.details.type === "removed") {
-      log.info(`reported timeout removed for @${targetUsername}.`);
-    }
-    return true;
   }
 
   /**
