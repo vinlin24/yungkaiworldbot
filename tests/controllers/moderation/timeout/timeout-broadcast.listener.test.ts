@@ -107,6 +107,11 @@ const mockGuild = {
       return Promise.resolve(null);
     }),
   },
+  client: {
+    user: {
+      id: config.CLIENT_UID,
+    },
+  },
 } as unknown as Guild;
 
 beforeEach(() => {
@@ -204,9 +209,9 @@ describe("error handling", () => {
     jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
     jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
-    mockedTimeoutService.isImmune.mockReturnValueOnce(true);
+    mockedTimeoutService.isImmune.mockReturnValue(true);
     // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValueOnce(false);
+    mockedCheckPrivilege.mockReturnValue(false);
 
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
 
@@ -240,9 +245,9 @@ describe("timeout removed", () => {
 
 describe("timeout immunity", () => {
   it("should undo the timeout if member is immune", async () => {
-    mockedTimeoutService.isImmune.mockReturnValueOnce(true);
+    mockedTimeoutService.isImmune.mockReturnValue(true);
     // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValueOnce(false);
+    mockedCheckPrivilege.mockReturnValue(false);
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
     expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
@@ -250,9 +255,9 @@ describe("timeout immunity", () => {
   });
 
   it("should allow alpha mods to bypass timeout immunity", async () => {
-    mockedTimeoutService.isImmune.mockReturnValueOnce(true);
+    mockedTimeoutService.isImmune.mockReturnValue(true);
     // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValueOnce(true);
+    mockedCheckPrivilege.mockReturnValue(true);
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
     expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);

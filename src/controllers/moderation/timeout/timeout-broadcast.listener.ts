@@ -89,7 +89,10 @@ class TimeoutLogEventHandler {
    * Process the timeout audit log event and return success status.
    */
   public async process(): Promise<boolean> {
-    const embed = this.formatEmbed();
+    // Alpha mods and higher can bypass timeout immunity.
+    const alphaOverride = checkPrivilege(RoleLevel.ALPHA_MOD, this.executor);
+
+    const embed = this.formatEmbed(alphaOverride);
     const success = await this.sendEmbedToChannels(embed);
 
     if (success) {
@@ -102,7 +105,7 @@ class TimeoutLogEventHandler {
       }
     }
 
-    await this.undoTimeoutIfApplicable();
+    await this.undoTimeoutIfApplicable(alphaOverride);
     return success;
   }
 
@@ -110,7 +113,7 @@ class TimeoutLogEventHandler {
    * Consult policies to determine if the bot should undo the target's timeout,
    * and if so, remove the timeout.
    */
-  private async undoTimeoutIfApplicable(): Promise<void> {
+  private async undoTimeoutIfApplicable(alphaOverride: boolean): Promise<void> {
     const shouldUndoTimeout
       = this.details.type === "issued"
       && timeoutService.isImmune(this.target.id);
@@ -119,8 +122,6 @@ class TimeoutLogEventHandler {
     const targetUsername = this.target.user.username;
 
     if (shouldUndoTimeout) {
-      // Alpha mods and higher can bypass timeout immunity.
-      const alphaOverride = checkPrivilege(RoleLevel.ALPHA_MOD, this.executor);
       if (alphaOverride) {
         log.info(`@${executorUsername} bypasses @${targetUsername} immunity.`);
       }
@@ -134,7 +135,7 @@ class TimeoutLogEventHandler {
   /**
    * Format and return the embed to DM and broadcast.
    */
-  private formatEmbed(): EmbedBuilder {
+  private formatEmbed(alphaOverride: boolean): EmbedBuilder {
     const embed = new EmbedBuilder();
     const { details, target, executor, guild } = this;
 
@@ -150,6 +151,12 @@ class TimeoutLogEventHandler {
 
       embed.setTitle(`${guild.name}: Timeout Issued`);
       embed.setDescription(description);
+
+      if (timeoutService.isImmune(this.target.id) && alphaOverride) {
+        embed.setFooter({
+          text: "Timed by an Alpha+: timeout immunity bypassed.",
+        });
+      }
     }
     else if (details.type === "removed") {
       const description = toBulletedList([
@@ -159,6 +166,10 @@ class TimeoutLogEventHandler {
 
       embed.setTitle(`${guild.name}: Timeout Removed`);
       embed.setDescription(description);
+
+      if (this.executor.id === this.guild.client.user.id) {
+        embed.setFooter({ text: "Timeout denied due to immunity policy!" });
+      }
     }
 
     return embed;
