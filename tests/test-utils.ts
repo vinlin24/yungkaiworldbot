@@ -36,6 +36,22 @@ export type OptionType =
   | "User";
 
 /**
+ * Parameter options for `MockMessage#mockAuthor` and
+ * `MockInteraction#mockCaller`. To be extended over time.
+ */
+type MockAuthorOptions = Partial<{
+  uid: string;
+  displayName: string;
+  bot: boolean;
+  roleIds: string[],
+}>;
+
+function mockRoles(member: DeepMockProxy<GuildMember>, ids: string[]): void {
+  const matcher = new Matcher<string>(roleId => ids.includes(roleId), "");
+  member.roles.cache.has.calledWith(matcher).mockReturnValue(true);
+}
+
+/**
  * Manager for mocking a `ChatInputCommandInteraction`.
  */
 export class MockInteraction {
@@ -78,8 +94,36 @@ export class MockInteraction {
   /**
    * ARRANGE.
    *
+   * Mock the caller of this command.
+   */
+  public mockCaller(options: MockAuthorOptions): this {
+    const member = this.interaction.member as DeepMockProxy<GuildMember>;
+
+    if (options.uid !== undefined) {
+      member.user.id = options.uid;
+      addMockGetter(member, "id", options.uid);
+    }
+    if (options.displayName !== undefined) {
+      addMockGetter(member, "displayName", options.displayName);
+      addMockGetter(member.user, "displayName", options.displayName);
+    }
+    if (options.bot !== undefined) {
+      member.user.bot = options.bot;
+    }
+    if (options.roleIds) {
+      mockRoles(member, options.roleIds);
+    }
+
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
    * Mock that the caller of this interaction has the roles specified by the
    * provided IDs.
+   *
+   * @deprecated Use `mockCaller` instead.
    */
   public mockCallerRoles(...roleIds: string[]): this {
     const member = this.interaction.member as DeepMockProxy<GuildMember>;
@@ -120,7 +164,7 @@ export class MockInteraction {
    * Shorthand for expecting that the interaction has been replied to with the
    * specified argument.
    */
-  public expectRepliedWith(options: string | InteractionReplyOptions): void {
+  public expectRepliedWith(options: InteractionReplyOptions): void {
     expect(this.interaction.reply).toHaveBeenLastCalledWith(
       expect.objectContaining(options),
     );
@@ -191,15 +235,6 @@ export class TestClient extends ClientWithIntentsAndRunnersABC {
 }
 
 /**
- * Parameter options for `MockMessage#mockAuthor`. To be extended over time.
- */
-type MockAuthorOptions = Partial<{
-  uid: string;
-  displayName: string;
-  bot: boolean;
-}>;
-
-/**
  * Parameter options for `MockMessage#mockChannel`. To be extended over time.
  */
 type MockChannelOptions = Partial<{
@@ -268,6 +303,12 @@ export class MockMessage {
     }
     if (options.bot !== undefined) {
       this.message.author.bot = options.bot;
+    }
+    if (options.roleIds) {
+      // NOTE: If the caller wants to use roles, they would have to use
+      // message.member instead of message.author anyway since the latter
+      // returns a User, not a GuildMember.
+      mockRoles(this.message.member!, options.roleIds);
     }
     return this;
   }
