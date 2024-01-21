@@ -2,6 +2,7 @@ import {
   Awaitable,
   ChatInputCommandInteraction,
   CommandInteractionOptionResolver,
+  Embed,
   EmojiIdentifierResolvable,
   Events,
   GuildMember,
@@ -286,6 +287,16 @@ export class MockMessage {
    */
   public mockContent(content: string): this {
     this.message.content = content;
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
+   * Mock the embeds attached to the message.
+   */
+  public mockEmbeds(...embeds: Embed[]): this {
+    addMockGetter(this.message, "embeds", embeds);
     return this;
   }
 
