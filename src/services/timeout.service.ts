@@ -31,6 +31,11 @@ export class TimeoutService {
     this.immunities.delete(uid);
     log.info(`revoked timeout immunity from ${userMention(uid)}.`);
   }
+
+  public listImmunities(): Collection<string, Date> {
+    const now = new Date();
+    return this.immunities.filter(expiration => expiration < now);
+  }
 }
 
 export default new TimeoutService();
