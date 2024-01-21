@@ -1,7 +1,7 @@
-jest.mock("../../../src/services/timeout.service");
-jest.mock("../../../src/utils/dates.utils", () => {
+jest.mock("../../../../src/services/timeout.service");
+jest.mock("../../../../src/utils/dates.utils", () => {
   return {
-    ...jest.requireActual("../../../src/utils/dates.utils"),
+    ...jest.requireActual("../../../../src/utils/dates.utils"),
     durationToSeconds: jest.fn(),
   };
 });
@@ -9,11 +9,11 @@ jest.mock("../../../src/utils/dates.utils", () => {
 import { TimestampStyles, User, time, userMention } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
-import config from "../../../src/config";
-import timeoutImmunitySpec from "../../../src/controllers/moderation/timeout-immunity.command";
-import timeoutService from "../../../src/services/timeout.service";
-import { durationToSeconds } from "../../../src/utils/dates.utils";
-import { MockInteraction } from "../../test-utils";
+import config from "../../../../src/config";
+import timeoutImmunitySpec from "../../../../src/controllers/moderation/timeout/set-timeout-immunity.command";
+import timeoutService from "../../../../src/services/timeout.service";
+import { durationToSeconds } from "../../../../src/utils/dates.utils";
+import { MockInteraction } from "../../../test-utils";
 
 const mockedTimeoutService = jest.mocked(timeoutService);
 const mockedDurationToSeconds = jest.mocked(durationToSeconds);

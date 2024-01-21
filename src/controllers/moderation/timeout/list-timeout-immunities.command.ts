@@ -1,14 +1,14 @@
 import { EmbedBuilder, SlashCommandBuilder, userMention } from "discord.js";
 
-import timeoutService from "../../services/timeout.service";
-import { CommandBuilder } from "../../types/command.types";
-import { timestampPair, toBulletedList } from "../../utils/markdown.utils";
-import { addBroadcastOption } from "../../utils/options.utils";
+import timeoutService from "../../../services/timeout.service";
+import { CommandBuilder } from "../../../types/command.types";
+import { timestampPair, toBulletedList } from "../../../utils/markdown.utils";
+import { addBroadcastOption } from "../../../utils/options.utils";
 
 const timeoutImmunities = new CommandBuilder();
 
 const slashCommandDefinition = new SlashCommandBuilder()
-  .setName("timeout-immunities")
+  .setName("list-timeout-immunities")
   .setDescription("List members that are currently immune to timeouts.");
 addBroadcastOption(slashCommandDefinition);
 

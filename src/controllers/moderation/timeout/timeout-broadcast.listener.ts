@@ -15,16 +15,16 @@ import {
   userMention,
 } from "discord.js";
 
-import config from "../../config";
-import getLogger from "../../logger";
+import config from "../../../config";
+import getLogger from "../../../logger";
 import {
   RoleLevel,
   checkPrivilege,
-} from "../../middleware/privilege.middleware";
-import timeoutService from "../../services/timeout.service";
-import { ListenerBuilder } from "../../types/listener.types";
-import { getDMChannel } from "../../utils/interaction.utils";
-import { toBulletedList } from "../../utils/markdown.utils";
+} from "../../../middleware/privilege.middleware";
+import timeoutService from "../../../services/timeout.service";
+import { ListenerBuilder } from "../../../types/listener.types";
+import { getDMChannel } from "../../../utils/interaction.utils";
+import { toBulletedList } from "../../../utils/markdown.utils";
 
 const log = getLogger(__filename);
 

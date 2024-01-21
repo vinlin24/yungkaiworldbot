@@ -9,16 +9,16 @@ import {
 import {
   RoleLevel,
   checkPrivilege,
-} from "../../middleware/privilege.middleware";
-import timeoutService from "../../services/timeout.service";
-import { CommandBuilder } from "../../types/command.types";
-import { addDateSeconds, durationToSeconds } from "../../utils/dates.utils";
-import { timestampPair } from "../../utils/markdown.utils";
+} from "../../../middleware/privilege.middleware";
+import timeoutService from "../../../services/timeout.service";
+import { CommandBuilder } from "../../../types/command.types";
+import { addDateSeconds, durationToSeconds } from "../../../utils/dates.utils";
+import { timestampPair } from "../../../utils/markdown.utils";
 
 const timeoutImmunity = new CommandBuilder();
 
 timeoutImmunity.define(new SlashCommandBuilder()
-  .setName("timeout-immunity")
+  .setName("set-timeout-immunity")
   .setDescription("Set temporary timeout immunity for a user.")
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addBooleanOption(input => input

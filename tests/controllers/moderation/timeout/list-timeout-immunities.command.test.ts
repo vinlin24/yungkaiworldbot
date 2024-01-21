@@ -1,4 +1,4 @@
-jest.mock("../../../src/services/timeout.service");
+jest.mock("../../../../src/services/timeout.service");
 
 import {
   Collection,
@@ -9,9 +9,9 @@ import {
 } from "discord.js";
 
 import { Matcher } from "jest-mock-extended";
-import timeoutImmunitiesSpec from "../../../src/controllers/moderation/timeout-immunities.command";
-import timeoutService from "../../../src/services/timeout.service";
-import { MockInteraction } from "../../test-utils";
+import timeoutImmunitiesSpec from "../../../../src/controllers/moderation/timeout/list-timeout-immunities.command";
+import timeoutService from "../../../../src/services/timeout.service";
+import { MockInteraction } from "../../../test-utils";
 
 const mockedTimeoutService = jest.mocked(timeoutService);
 

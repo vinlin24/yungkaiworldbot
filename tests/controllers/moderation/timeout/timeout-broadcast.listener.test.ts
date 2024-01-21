@@ -1,6 +1,6 @@
-jest.mock("../../../src/utils/interaction.utils");
-jest.mock("../../../src/services/timeout.service");
-jest.mock("../../../src/middleware/privilege.middleware");
+jest.mock("../../../../src/utils/interaction.utils");
+jest.mock("../../../../src/services/timeout.service");
+jest.mock("../../../../src/middleware/privilege.middleware");
 
 import {
   AuditLogEvent,
@@ -18,12 +18,14 @@ import {
 } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
-import { ListenerRunner } from "../../../src/bot/listener.runner";
-import config from "../../../src/config";
-import timeoutBroadcastSpec from "../../../src/controllers/moderation/timeout-broadcast.listener";
-import { checkPrivilege } from "../../../src/middleware/privilege.middleware";
-import timeoutService from "../../../src/services/timeout.service";
-import { getDMChannel } from "../../../src/utils/interaction.utils";
+import { ListenerRunner } from "../../../../src/bot/listener.runner";
+import config from "../../../../src/config";
+import timeoutBroadcastSpec from "../../../../src/controllers/moderation/timeout/timeout-broadcast.listener";
+import {
+  checkPrivilege,
+} from "../../../../src/middleware/privilege.middleware";
+import timeoutService from "../../../../src/services/timeout.service";
+import { getDMChannel } from "../../../../src/utils/interaction.utils";
 
 const mockedTimeoutService = jest.mocked(timeoutService);
 const mockedCheckPrivilege = jest.mocked(checkPrivilege);
