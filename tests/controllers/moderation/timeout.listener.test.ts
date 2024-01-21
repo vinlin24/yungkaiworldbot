@@ -18,7 +18,7 @@ import { Matcher } from "jest-mock-extended";
 
 import { ListenerRunner } from "../../../src/bot/listener.runner";
 import config from "../../../src/config";
-import timeoutBroadcastSpec from "../../../src/controllers/moderation/timeout-broadcast.listener";
+import timeoutBroadcastSpec from "../../../src/controllers/moderation/timeout.listener";
 import { getDMChannel } from "../../../src/utils/interaction.utils";
 
 const mockedGetDMChannel = jest.mocked(getDMChannel);
