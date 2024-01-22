@@ -1,4 +1,5 @@
 import { TimeoutService } from "../../src/services/timeout.service";
+import { TokenBucket } from "../../src/utils/algorithms.utils";
 
 const dummyNow = new Date(42);
 const dummyUntil = new Date(42 + 60 * 1000);
@@ -45,5 +46,29 @@ describe("timeout immunity management", () => {
     const resultEntries = Array.from(result.entries());
     const expectedEntries = dummyImmunities.slice(0, -1);
     expect(resultEntries.sort()).toEqual(expectedEntries.sort());
+  });
+});
+
+describe("timeout rate-limiting", () => {
+  const dummyExecutorId = "987654321";
+
+  let consumeSpy: jest.SpyInstance<boolean, []>;
+  beforeEach(() => consumeSpy = jest.spyOn(TokenBucket.prototype, "consume"));
+
+  it("should consume the bucket when timeout is reported", async () => {
+    timeoutService.reportIssued(dummyExecutorId);
+    expect(consumeSpy).toHaveBeenCalled();
+  });
+
+  it("should return true if executor within rate limit", async () => {
+    consumeSpy.mockReturnValue(true);
+    const result = timeoutService.reportIssued(dummyExecutorId);
+    expect(result).toEqual(true);
+  });
+
+  it("should return false if executor exceeds rate limit", async () => {
+    consumeSpy.mockReturnValue(false);
+    const result = timeoutService.reportIssued(dummyExecutorId);
+    expect(result).toEqual(false);
   });
 });
