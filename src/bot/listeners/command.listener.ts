@@ -1,4 +1,4 @@
-// >> THIS MODULE IS WHAT MAKE SLASH COMMANDS POSSIBLE. <<
+// >> THIS MODULE IS WHAT MAKES SLASH COMMANDS POSSIBLE. <<
 
 // Remember that command invocations are themselves a type of event,
 // `Events.InteractionCreate`. This listener handles these events and dispatches
@@ -7,8 +7,8 @@
 import { Events, Interaction } from "discord.js";
 
 import getLogger from "../../logger";
+import { ClientWithIntentsAndRunnersABC } from "../../types/client.abc";
 import { ListenerBuilder, ListenerSpec } from "../../types/listener.types";
-import { BotClient } from "../client";
 
 const log = getLogger(__filename);
 
@@ -17,12 +17,18 @@ async function dispatchCommand(interaction: Interaction): Promise<void> {
     return;
   }
 
-  const client = interaction.client as BotClient;
-  const commandName = interaction.commandName;
+  const client = interaction.client as ClientWithIntentsAndRunnersABC;
+  const { commandName } = interaction;
   const runner = client.commandRunners.get(commandName);
 
   if (!runner) {
     log.error(`no command named '${commandName}' found.`);
+    if (interaction.isRepliable()) {
+      await interaction.reply({
+        content: "It looks like that command doesn't exist anymore! Sorry!",
+        ephemeral: true,
+      });
+    }
     return;
   }
 
