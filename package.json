@@ -7,7 +7,7 @@
     "dev": "LOGGER_LEVEL=debug ts-node src/index.ts",
     "sync": "ts-node src/index.ts --sync",
     "clean": "rm -rf dist/*",
-    "build": "npm run clean && npx tsc --project tsconfig.build.json",
+    "build": "npm run clean && npx --yes tsc --project tsconfig.build.json",
     "start": "npm run build && node .",
     "now": "LOGGER_LEVEL=debug node .",
     "test": "jest",
