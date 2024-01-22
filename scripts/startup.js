@@ -6,5 +6,5 @@ const path = require("node:path");
 
 const cwd = path.join(__dirname, "..");
 
-spawnSync("npm ci", { cwd, shell: true, stdio: "inherit" });
+spawnSync("npm install", { cwd, shell: true, stdio: "inherit" });
 spawnSync("npm start", { cwd, shell: true, stdio: "inherit" });
