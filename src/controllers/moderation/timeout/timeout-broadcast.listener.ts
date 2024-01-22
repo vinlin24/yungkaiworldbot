@@ -111,25 +111,52 @@ class TimeoutLogEventHandler {
 
   /**
    * Consult policies to determine if the bot should undo the target's timeout,
-   * and if so, remove the timeout.
+   * and if so, remove the timeout. If we detect that the executor has been
+   * spamming timeouts (as determined by our rate limited), then also issue
+   * punishment if possible.
    */
   private async undoTimeoutIfApplicable(alphaOverride: boolean): Promise<void> {
-    const shouldUndoTimeout
-      = this.details.type === "issued"
-      && timeoutService.isImmune(this.target.id);
+    if (this.details.type !== "issued") return;
 
     const executorUsername = this.executor.user.username;
     const targetUsername = this.target.user.username;
 
-    if (shouldUndoTimeout) {
+    const rateLimitExceeded = !timeoutService.reportIssued(this.executor.id);
+    const targetIsImmune = timeoutService.isImmune(this.target.id);
+
+    if (rateLimitExceeded) {
+      log.info(
+        `@${executorUsername} is rate limited, ` +
+        `undoing timeout for @${targetUsername}.`,
+      );
+      await this.undoTargetTimeout();
+      // Alpha mods are rate-limited, but the bot can't time them out.
+      if (!alphaOverride) {
+        await this.timeOutExecutorForSpamming();
+      }
+      return;
+    }
+
+    if (targetIsImmune) {
       if (alphaOverride) {
         log.info(`@${executorUsername} bypasses @${targetUsername} immunity.`);
       }
       else {
-        await this.target.timeout(null);
-        log.info(`undid timeout for @${targetUsername}.`);
+        log.info(`@${targetUsername} is currently immune, undoing timeout.`);
+        await this.undoTargetTimeout();
       }
+      return;
     }
+  }
+
+  private async undoTargetTimeout(): Promise<void> {
+    await this.target.timeout(null);
+    log.info(`undid timeout for @${this.target.user.username}.`);
+  }
+
+  private async timeOutExecutorForSpamming(): Promise<void> {
+    await this.executor.timeout(60 * 1000, "Spamming timeout.");
+    log.info(`timed out @${this.executor.user.username} for spamming timeout.`);
   }
 
   /**

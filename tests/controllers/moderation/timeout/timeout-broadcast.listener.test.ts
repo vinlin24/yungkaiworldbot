@@ -243,24 +243,90 @@ describe("timeout removed", () => {
   });
 });
 
+function mockTimeoutApplicability(options: {
+  immunity: boolean;
+  rateLimited: boolean;
+  alphaOverride: boolean;
+}): void {
+  mockedTimeoutService.isImmune.mockReturnValue(options.immunity);
+  mockedTimeoutService.reportIssued.mockReturnValue(!options.rateLimited);
+  // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
+  mockedCheckPrivilege.mockReturnValue(options.alphaOverride);
+}
+
 describe("timeout immunity", () => {
-  it("should undo the timeout if member is immune", async () => {
-    mockedTimeoutService.isImmune.mockReturnValue(true);
-    // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(false);
+  it("should consult service for immunity status", async () => {
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
-    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+    expect(mockedTimeoutService.isImmune).toHaveBeenCalledWith(dummyTarget.id);
+  });
+
+  it("should undo the timeout if member is immune", async () => {
+    mockTimeoutApplicability({
+      immunity: true,
+      rateLimited: false,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
   });
 
   it("should allow alpha mods to bypass timeout immunity", async () => {
-    mockedTimeoutService.isImmune.mockReturnValue(true);
-    // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(true);
+    mockTimeoutApplicability({
+      immunity: true,
+      rateLimited: false,
+      alphaOverride: true,
+    });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
-    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
     expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
+  });
+});
+
+describe("timeout rate-limiting", () => {
+  it("should report the issued timeout to service", async () => {
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(mockedTimeoutService.reportIssued)
+      .toHaveBeenCalledWith(dummyExecutor.id);
+  });
+
+  it("should undo timeout if executor is rate limited", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
+  });
+
+  it("should time out rate-limited non-alpha executors", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyExecutor.timeout).toHaveBeenCalledWith(
+      60_000, "Spamming timeout.",
+    );
+  });
+
+  it("should still rate limit alpha mods", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: true,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
+  });
+
+  it("should not attempt to time alpha mods even if rate limited", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: true,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyExecutor.timeout).not.toHaveBeenCalled();
   });
 });
