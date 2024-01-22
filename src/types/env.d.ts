@@ -63,9 +63,37 @@ declare global {
     // //////////////////////////// //
 
     /**
-     * Channel ID of the channel where bot commands are generally directed.
+     * ID of the text channel where bot commands are generally directed.
      */
     BOT_SPAM_CID: string;
+    /**
+     * ID of the text channel where new members introduce themselves.
+     */
+    INTRODUCTIONS_CID: string;
+    /**
+     * ID of the text channel for general pictures, photographs, and GIFs.
+     */
+    MEDIA_CID: string;
+    /**
+     * ID of the text channel for artwork.
+     */
+    ARTWORK_CID: string;
+    /**
+     * ID of the text channel for pet pictures.
+     */
+    STINKYS_FRIENDS_CID: string;
+    /**
+     * ID of the text channel for music discussion or song links.
+     */
+    MUSIC_CHAT_CID: string;
+    /**
+     * ID of the text channel for gaming-related discussion.
+     */
+    GAMING_CID: string;
+    /**
+     * ID of the text channel for recipes and food pictures.
+     */
+    COOKING_TIME_CID: string;
 
     // ////////////////////////// //
     //      Discord User IDs      //
@@ -98,6 +126,30 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv extends Readonly<EnvironmentVariables> { }
   }
+
+  /**
+   * Utility type for filtering environment variable key names based on the
+   * template literal type parameter.
+   */
+  type KeyWithFormat<Template extends string> = Exclude<{
+    [K in keyof EnvironmentVariables]: K extends Template ? K : never;
+  }[keyof EnvironmentVariables], undefined>;
+
+  /**
+   * Utility type for narrowing a string to the available CID environment
+   * variable keys.
+   */
+  type CIDKey = KeyWithFormat<`${string}_CID`>;
+  /**
+   * Utility type for narrowing a string to the available RID environment
+   * variable keys.
+   */
+  type RIDKey = KeyWithFormat<`${string}_RID`>;
+  /**
+   * Utility type for narrowing a string to the available UID environment
+   * variable keys.
+   */
+  type UIDKey = KeyWithFormat<`${string}_UID`>;
 }
 
 export { };

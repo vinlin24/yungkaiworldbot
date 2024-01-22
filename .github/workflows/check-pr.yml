@@ -20,7 +20,16 @@ jobs:
       KAI_RID: ${{ vars.KAI_RID }}
       ALPHA_MOD_RID: ${{ vars.ALPHA_MOD_RID }}
       BABY_MOD_RID: ${{ vars.BABY_MOD_RID }}
+
       BOT_SPAM_CID: ${{ vars.BOT_SPAM_CID }}
+      INTRODUCTIONS_CID: ${{ vars.INTRODUCTIONS_CID }}
+      MEDIA_CID: ${{ vars.MEDIA_CID }}
+      ARTWORK_CID: ${{ vars.ARTWORK_CID }}
+      STINKYS_FRIENDS_CID: ${{ vars.STINKYS_FRIENDS_CID }}
+      MUSIC_CHAT_CID: ${{ vars.MUSIC_CHAT_CID }}
+      GAMING_CID: ${{ vars.GAMING_CID }}
+      COOKING_TIME_CID: ${{ vars.COOKING_TIME_CID }}
+
       LUKE_UID: ${{ vars.LUKE_UID }}
       KLEE_UID: ${{ vars.KLEE_UID }}
       COFFEE_UID: ${{ vars.COFFEE_UID }}

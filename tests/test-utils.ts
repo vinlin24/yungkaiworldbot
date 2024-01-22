@@ -1,4 +1,5 @@
 import {
+  Attachment,
   Awaitable,
   ChatInputCommandInteraction,
   CommandInteractionOptionResolver,
@@ -303,6 +304,16 @@ export class MockMessage {
   /**
    * ARRANGE.
    *
+   * Mock the attachments attached to the message.
+   */
+  public mockAttachments(...attachments: Attachment[]): this {
+    addMockGetter(this.message, "attachments", attachments);
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
    * Mock the message's author attached to the underlying message object.
    */
   public mockAuthor(options: MockAuthorOptions): this {
@@ -370,6 +381,7 @@ export class MockMessage {
   public mockChannel(options: MockChannelOptions): this {
     if (options.cid !== undefined) {
       this.message.channel.id = options.cid;
+      this.message.channelId = options.cid;
     }
     if (options.name !== undefined) {
       addMockGetter(
