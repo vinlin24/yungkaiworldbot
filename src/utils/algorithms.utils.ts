@@ -5,9 +5,10 @@
  */
 export class TokenBucket<Rate extends number, Capacity extends number> {
   /** Current number of tokens in the bucket. */
-  private tokens = 0;
-  /** Timestamp of the last token refill */
-  private lastRefill = Date.now();
+  private tokens;
+  /** Timestamp of the last token refill. */
+  private lastRefill;
+
   constructor(
     /**
      * Tokens to refill per second. Equivalent to the number of actions
@@ -27,6 +28,8 @@ export class TokenBucket<Rate extends number, Capacity extends number> {
     if (this.capacity <= 0) {
       throw new RangeError("capacity should be positive");
     }
+    this.tokens = capacity as number;
+    this.lastRefill = Date.now();
   }
 
   /**
