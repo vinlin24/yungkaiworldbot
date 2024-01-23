@@ -302,21 +302,13 @@ describe("timeout immunity", () => {
   });
 
   it("should undo the timeout if member is immune", async () => {
-    mockTimeoutApplicability({
-      immunity: true,
-      rateLimited: false,
-      alphaOverride: false,
-    });
+    mockTimeoutApplicability({ immunity: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
   });
 
   it("should allow alpha mods to bypass timeout immunity", async () => {
-    mockTimeoutApplicability({
-      immunity: true,
-      rateLimited: false,
-      alphaOverride: true,
-    });
+    mockTimeoutApplicability({ immunity: true, alphaOverride: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
   });
@@ -330,21 +322,13 @@ describe("timeout rate-limiting", () => {
   });
 
   it("should undo timeout if executor is rate limited", async () => {
-    mockTimeoutApplicability({
-      immunity: false,
-      rateLimited: true,
-      alphaOverride: false,
-    });
+    mockTimeoutApplicability({ rateLimited: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
   });
 
   it("should time out rate-limited non-alpha executors", async () => {
-    mockTimeoutApplicability({
-      immunity: false,
-      rateLimited: true,
-      alphaOverride: false,
-    });
+    mockTimeoutApplicability({ rateLimited: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyExecutor.timeout).toHaveBeenCalledWith(
       60_000, "Spamming timeout.",
@@ -352,21 +336,13 @@ describe("timeout rate-limiting", () => {
   });
 
   it("should not rate limit alpha mods", async () => {
-    mockTimeoutApplicability({
-      immunity: false,
-      rateLimited: true,
-      alphaOverride: true,
-    });
+    mockTimeoutApplicability({ rateLimited: true, alphaOverride: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
   });
 
   it("should not attempt to time alpha mods even if rate limited", async () => {
-    mockTimeoutApplicability({
-      immunity: false,
-      rateLimited: true,
-      alphaOverride: true,
-    });
+    mockTimeoutApplicability({ rateLimited: true, alphaOverride: true });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyExecutor.timeout).not.toHaveBeenCalled();
   });
