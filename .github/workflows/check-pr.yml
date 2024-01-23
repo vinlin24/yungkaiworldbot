@@ -22,6 +22,7 @@ jobs:
       BABY_MOD_RID: ${{ vars.BABY_MOD_RID }}
 
       BOT_SPAM_CID: ${{ vars.BOT_SPAM_CID }}
+      MOD_CHAT_CID: ${{ vars.MOD_CHAT_CID }}
       INTRODUCTIONS_CID: ${{ vars.INTRODUCTIONS_CID }}
       MEDIA_CID: ${{ vars.MEDIA_CID }}
       ARTWORK_CID: ${{ vars.ARTWORK_CID }}

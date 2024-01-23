@@ -67,6 +67,10 @@ declare global {
      */
     BOT_SPAM_CID: string;
     /**
+     * ID of the text channel for moderator discussion.
+     */
+    MOD_CHAT_CID: string;
+    /**
      * ID of the text channel where new members introduce themselves.
      */
     INTRODUCTIONS_CID: string;
