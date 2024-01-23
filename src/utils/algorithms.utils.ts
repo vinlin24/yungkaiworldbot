@@ -35,7 +35,7 @@ export class TokenBucket<Rate extends number, Capacity extends number> {
   /**
    * Take some kind of action that should be rate-limited. Return whether the
    * action is allowed i.e. false means the action has exceeded its rate limit
-   * and is not prohibited.
+   * and is now prohibited.
    */
   public consume(): boolean {
     this.refill();
