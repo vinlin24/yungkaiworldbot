@@ -210,9 +210,12 @@ class TimeoutLogEventHandler {
     if (details.type === "issued") {
       const timestamp = time(details.until);
       const relativeTime = time(details.until, TimestampStyles.RelativeTime);
+      const { timestamp: created, until } = details;
+      const durationMsec = until.getTime() - created.getTime();
       const description = toBulletedList([
         `${bold("For:")} ${userMention(target.id)}`,
         `${bold("By:")} ${userMention(executor.id)}`,
+        `${bold("Duration:")} ${formatHoursMinsSeconds(durationMsec)}`,
         `${bold("Until:")} ${timestamp} (${relativeTime})`,
         `${bold("Reason:")} ${details.reason ?? "(none given)"}`,
       ]);

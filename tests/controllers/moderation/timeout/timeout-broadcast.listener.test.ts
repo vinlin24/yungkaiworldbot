@@ -32,7 +32,6 @@ import { getDMChannel } from "../../../../src/utils/interaction.utils";
 import { addMockGetter } from "../../../test-utils";
 
 const mockedIsCannotSendToThisUser = jest.mocked(isCannotSendToThisUser);
-
 const mockedTimeoutService = jest.mocked(timeoutService);
 const mockedCheckPrivilege = jest.mocked(checkPrivilege);
 const mockedGetDMChannel = jest.mocked(getDMChannel);
@@ -185,8 +184,9 @@ function getIssuedEmbedMatcher(until: Date): Matcher<EmbedBuilder> {
       embed.data.title?.includes("Timeout Issued"),
       embed.data.description?.includes(userMention(dummyTarget.id)),
       embed.data.description?.includes(userMention(dummyExecutor.id)),
-      embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
+      embed.data.description?.includes("Duration"),
       embed.data.description?.includes(time(until)),
+      embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
     ];
     return requirements.every(Boolean);
   }, "issued embed matcher");
