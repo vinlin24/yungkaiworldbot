@@ -19,6 +19,7 @@ import {
 } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
+import { cloneDeep } from "lodash";
 import { ListenerRunner } from "../../../../src/bot/listener.runner";
 import config from "../../../../src/config";
 import timeoutBroadcastSpec from "../../../../src/controllers/moderation/timeout/timeout-broadcast.listener";
@@ -28,6 +29,7 @@ import {
 import timeoutService from "../../../../src/services/timeout.service";
 import { isCannotSendToThisUser } from "../../../../src/types/errors.types";
 import { getDMChannel } from "../../../../src/utils/interaction.utils";
+import { addMockGetter } from "../../../test-utils";
 
 const mockedIsCannotSendToThisUser = jest.mocked(isCannotSendToThisUser);
 
@@ -92,6 +94,10 @@ const mockBroadcastChannel = {
   send: jest.fn(),
 } as unknown as GuildTextBasedChannel;
 
+const mockModChannel = {
+  send: jest.fn(),
+} as unknown as GuildTextBasedChannel;
+
 const mockGuild = {
   id: config.YUNG_KAI_WORLD_GID,
   name: "yung kai world",
@@ -106,6 +112,9 @@ const mockGuild = {
     fetch: jest.fn(id => {
       if (id === config.BOT_SPAM_CID) {
         return Promise.resolve(mockBroadcastChannel);
+      }
+      if (id === config.MOD_CHAT_CID) {
+        return Promise.resolve(mockModChannel);
       }
       return Promise.resolve(null);
     }),
@@ -169,17 +178,20 @@ function expectSentEmbedTo(
   );
 }
 
-const issuedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
-  const requirements = [
-    embed.data.title?.includes(mockGuild.name),
-    embed.data.title?.includes("Timeout Issued"),
-    embed.data.description?.includes(userMention(dummyTarget.id)),
-    embed.data.description?.includes(userMention(dummyExecutor.id)),
-    embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
-    embed.data.description?.includes(time(dummyUntil)),
-  ];
-  return requirements.every(Boolean);
-}, "issued embed matcher");
+function getIssuedEmbedMatcher(until: Date): Matcher<EmbedBuilder> {
+  const issuedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
+    const requirements = [
+      embed.data.title?.includes(mockGuild.name),
+      embed.data.title?.includes("Timeout Issued"),
+      embed.data.description?.includes(userMention(dummyTarget.id)),
+      embed.data.description?.includes(userMention(dummyExecutor.id)),
+      embed.data.description?.includes(mockTimeoutIssuedEntry.reason!),
+      embed.data.description?.includes(time(until)),
+    ];
+    return requirements.every(Boolean);
+  }, "issued embed matcher");
+  return issuedEmbedMatcher;
+}
 
 const removedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
   const requirements = [
@@ -192,6 +204,8 @@ const removedEmbedMatcher = new Matcher<EmbedBuilder>(embed => {
 }, "removed embed matcher");
 
 describe("error handling", () => {
+  const issuedEmbedMatcher = getIssuedEmbedMatcher(dummyUntil);
+
   it("should still try to DM if broadcast channel not found", async () => {
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
     jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
@@ -245,6 +259,8 @@ describe("error handling", () => {
 });
 
 describe("timeout issued", () => {
+  const issuedEmbedMatcher = getIssuedEmbedMatcher(dummyUntil);
+
   it("should DM the targeted member", async () => {
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
@@ -269,14 +285,14 @@ describe("timeout removed", () => {
 });
 
 function mockTimeoutApplicability(options: {
-  immunity: boolean;
-  rateLimited: boolean;
-  alphaOverride: boolean;
+  immunity?: boolean;
+  rateLimited?: boolean;
+  alphaOverride?: boolean;
 }): void {
-  mockedTimeoutService.isImmune.mockReturnValue(options.immunity);
+  mockedTimeoutService.isImmune.mockReturnValue(!!options.immunity);
   mockedTimeoutService.reportIssued.mockReturnValue(!options.rateLimited);
   // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-  mockedCheckPrivilege.mockReturnValue(options.alphaOverride);
+  mockedCheckPrivilege.mockReturnValue(!!options.alphaOverride);
 }
 
 describe("timeout immunity", () => {
@@ -353,5 +369,36 @@ describe("timeout rate-limiting", () => {
     });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyExecutor.timeout).not.toHaveBeenCalled();
+  });
+});
+
+describe("alerting about long timeout", () => {
+  const oneWeekMsec = 7 * 24 * 3600 * 1000;
+
+  let mockExtendedTimeoutIssuedEntry: GuildAuditLogsEntry;
+  let issuedEmbedMatcher: Matcher<EmbedBuilder>;
+  beforeEach(() => {
+    const nowMsec = Date.now();
+    const extendedUntil = new Date(nowMsec + oneWeekMsec);
+    mockExtendedTimeoutIssuedEntry = cloneDeep(mockTimeoutIssuedEntry);
+    mockExtendedTimeoutIssuedEntry.changes[0].new = extendedUntil.toISOString();
+    addMockGetter(mockExtendedTimeoutIssuedEntry, "createdTimestamp", nowMsec);
+    issuedEmbedMatcher = getIssuedEmbedMatcher(extendedUntil);
+  });
+
+  it("should send embed to the mod channel", async () => {
+    await simulateEvent(mockExtendedTimeoutIssuedEntry, mockGuild);
+    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher);
+  });
+
+  it("should still alert mod channel if alpha mod does it", async () => {
+    mockTimeoutApplicability({ alphaOverride: true });
+    await simulateEvent(mockExtendedTimeoutIssuedEntry, mockGuild);
+    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher);
+  });
+
+  it("should not alert mod channel if timeout is not long", async () => {
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(mockModChannel.send).not.toHaveBeenCalled();
   });
 });

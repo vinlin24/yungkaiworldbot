@@ -24,6 +24,7 @@ import {
 import timeoutService from "../../../services/timeout.service";
 import { isCannotSendToThisUser } from "../../../types/errors.types";
 import { ListenerBuilder } from "../../../types/listener.types";
+import { formatHoursMinsSeconds } from "../../../utils/dates.utils";
 import { getDMChannel } from "../../../utils/interaction.utils";
 import { toBulletedList } from "../../../utils/markdown.utils";
 
@@ -38,10 +39,12 @@ const timeoutBroadcast = new ListenerBuilder(Events.GuildAuditLogEntryCreate)
  */
 type TimeoutDetails = {
   type: "issued";
+  timestamp: Date;
   until: Date;
   reason: string | null;
 } | {
   type: "removed";
+  timestamp: Date;
 };
 
 /**
@@ -61,6 +64,7 @@ function getTimeoutDetails(
     return {
       type: "issued",
       until: new Date(change.new as string),
+      timestamp: new Date(auditLogEntry.createdTimestamp),
       reason: auditLogEntry.reason,
     };
   }
@@ -69,6 +73,7 @@ function getTimeoutDetails(
   if (change.old) {
     return {
       type: "removed",
+      timestamp: new Date(auditLogEntry.createdTimestamp),
     };
   }
 
@@ -83,6 +88,7 @@ class TimeoutLogEventHandler {
     private target: GuildMember,
     private dmChannel: DMChannel,
     private broadcastChannel: GuildTextBasedChannel | null,
+    private modChannel: GuildTextBasedChannel | null,
     private guild: Guild,
   ) { }
 
@@ -94,7 +100,9 @@ class TimeoutLogEventHandler {
     const alphaOverride = checkPrivilege(RoleLevel.ALPHA_MOD, this.executor);
 
     const embed = this.formatEmbed(alphaOverride);
+    // TODO: Why success flag here and not for other things?
     const success = await this.sendEmbedToChannels(embed);
+    await this.alertLongTimeoutIfApplicable(embed);
 
     if (success) {
       const targetUsername = this.target.user.username;
@@ -155,6 +163,41 @@ class TimeoutLogEventHandler {
   private async timeOutExecutorForSpamming(): Promise<void> {
     await this.executor.timeout(60 * 1000, "Spamming timeout.");
     log.info(`timed out @${this.executor.user.username} for spamming timeout.`);
+  }
+
+  private async alertLongTimeoutIfApplicable(
+    embed: EmbedBuilder,
+  ): Promise<void> {
+    if (this.details.type !== "issued") return;
+    const { until, timestamp } = this.details;
+
+    const durationMsec = until.getTime() - timestamp.getTime();
+    const twelveHoursMsec = 12 * 3600 * 1000;
+    const isLongTimeout = durationMsec > twelveHoursMsec;
+    if (!isLongTimeout) return;
+
+    if (!this.modChannel) {
+      log.error(`no channel found with CID=${config.MOD_CHAT_CID}`);
+      return;
+    }
+
+    const duration = formatHoursMinsSeconds(durationMsec / 1000);
+    const payload: MessageCreateOptions = {
+      content:
+        `An unusually long timeout of ${bold(duration)} was issued! ` +
+        "Was this intentional?",
+      embeds: [embed],
+      flags: MessageFlags.SuppressNotifications,
+    };
+
+    try {
+      await this.modChannel.send(payload);
+      log.debug(`alerted mod channel for long timeout of ${duration}.`);
+    }
+    catch (error) {
+      log.error(`failed to alert mod channel for long timeout of ${duration}.`);
+      console.error(error);
+    }
   }
 
   /**
@@ -264,6 +307,8 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   const dmChannel = await getDMChannel(target);
   const broadcastChannel = await guild.channels.fetch(config.BOT_SPAM_CID) as
     GuildTextBasedChannel | null;
+  const modChannel = await guild.channels.fetch(config.MOD_CHAT_CID) as
+    GuildTextBasedChannel | null;
 
   const handler = new TimeoutLogEventHandler(
     details,
@@ -271,6 +316,7 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
     target,
     dmChannel,
     broadcastChannel,
+    modChannel,
     guild,
   );
 
