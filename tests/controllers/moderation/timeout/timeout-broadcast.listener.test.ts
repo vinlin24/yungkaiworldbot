@@ -1,6 +1,7 @@
 jest.mock("../../../../src/utils/interaction.utils");
 jest.mock("../../../../src/services/timeout.service");
 jest.mock("../../../../src/middleware/privilege.middleware");
+jest.mock("../../../../src/types/errors.types");
 
 import {
   AuditLogEvent,
@@ -25,11 +26,13 @@ import {
   checkPrivilege,
 } from "../../../../src/middleware/privilege.middleware";
 import timeoutService from "../../../../src/services/timeout.service";
+import { isCannotSendToThisUser } from "../../../../src/types/errors.types";
 import { getDMChannel } from "../../../../src/utils/interaction.utils";
+
+const mockedIsCannotSendToThisUser = jest.mocked(isCannotSendToThisUser);
 
 const mockedTimeoutService = jest.mocked(timeoutService);
 const mockedCheckPrivilege = jest.mocked(checkPrivilege);
-
 const mockedGetDMChannel = jest.mocked(getDMChannel);
 
 const runner = new ListenerRunner(timeoutBroadcastSpec);
@@ -114,8 +117,9 @@ const mockGuild = {
   },
 } as unknown as Guild;
 
-beforeEach(() => {
+beforeAll(() => {
   mockedGetDMChannel.mockResolvedValue(mockDMChannel);
+  jest.spyOn(console, "error").mockImplementation(() => { });
 });
 
 describe("rejecting event", () => {
@@ -204,14 +208,35 @@ describe("error handling", () => {
     expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
   });
 
+  it("should still try to DM even if broadcast fails", async () => {
+    const dummyError = new Error("DUMMY-ERROR");
+    jest.mocked(mockBroadcastChannel.send).mockRejectedValueOnce(dummyError);
+
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+
+    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+  });
+
+  it("should still try to broadcast even if target disabled DMs", async () => {
+    const dummyError = new Error("pretend this is a DiscordAPIError");
+    jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
+    mockedIsCannotSendToThisUser.mockReturnValueOnce(true);
+
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+
+    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+  });
+
   it("should still try to deny timeout even if sending fails", async () => {
     const dummyError = new Error("DUMMY-ERROR");
     jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
     jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
-    mockedTimeoutService.isImmune.mockReturnValue(true);
+    mockedTimeoutService.isImmune.mockReturnValueOnce(true);
     // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(false);
+    mockedCheckPrivilege.mockReturnValueOnce(false);
 
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
 
@@ -243,24 +268,90 @@ describe("timeout removed", () => {
   });
 });
 
+function mockTimeoutApplicability(options: {
+  immunity: boolean;
+  rateLimited: boolean;
+  alphaOverride: boolean;
+}): void {
+  mockedTimeoutService.isImmune.mockReturnValue(options.immunity);
+  mockedTimeoutService.reportIssued.mockReturnValue(!options.rateLimited);
+  // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
+  mockedCheckPrivilege.mockReturnValue(options.alphaOverride);
+}
+
 describe("timeout immunity", () => {
-  it("should undo the timeout if member is immune", async () => {
-    mockedTimeoutService.isImmune.mockReturnValue(true);
-    // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(false);
+  it("should consult service for immunity status", async () => {
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
-    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+    expect(mockedTimeoutService.isImmune).toHaveBeenCalledWith(dummyTarget.id);
+  });
+
+  it("should undo the timeout if member is immune", async () => {
+    mockTimeoutApplicability({
+      immunity: true,
+      rateLimited: false,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
   });
 
   it("should allow alpha mods to bypass timeout immunity", async () => {
-    mockedTimeoutService.isImmune.mockReturnValue(true);
-    // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(true);
+    mockTimeoutApplicability({
+      immunity: true,
+      rateLimited: false,
+      alphaOverride: true,
+    });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
-    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
     expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
+  });
+});
+
+describe("timeout rate-limiting", () => {
+  it("should report the issued timeout to service", async () => {
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(mockedTimeoutService.reportIssued)
+      .toHaveBeenCalledWith(dummyExecutor.id);
+  });
+
+  it("should undo timeout if executor is rate limited", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
+  });
+
+  it("should time out rate-limited non-alpha executors", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: false,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyExecutor.timeout).toHaveBeenCalledWith(
+      60_000, "Spamming timeout.",
+    );
+  });
+
+  it("should not rate limit alpha mods", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: true,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
+  });
+
+  it("should not attempt to time alpha mods even if rate limited", async () => {
+    mockTimeoutApplicability({
+      immunity: false,
+      rateLimited: true,
+      alphaOverride: true,
+    });
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+    expect(dummyExecutor.timeout).not.toHaveBeenCalled();
   });
 });
