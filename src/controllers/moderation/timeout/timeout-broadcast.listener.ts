@@ -22,6 +22,7 @@ import {
   checkPrivilege,
 } from "../../../middleware/privilege.middleware";
 import timeoutService from "../../../services/timeout.service";
+import { isCannotSendToThisUser } from "../../../types/errors.types";
 import { ListenerBuilder } from "../../../types/listener.types";
 import { getDMChannel } from "../../../utils/interaction.utils";
 import { toBulletedList } from "../../../utils/markdown.utils";
@@ -213,7 +214,7 @@ class TimeoutLogEventHandler {
       flags: MessageFlags.SuppressNotifications,
     };
 
-    let failed: boolean = false;
+    let failed = false;
     const targetUsername = this.target.user.username;
 
     try {
@@ -221,9 +222,15 @@ class TimeoutLogEventHandler {
       log.debug(`DM'ed @${targetUsername} reason for timeout.`);
     }
     catch (error) {
-      log.error(`failed to DM @${targetUsername} timeout details.`);
-      console.error(error);
-      failed = true;
+      // Target disabled DMs. Shouldn't count as a failure.
+      if (isCannotSendToThisUser(error)) {
+        log.warning(`not allowed to DM @${targetUsername} timeout details.`);
+      }
+      else {
+        log.error(`failed to DM @${targetUsername} timeout details.`);
+        console.error(error);
+        failed = true;
+      }
     }
 
     try {

@@ -1,6 +1,7 @@
 jest.mock("../../../../src/utils/interaction.utils");
 jest.mock("../../../../src/services/timeout.service");
 jest.mock("../../../../src/middleware/privilege.middleware");
+jest.mock("../../../../src/types/errors.types");
 
 import {
   AuditLogEvent,
@@ -25,11 +26,13 @@ import {
   checkPrivilege,
 } from "../../../../src/middleware/privilege.middleware";
 import timeoutService from "../../../../src/services/timeout.service";
+import { isCannotSendToThisUser } from "../../../../src/types/errors.types";
 import { getDMChannel } from "../../../../src/utils/interaction.utils";
+
+const mockedIsCannotSendToThisUser = jest.mocked(isCannotSendToThisUser);
 
 const mockedTimeoutService = jest.mocked(timeoutService);
 const mockedCheckPrivilege = jest.mocked(checkPrivilege);
-
 const mockedGetDMChannel = jest.mocked(getDMChannel);
 
 const runner = new ListenerRunner(timeoutBroadcastSpec);
@@ -114,8 +117,9 @@ const mockGuild = {
   },
 } as unknown as Guild;
 
-beforeEach(() => {
+beforeAll(() => {
   mockedGetDMChannel.mockResolvedValue(mockDMChannel);
+  jest.spyOn(console, "error").mockImplementation(() => { });
 });
 
 describe("rejecting event", () => {
@@ -204,14 +208,35 @@ describe("error handling", () => {
     expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
   });
 
+  it("should still try to DM even if broadcast fails", async () => {
+    const dummyError = new Error("DUMMY-ERROR");
+    jest.mocked(mockBroadcastChannel.send).mockRejectedValueOnce(dummyError);
+
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+
+    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+  });
+
+  it("should still try to broadcast even if target disabled DMs", async () => {
+    const dummyError = new Error("pretend this is a DiscordAPIError");
+    jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
+    mockedIsCannotSendToThisUser.mockReturnValueOnce(true);
+
+    await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
+
+    expectSentEmbedTo(mockDMChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockBroadcastChannel, issuedEmbedMatcher);
+  });
+
   it("should still try to deny timeout even if sending fails", async () => {
     const dummyError = new Error("DUMMY-ERROR");
     jest.mocked(mockDMChannel.send).mockRejectedValueOnce(dummyError);
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
     jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
-    mockedTimeoutService.isImmune.mockReturnValue(true);
+    mockedTimeoutService.isImmune.mockReturnValueOnce(true);
     // @ts-expect-error Narrowing CommandCheck | boolean to boolean.
-    mockedCheckPrivilege.mockReturnValue(false);
+    mockedCheckPrivilege.mockReturnValueOnce(false);
 
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
 
