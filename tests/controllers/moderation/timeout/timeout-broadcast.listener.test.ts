@@ -335,14 +335,14 @@ describe("timeout rate-limiting", () => {
     );
   });
 
-  it("should still rate limit alpha mods", async () => {
+  it("should not rate limit alpha mods", async () => {
     mockTimeoutApplicability({
       immunity: false,
       rateLimited: true,
       alphaOverride: true,
     });
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
-    expect(dummyTarget.timeout).toHaveBeenCalledWith(null);
+    expect(dummyTarget.timeout).not.toHaveBeenCalledWith(null);
   });
 
   it("should not attempt to time alpha mods even if rate limited", async () => {

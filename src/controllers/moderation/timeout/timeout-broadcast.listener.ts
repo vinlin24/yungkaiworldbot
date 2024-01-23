@@ -125,16 +125,13 @@ class TimeoutLogEventHandler {
     const rateLimitExceeded = !timeoutService.reportIssued(this.executor.id);
     const targetIsImmune = timeoutService.isImmune(this.target.id);
 
-    if (rateLimitExceeded) {
+    if (rateLimitExceeded && !alphaOverride) {
       log.info(
-        `@${executorUsername} is rate limited, ` +
+        `Non-alpha @${executorUsername} is rate limited, ` +
         `undoing timeout for @${targetUsername}.`,
       );
       await this.undoTargetTimeout();
-      // Alpha mods are rate-limited, but the bot can't time them out.
-      if (!alphaOverride) {
-        await this.timeOutExecutorForSpamming();
-      }
+      await this.timeOutExecutorForSpamming();
       return;
     }
 
