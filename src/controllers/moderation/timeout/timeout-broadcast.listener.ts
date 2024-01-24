@@ -24,7 +24,10 @@ import {
 import timeoutService from "../../../services/timeout.service";
 import { isCannotSendToThisUser } from "../../../types/errors.types";
 import { ListenerBuilder } from "../../../types/listener.types";
-import { formatHoursMinsSeconds } from "../../../utils/dates.utils";
+import {
+  formatHoursMinsSeconds,
+  roundMsecToNearestMinute,
+} from "../../../utils/dates.utils";
 import { getDMChannel } from "../../../utils/interaction.utils";
 import { toBulletedList } from "../../../utils/markdown.utils";
 
@@ -181,7 +184,8 @@ class TimeoutLogEventHandler {
       return;
     }
 
-    const duration = formatHoursMinsSeconds(durationMsec / 1000);
+    const roundedDuration = roundMsecToNearestMinute(durationMsec);
+    const duration = formatHoursMinsSeconds(roundedDuration / 1000);
     const payload: MessageCreateOptions = {
       content:
         `An unusually long timeout of ${bold(duration)} was issued! ` +
@@ -212,10 +216,13 @@ class TimeoutLogEventHandler {
       const relativeTime = time(details.until, TimestampStyles.RelativeTime);
       const { timestamp: created, until } = details;
       const durationMsec = until.getTime() - created.getTime();
+      const roundedDuration = roundMsecToNearestMinute(durationMsec);
+      const duration = formatHoursMinsSeconds(roundedDuration / 1000);
+
       const description = toBulletedList([
         `${bold("For:")} ${userMention(target.id)}`,
         `${bold("By:")} ${userMention(executor.id)}`,
-        `${bold("Duration:")} ${formatHoursMinsSeconds(durationMsec)}`,
+        `${bold("Duration:")} ${duration}`,
         `${bold("Until:")} ${timestamp} (${relativeTime})`,
         `${bold("Reason:")} ${details.reason ?? "(none given)"}`,
       ]);
