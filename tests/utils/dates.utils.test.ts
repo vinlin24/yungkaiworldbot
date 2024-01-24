@@ -3,6 +3,7 @@ import {
   addDateSeconds,
   durationToSeconds,
   formatHoursMinsSeconds,
+  roundMsecToNearestMinute,
   toUnixSeconds,
 } from "../../src/utils/dates.utils";
 
@@ -81,6 +82,18 @@ describe("format hours, minutes, seconds from seconds value", () => {
   it("should properly handle singular nouns", () => {
     const formatted = formatHoursMinsSeconds(3661);
     expect(formatted).toEqual("1 hour, 1 minute, 1 second");
+  });
+});
+
+describe("rounding milliseconds to nearest multiple of 1 minute", () => {
+  it("rounds down to the nearest minute", () => {
+    expect(roundMsecToNearestMinute(70000)).toEqual(60000);
+    expect(roundMsecToNearestMinute(120000)).toEqual(120000);
+  });
+
+  it("rounds up to the nearest minute", () => {
+    expect(roundMsecToNearestMinute(55000)).toEqual(60000);
+    expect(roundMsecToNearestMinute(130000)).toEqual(120000);
   });
 });
 
