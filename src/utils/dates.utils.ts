@@ -38,6 +38,11 @@ export function toUnixSeconds(date: Date): number {
   return seconds;
 }
 
+/**
+ * Convert a number of seconds to a human-readable string mentioning hours,
+ * minutes, and/or seconds as needed. For example, 3730 seconds returns "1 hour,
+ * 2 minutes, 10 seconds".
+ */
 export function formatHoursMinsSeconds(seconds: number): string {
   function formatHours(): string {
     const hours = Math.floor(seconds / 3600);
@@ -73,6 +78,15 @@ export function formatHoursMinsSeconds(seconds: number): string {
   ].filter(Boolean).join(", ");
 
   return formattedTime || "0 seconds";
+}
+
+/**
+ * Round a number of milliseconds to the nearest multiple of one minute. The
+ * number returned is also in milliseconds.
+ */
+export function roundMsecToNearestMinute(msec: number): number {
+  const minutes = Math.round(msec / (60 * 1000));
+  return minutes * 60 * 1000; // Convert back to milliseconds.
 }
 
 /**
