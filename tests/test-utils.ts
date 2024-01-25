@@ -20,6 +20,7 @@ import { fromZodError } from "zod-validation-error";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
+import { RoleLevel } from "../src/middleware/privilege.middleware";
 import { ClientWithIntentsAndRunnersABC } from "../src/types/client.abc";
 import { CommandSpec } from "../src/types/command.types";
 import { ListenerSpec } from "../src/types/listener.types";
@@ -153,6 +154,23 @@ export class MockInteraction {
   /**
    * ASSERT.
    *
+   * Expect that the interaction has been replied to with a message mentioning
+   * that the caller is missing privilege.
+   */
+  public expectMentionedMissingPrivilege(level: RoleLevel): void {
+    expect(this.interaction.reply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining(
+          `required privilege level: \`${RoleLevel[level]}\``,
+        ),
+        ephemeral: true,
+      }),
+    );
+  }
+
+  /**
+   * ASSERT.
+   *
    * Shorthand for expecting that the interaction has been replied to in any
    * way.
    */
@@ -169,6 +187,19 @@ export class MockInteraction {
   public expectRepliedWith(options: InteractionReplyOptions): void {
     expect(this.interaction.reply).toHaveBeenLastCalledWith(
       expect.objectContaining(options),
+    );
+    expect(this.interaction.reply).toHaveBeenCalledTimes(1);
+  }
+
+  /**
+   * ASSERT.
+   *
+   * Shorthand for expecting that the interaction has been replied to with a
+   * generic acknowledgement.
+   */
+  public expectRepliedGenericACK(): void {
+    expect(this.interaction.reply).toHaveBeenLastCalledWith(
+      expect.objectContaining({ content: "👍", ephemeral: true }),
     );
     expect(this.interaction.reply).toHaveBeenCalledTimes(1);
   }
