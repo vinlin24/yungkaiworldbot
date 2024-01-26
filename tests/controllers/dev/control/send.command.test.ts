@@ -1,5 +1,11 @@
-import { GuildTextBasedChannel } from "discord.js";
+import {
+  Collection,
+  GuildTextBasedChannel,
+  Message,
+  Snowflake,
+} from "discord.js";
 
+import { mockDeep } from "jest-mock-extended";
 import config from "../../../../src/config";
 import devSendSpec from "../../../../src/controllers/dev/control/send.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
@@ -66,4 +72,79 @@ it("should enable mentions if explicitly specified", async () => {
     }),
   );
   mock.expectRepliedGenericACK();
+});
+
+describe("replying to another message", () => {
+  const dummyMessageId = "123456789";
+
+  it("should reply to the correct message (using ID)", async () => {
+    mock
+      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockOption("String", "content", "jedi scum")
+      .mockOption("String", "reference", dummyMessageId);
+    const mockMessage = mockDeep<Message<true>>();
+    // @ts-expect-error Choose Message overload over Collection return type.
+    mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
+      if (id as Snowflake === dummyMessageId) {
+        return Promise.resolve(mockMessage);
+      }
+      throw new Error("unrecognized dummy message ID");
+    });
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.channel.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "jedi scum",
+        reply: expect.objectContaining({ messageReference: mockMessage }),
+      }),
+    );
+    mock.expectRepliedGenericACK();
+  });
+
+  it("should reply to the correct message (using URL)", async () => {
+    const dummyUrl = `https://discord.com/channels/3344/6677/${dummyMessageId}`;
+    mock
+      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockOption("String", "content", "it's over anakin")
+      .mockOption("String", "reference", dummyUrl);
+    const mockMessage = mockDeep<Message<true>>();
+    // @ts-expect-error Choose Message overload over Collection return type.
+    mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
+      if (id as Snowflake === dummyMessageId) {
+        return Promise.resolve(mockMessage);
+      }
+      throw new Error("unrecognized dummy message ID");
+    });
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.channel.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "it's over anakin",
+        reply: expect.objectContaining({ messageReference: mockMessage }),
+      }),
+    );
+    mock.expectRepliedGenericACK();
+  });
+
+  it("should reply to the most recent message in channel", async () => {
+    mock
+      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockOption("String", "content", "i have the high ground")
+      .mockOption("String", "reference", "^");
+    const mockMessage = mockDeep<Message<true>>();
+    mock.interaction.channel!.messages.fetch
+      .mockResolvedValueOnce(new Collection([["DUMMY-ID", mockMessage]]));
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.channel.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "i have the high ground",
+        reply: expect.objectContaining({ messageReference: mockMessage }),
+      }),
+    );
+    mock.expectRepliedGenericACK();
+  });
 });
