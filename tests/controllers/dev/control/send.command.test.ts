@@ -1,6 +1,6 @@
 import { GuildTextBasedChannel, Message } from "discord.js";
-
 import { DeepMockProxy } from "jest-mock-extended";
+
 import config from "../../../../src/config";
 import devSendSpec from "../../../../src/controllers/dev/control/send.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
@@ -126,5 +126,19 @@ describe("replying to another message", () => {
 
     expectRepliedWithReference(mockMessage, "i have the high ground");
     mock.expectRepliedGenericACK();
+  });
+
+  it("should reject invalid message identifiers", async () => {
+    mock
+      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockOption("String", "content", "you underestimate my power")
+      .mockOption("String", "reference", "don't try it");
+
+    await mock.simulateCommand();
+
+    mock.expectRepliedWith({
+      content: "`don't try it` does not point to a valid message!",
+      ephemeral: true,
+    });
   });
 });

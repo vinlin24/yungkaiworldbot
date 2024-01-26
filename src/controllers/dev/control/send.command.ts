@@ -51,6 +51,8 @@ devSend.execute(async interaction => {
   const enableMentions = !!interaction.options.getBoolean("enable_mentions");
 
   const reference = await resolveMessageToReplyTo(interaction);
+  // resolveMessageToReplyTo already replies about error.
+  if (reference === "invalid message") return false;
   const channel = resolveChannelToSendTo(interaction, reference);
 
   await channel.send({
@@ -61,24 +63,43 @@ devSend.execute(async interaction => {
   });
 
   await interaction.reply({ content: "👍", ephemeral: true });
+  return true;
 });
 
+/**
+ * - Return a `Message` object representing the message to reply to if a
+ *   reference is provided and is valid.
+ * - Return `null` if no reference is provided, so the bot's message shouldn't
+ *   reply to anything.
+ * - Return `"invalid message"` if a reference is provided but is invalid, so
+ *   the bot should reject the command and show an error to the caller.
+ */
 async function resolveMessageToReplyTo(
   interaction: ChatInputCommandInteraction,
-): Promise<Message | null> {
+): Promise<Message | null | "invalid message"> {
   const referenceIdentifier = interaction.options.getString("reference");
   if (referenceIdentifier === "^") {
     return await fetchMostRecentMessage(interaction);
   }
   if (referenceIdentifier) {
-    return await fetchMessageByIdentifier(
+    const message = await fetchMessageByIdentifier(
       referenceIdentifier,
       interaction,
     );
+    if (message === null) return "invalid message";
+    return message;
   }
   return null;
 }
 
+/**
+ * Return the text channel the bot should ultimately send the message to.
+ *
+ * - If a valid reference was provided, use the channel of the referenced
+ *   message.
+ * - Else use the channel provided in the `channel` option.
+ * - Else use the channel the command was invoked in.
+ */
 function resolveChannelToSendTo(
   interaction: ChatInputCommandInteraction,
   reference: Message | null,
