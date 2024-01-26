@@ -49,7 +49,13 @@ export class CommandRunner {
         `${context}: execute didn't reply to interaction, ` +
         "using generic response.",
       );
-      await interaction.reply({ content: "👍", ephemeral: true });
+      try {
+        await interaction.reply({ content: "👍", ephemeral: true });
+      }
+      catch (error) {
+        log.error(`${context}: failed to send generic response.`);
+        console.error(error);
+      }
     }
 
     log.debug(`${context}: finished executing command.`);
