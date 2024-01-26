@@ -1,9 +1,10 @@
 import { Collection, Message, Snowflake } from "discord.js";
 import { mockDeep } from "jest-mock-extended";
-import config from "../../../src/config";
-import devReactSpec from "../../../src/controllers/dev/react.command";
-import { RoleLevel } from "../../../src/middleware/privilege.middleware";
-import { MockInteraction } from "../../test-utils";
+
+import config from "../../../../src/config";
+import devReactSpec from "../../../../src/controllers/dev/control/react.command";
+import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
+import { MockInteraction } from "../../../test-utils";
 
 let mock: MockInteraction;
 beforeEach(() => { mock = new MockInteraction(devReactSpec); });

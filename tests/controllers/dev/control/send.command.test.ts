@@ -1,8 +1,9 @@
 import { GuildTextBasedChannel } from "discord.js";
-import config from "../../../src/config";
-import devSendSpec from "../../../src/controllers/dev/send.command";
-import { RoleLevel } from "../../../src/middleware/privilege.middleware";
-import { MockInteraction } from "../../test-utils";
+
+import config from "../../../../src/config";
+import devSendSpec from "../../../../src/controllers/dev/control/send.command";
+import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
+import { MockInteraction } from "../../../test-utils";
 
 let mock: MockInteraction;
 beforeEach(() => { mock = new MockInteraction(devSendSpec); });

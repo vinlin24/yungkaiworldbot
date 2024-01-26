@@ -7,8 +7,8 @@ import {
 import {
   RoleLevel,
   checkPrivilege,
-} from "../../middleware/privilege.middleware";
-import { CommandBuilder } from "../../types/command.types";
+} from "../../../middleware/privilege.middleware";
+import { CommandBuilder } from "../../../types/command.types";
 
 const devReact = new CommandBuilder();
 
