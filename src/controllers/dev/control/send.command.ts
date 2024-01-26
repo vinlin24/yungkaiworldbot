@@ -35,7 +35,7 @@ devSend.define(new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("reference")
     .setDescription(
-      "ID or URL of message to reply to. \"^\" for last message." +
+      "ID or URL of message to reply to. \"^\" for last message. " +
       "Overrides channel option if applicable.",
     ),
   )
