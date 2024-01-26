@@ -1,15 +1,14 @@
-import {
-  Collection,
-  GuildTextBasedChannel,
-  Message,
-  Snowflake,
-} from "discord.js";
+import { GuildTextBasedChannel, Message } from "discord.js";
 
-import { mockDeep } from "jest-mock-extended";
+import { DeepMockProxy } from "jest-mock-extended";
 import config from "../../../../src/config";
 import devSendSpec from "../../../../src/controllers/dev/control/send.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import { MockInteraction } from "../../../test-utils";
+import {
+  mockChannelFetchMessage,
+  mockChannelFetchMessageById,
+} from "./dev-control-test-utils";
 
 let mock: MockInteraction;
 beforeEach(() => { mock = new MockInteraction(devSendSpec); });
@@ -77,28 +76,28 @@ it("should enable mentions if explicitly specified", async () => {
 describe("replying to another message", () => {
   const dummyMessageId = "123456789";
 
+  function expectRepliedWithReference(
+    mockMessage: DeepMockProxy<Message<true>>,
+    content: string,
+  ): void {
+    expect(mockMessage.channel.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content,
+        reply: expect.objectContaining({ messageReference: mockMessage }),
+      }),
+    );
+  }
+
   it("should reply to the correct message (using ID)", async () => {
     mock
       .mockCaller({ roleIds: [config.BOT_DEV_RID] })
       .mockOption("String", "content", "jedi scum")
       .mockOption("String", "reference", dummyMessageId);
-    const mockMessage = mockDeep<Message<true>>();
-    // @ts-expect-error Choose Message overload over Collection return type.
-    mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
-      if (id as Snowflake === dummyMessageId) {
-        return Promise.resolve(mockMessage);
-      }
-      throw new Error("unrecognized dummy message ID");
-    });
+    const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
     await mock.simulateCommand();
 
-    expect(mockMessage.channel.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: "jedi scum",
-        reply: expect.objectContaining({ messageReference: mockMessage }),
-      }),
-    );
+    expectRepliedWithReference(mockMessage, "jedi scum");
     mock.expectRepliedGenericACK();
   });
 
@@ -108,23 +107,11 @@ describe("replying to another message", () => {
       .mockCaller({ roleIds: [config.BOT_DEV_RID] })
       .mockOption("String", "content", "it's over anakin")
       .mockOption("String", "reference", dummyUrl);
-    const mockMessage = mockDeep<Message<true>>();
-    // @ts-expect-error Choose Message overload over Collection return type.
-    mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
-      if (id as Snowflake === dummyMessageId) {
-        return Promise.resolve(mockMessage);
-      }
-      throw new Error("unrecognized dummy message ID");
-    });
+    const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
     await mock.simulateCommand();
 
-    expect(mockMessage.channel.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: "it's over anakin",
-        reply: expect.objectContaining({ messageReference: mockMessage }),
-      }),
-    );
+    expectRepliedWithReference(mockMessage, "it's over anakin");
     mock.expectRepliedGenericACK();
   });
 
@@ -133,18 +120,11 @@ describe("replying to another message", () => {
       .mockCaller({ roleIds: [config.BOT_DEV_RID] })
       .mockOption("String", "content", "i have the high ground")
       .mockOption("String", "reference", "^");
-    const mockMessage = mockDeep<Message<true>>();
-    mock.interaction.channel!.messages.fetch
-      .mockResolvedValueOnce(new Collection([["DUMMY-ID", mockMessage]]));
+    const mockMessage = mockChannelFetchMessage(mock);
 
     await mock.simulateCommand();
 
-    expect(mockMessage.channel.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: "i have the high ground",
-        reply: expect.objectContaining({ messageReference: mockMessage }),
-      }),
-    );
+    expectRepliedWithReference(mockMessage, "i have the high ground");
     mock.expectRepliedGenericACK();
   });
 });

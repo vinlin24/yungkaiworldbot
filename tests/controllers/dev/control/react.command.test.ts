@@ -1,10 +1,14 @@
-import { Collection, Message, Snowflake } from "discord.js";
+import { Collection, Message } from "discord.js";
 import { mockDeep } from "jest-mock-extended";
 
 import config from "../../../../src/config";
 import devReactSpec from "../../../../src/controllers/dev/control/react.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import { MockInteraction } from "../../../test-utils";
+import {
+  mockChannelFetchMessage,
+  mockChannelFetchMessageById,
+} from "./dev-control-test-utils";
 
 let mock: MockInteraction;
 beforeEach(() => { mock = new MockInteraction(devReactSpec); });
@@ -38,14 +42,7 @@ it("should react to the specified message (using ID)", async () => {
     .mockCaller({ roleIds: [config.BOT_DEV_RID] })
     .mockOption("String", "emoji", "🫡")
     .mockOption("String", "message", dummyMessageId);
-  const mockMessage = mockDeep<Message<true>>();
-  // @ts-expect-error Choose Message overload over Collection return type.
-  mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
-    if (id as Snowflake === dummyMessageId) {
-      return Promise.resolve(mockMessage);
-    }
-    throw new Error("unrecognized dummy message ID");
-  });
+  const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
   await mock.simulateCommand();
 
@@ -60,14 +57,7 @@ it("should react to the specified message (using URL)", async () => {
     .mockCaller({ roleIds: [config.BOT_DEV_RID] })
     .mockOption("String", "emoji", "😪")
     .mockOption("String", "message", dummyUrl);
-  const mockMessage = mockDeep<Message<true>>();
-  // @ts-expect-error Choose Message overload over Collection return type.
-  mock.interaction.channel!.messages.fetch.mockImplementationOnce(id => {
-    if (id as Snowflake === dummyMessageId) {
-      return Promise.resolve(mockMessage);
-    }
-    throw new Error("unrecognized dummy message ID");
-  });
+  const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
   await mock.simulateCommand();
 
@@ -80,9 +70,7 @@ describe("error handling", () => {
     mock
       .mockCaller({ roleIds: [config.BOT_DEV_RID] })
       .mockOption("String", "emoji", "😨");
-    const mockMessage = mockDeep<Message<true>>();
-    mock.interaction.channel!.messages.fetch
-      .mockResolvedValueOnce(new Collection([["DUMMY-ID", mockMessage]]));
+    const mockMessage = mockChannelFetchMessage(mock);
     mockMessage.react.mockRejectedValueOnce("DUMMY-ERROR");
 
     await mock.simulateCommand();
