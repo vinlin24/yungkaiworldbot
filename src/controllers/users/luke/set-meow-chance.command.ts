@@ -38,7 +38,7 @@ setMeowChance.execute(async (interaction) => {
   const context = formatContext(interaction);
   log.info(`${context}: set Luke meow chance to ${newProbability}.`);
 
-  interaction.reply(
+  await interaction.reply(
     `Updated Luke meow chance from ${oldProbability} to ${newProbability}.`,
   );
 });
