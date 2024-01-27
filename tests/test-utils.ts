@@ -571,3 +571,7 @@ export function expectMatchingSchema(
 export function spyOnRandom(): jest.SpyInstance {
   return jest.spyOn(global.Math, "random");
 }
+
+export function suppressConsoleError(): void {
+  jest.spyOn(console, "error").mockImplementation(() => { });
+}
