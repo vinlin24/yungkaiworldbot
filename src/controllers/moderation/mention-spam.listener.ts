@@ -1,9 +1,14 @@
-import { EmbedBuilder, GuildMember, Message, userMention } from "discord.js";
+import {
+  EmbedBuilder,
+  GuildMember,
+  Message,
+  MessageFlags,
+  userMention,
+} from "discord.js";
 
 import getLogger from "../../logger";
 import mentionSpamService from "../../services/mention-spam.service";
 import { MessageListenerBuilder } from "../../types/listener.types";
-import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
 
 const log = getLogger(__filename);
@@ -31,7 +36,11 @@ async function timeOutAuthorForMentionSpammingTarget(
   const embed = new EmbedBuilder()
     .setDescription(`Stop spam mentioning ${userMention(target.id)}.`);
   try {
-    await replySilently(message, { embeds: [embed] });
+    await message.reply({
+      embeds: [embed],
+      // Reply with @silent but reply ping ON.
+      flags: MessageFlags.SuppressNotifications,
+    });
   }
   catch {
     log.warning(`failed to reply to ${message.url}.`);

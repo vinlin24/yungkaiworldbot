@@ -55,8 +55,8 @@ function mockRateLimited(...members: GuildMember[]): void {
 
 function expectAuthorTimedOut(): void {
   expect(mock.message.member!.timeout).toHaveBeenCalledWith(
-    expect.any(Number),
-    expect.any(String),
+    expect.any(Number), // Duration.
+    expect.any(String), // Reason.
   );
 }
 
