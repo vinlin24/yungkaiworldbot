@@ -1,3 +1,5 @@
+import { Collection } from "discord.js";
+
 /**
  * Implements an algorithm for rate-limiting.
  *
@@ -56,5 +58,32 @@ export class TokenBucket<Rate extends number, Capacity extends number> {
     const newTokens = Math.round(this.tokens + elapsedSeconds * this.rate);
     this.tokens = Math.min(this.capacity, newTokens);
     this.lastRefill = now;
+  }
+}
+
+/**
+ * Manager class for keeping track of per-ID (e.g. per-user) rate limiting.
+ */
+export class PerIDSpamTracker<
+  Rate extends number,
+  Capacity extends number,
+> {
+  protected buckets = new Collection<string, TokenBucket<Rate, Capacity>>();
+  constructor(
+    public readonly rate: Rate,
+    public readonly capacity: Capacity,
+  ) { }
+
+  /**
+   * Consume a token for the rate limiter for some event for the given ID.
+   * Return whether the event is still within the rate limit.
+   */
+  public reportEvent(id: string): boolean {
+    let bucket = this.buckets.get(id);
+    if (!bucket) {
+      bucket = new TokenBucket(this.rate, this.capacity);
+      this.buckets.set(id, bucket);
+    }
+    return bucket.consume();
   }
 }

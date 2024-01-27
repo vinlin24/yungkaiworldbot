@@ -1,7 +1,7 @@
 import { Collection, userMention } from "discord.js";
 
 import getLogger from "../logger";
-import { TokenBucket } from "../utils/algorithms.utils";
+import { PerIDSpamTracker } from "../utils/algorithms.utils";
 
 const log = getLogger(__filename);
 
@@ -9,12 +9,12 @@ export class TimeoutService {
   /** UID-to-expiration mapping of members temporarily immune to timeouts. */
   private immunities = new Collection<string, Date>();
   /**
-   * Mapping of UID to rate-limit manager to prevent spamming of timeouts.
+   * Per-UID rate-limit manager to prevent spamming of timeouts.
    *
    * - rate=0.1: Regain 1 timeout quota every 10 seconds.
    * - capacity=3: Time out at most 3 users in quick succession.
    */
-  private spamTracker = new Collection<string, TokenBucket<0.1, 3>>();
+  private spamTracker = new PerIDSpamTracker(0.1, 3);
 
   public grantImmunity(uid: string, until: Date): void {
     this.immunities.set(uid, until);
@@ -51,12 +51,7 @@ export class TimeoutService {
    * limit and thus punishment should be issued.
    */
   public reportIssued(executorId: string): boolean {
-    let bucket = this.spamTracker.get(executorId);
-    if (!bucket) {
-      bucket = new TokenBucket(0.1, 3);
-      this.spamTracker.set(executorId, bucket);
-    }
-    return bucket.consume();
+    return this.spamTracker.reportEvent(executorId);
   }
 }
 

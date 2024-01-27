@@ -4,6 +4,7 @@ import {
   Events,
   GuildMember,
   Message,
+  MessageCreateOptions,
   MessageFlags,
 } from "discord.js";
 
@@ -17,12 +18,17 @@ const log = getLogger(__filename);
  * Wrapper for the boilerplate of replying to a `Message` with the `@silent`
  * setting and without pinging anyone.
  */
-export async function replySilently(message: Message, content: string) {
-  await message.reply({
-    content,
+export async function replySilently(
+  message: Message,
+  content: string | MessageCreateOptions,
+) {
+  let payload = typeof content === "string" ? { content } : content;
+  payload = {
+    ...payload,
     allowedMentions: { repliedUser: false, parse: [] },
     flags: MessageFlags.SuppressNotifications,
-  });
+  };
+  await message.reply(payload);
 }
 
 /**
