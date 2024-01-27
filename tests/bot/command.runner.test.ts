@@ -6,8 +6,9 @@ import {
   InteractionReplyOptions,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from "discord.js";
+
 import { CommandRunner } from "../../src/bot/command.runner";
-import { CommandSpec } from "../../src/types/command.types";
+import { CommandCheck, CommandSpec } from "../../src/types/command.types";
 import { suppressConsoleError } from "../test-utils";
 
 function getCommandInteraction(options?: {
@@ -21,6 +22,8 @@ function getCommandInteraction(options?: {
     followUp: jest.fn(),
   } as unknown as ChatInputCommandInteraction;
 }
+
+const dummyError = new Error("DUMMY-ERROR");
 
 beforeEach(suppressConsoleError);
 
@@ -39,9 +42,120 @@ describe("run", () => {
     expect(spec.execute).toHaveBeenCalledWith(interaction);
   });
 
+  describe("checks", () => {
+    const checks: CommandCheck[] = [
+      {
+        predicate: jest.fn().mockResolvedValue(true),
+        onFail: jest.fn(),
+        afterExecute: jest.fn(),
+      },
+      {
+        predicate: jest.fn().mockResolvedValue(true),
+        onFail: jest.fn(),
+        afterExecute: jest.fn(),
+      },
+      {
+        predicate: jest.fn().mockResolvedValue(true),
+        onFail: jest.fn(),
+        afterExecute: jest.fn(),
+      },
+    ] as const;
+    const predicates = checks.map(check => check.predicate);
+    const posthooks = checks.map(check => check.afterExecute);
+
+    const specWithChecks: CommandSpec = {
+      definition: {} as RESTPostAPIChatInputApplicationCommandsJSONBody,
+      execute: jest.fn(),
+      checks,
+    };
+
+    let runnerWithChecks: CommandRunner;
+    let interaction: ChatInputCommandInteraction;
+    let errorHandlerSpy: jest.SpyInstance;
+    beforeEach(() => {
+      runnerWithChecks = new CommandRunner(specWithChecks);
+      interaction = getCommandInteraction();
+      errorHandlerSpy = jest.spyOn(
+        CommandRunner.prototype as any, // Access protected method.
+        "handleCommandError",
+      );
+    });
+
+    it("should run all checks", async () => {
+      await runnerWithChecks.run(interaction);
+
+      for (const predicate of predicates) {
+        expect(predicate).toHaveBeenCalledWith(interaction);
+        expect(predicate).toHaveReturnedWith(Promise.resolve(true));
+      }
+    });
+
+    describe("check failure", () => {
+      it("should short-circuit on first check failure", async () => {
+        jest.mocked(checks[1].predicate).mockResolvedValueOnce(false);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(checks[2].predicate).not.toHaveBeenCalled();
+      });
+
+      it("should run fail handler on check failure", async () => {
+        jest.mocked(checks[0].predicate).mockResolvedValueOnce(false);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(checks[0].onFail).toHaveBeenCalledWith(interaction);
+      });
+
+      it("should treat predicate errors as failures", async () => {
+        jest.mocked(checks[1].predicate).mockRejectedValueOnce(dummyError);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(checks[2].predicate).not.toHaveBeenCalled();
+        expect(errorHandlerSpy).toHaveBeenCalledWith(interaction, dummyError);
+      });
+
+      it("should gracefully handle errors in onFail handler", async () => {
+        jest.mocked(checks[0].predicate).mockResolvedValueOnce(false);
+        jest.mocked(checks[0].onFail!).mockRejectedValueOnce(dummyError);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(errorHandlerSpy).toHaveBeenCalledWith(interaction, dummyError);
+      });
+    });
+
+    describe("check cleanup", () => {
+      it("should run all cleanup hooks after successful execute", async () => {
+        await runnerWithChecks.run(interaction);
+
+        for (const posthook of posthooks) {
+          expect(posthook).toHaveBeenCalledWith(interaction);
+        }
+      });
+
+      it("should gracefully handle errors in cleanup hook", async () => {
+        jest.mocked(checks[0].afterExecute!).mockRejectedValueOnce(dummyError);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(errorHandlerSpy).toHaveBeenCalledWith(interaction, dummyError);
+      });
+
+      it("should NOT short-circuit if a cleanup hook errors", async () => {
+        jest.mocked(checks[1].afterExecute!).mockRejectedValueOnce(dummyError);
+
+        await runnerWithChecks.run(interaction);
+
+        expect(checks[2].afterExecute).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe("error handling", () => {
     beforeEach(() => {
-      jest.mocked(spec.execute).mockRejectedValueOnce(new Error("DUMMY-ERROR"));
+      jest.mocked(spec.execute).mockRejectedValueOnce(dummyError);
     });
 
     function expectCalledWithErrorReply(func: any): void {
