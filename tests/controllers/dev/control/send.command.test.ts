@@ -1,4 +1,4 @@
-import { GuildTextBasedChannel, Message } from "discord.js";
+import { GuildTextBasedChannel, Message, MessageFlags } from "discord.js";
 import { DeepMockProxy } from "jest-mock-extended";
 
 import config from "../../../../src/config";
@@ -46,28 +46,30 @@ it("should forward content to specified channel", async () => {
   mock.expectRepliedGenericACK();
 });
 
-it("should disable mentions by default", async () => {
+it("should enable mentions by default", async () => {
   mock
     .mockCaller({ roleIds: [config.BOT_DEV_RID] })
     .mockOption("String", "content", "you are a bold one");
   await mock.simulateCommand();
   expect(mock.interaction.channel!.send).toHaveBeenCalledWith(
-    expect.objectContaining({
-      allowedMentions: expect.objectContaining({ parse: [] }),
+    expect.not.objectContaining({
+      allowedMentions: expect.anything(),
+      flags: MessageFlags.SuppressNotifications,
     }),
   );
   mock.expectRepliedGenericACK();
 });
 
-it("should enable mentions if explicitly specified", async () => {
+it("should disable mentions if explicitly specified", async () => {
   mock
     .mockCaller({ roleIds: [config.BOT_DEV_RID] })
     .mockOption("String", "content", "you're shorter than i expected")
-    .mockOption("Boolean", "enable_mentions", true);
+    .mockOption("Boolean", "silent", true);
   await mock.simulateCommand();
   expect(mock.interaction.channel!.send).toHaveBeenCalledWith(
-    expect.not.objectContaining({
-      allowedMentions: expect.anything(),
+    expect.objectContaining({
+      allowedMentions: expect.objectContaining({ parse: [] }),
+      flags: MessageFlags.SuppressNotifications,
     }),
   );
   mock.expectRepliedGenericACK();

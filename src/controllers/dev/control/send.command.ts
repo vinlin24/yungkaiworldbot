@@ -35,20 +35,20 @@ devSend.define(new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("reference")
     .setDescription(
-      "ID or URL of message to reply to. \"^\" for last message. " +
+      "ID or URL of message to reply to. ^ for last message. " +
       "Overrides channel option if applicable.",
     ),
   )
   .addBooleanOption(input => input
-    .setName("enable_mentions")
-    .setDescription("Whether mentions should ping the user."),
+    .setName("silent")
+    .setDescription("Whether to suppress notifications and mentions."),
   ),
 );
 
 devSend.check(checkPrivilege(RoleLevel.DEV));
 devSend.execute(async interaction => {
   const content = interaction.options.getString("content", true);
-  const enableMentions = !!interaction.options.getBoolean("enable_mentions");
+  const silent = !!interaction.options.getBoolean("silent");
 
   const reference = await resolveMessageToReplyTo(interaction);
   // resolveMessageToReplyTo already replies about error.
@@ -57,8 +57,8 @@ devSend.execute(async interaction => {
 
   await channel.send({
     content,
-    allowedMentions: enableMentions ? undefined : { parse: [] },
-    flags: MessageFlags.SuppressNotifications,
+    allowedMentions: silent ? { parse: [] } : undefined,
+    flags: silent ? MessageFlags.SuppressNotifications : undefined,
     reply: reference ? { messageReference: reference } : undefined,
   });
 
