@@ -1,6 +1,7 @@
 jest.mock("../../src/utils/logging.utils");
 
 import {
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
   InteractionReplyOptions,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
@@ -66,5 +67,37 @@ describe("run", () => {
       await runner.run(interaction);
       expectCalledWithErrorReply(interaction.followUp);
     });
+  });
+});
+
+describe("resolveAutocomplete", () => {
+  const autocompleteInteraction = {} as AutocompleteInteraction;
+
+  it("should call just the autocomplete callback", async () => {
+    const spec: CommandSpec = {
+      definition: {} as RESTPostAPIChatInputApplicationCommandsJSONBody,
+      execute: jest.fn(),
+      autocomplete: jest.fn(),
+      checks: [{ predicate: jest.fn() }],
+    };
+    const runner = new CommandRunner(spec);
+
+    await runner.resolveAutocomplete(autocompleteInteraction);
+
+    expect(spec.autocomplete).toHaveBeenCalledWith(autocompleteInteraction);
+    expect(spec.execute).not.toHaveBeenCalled();
+    expect(spec.checks![0].predicate).not.toHaveBeenCalled();
+  });
+
+  it("should do nothing if no autocomplete callback provided", async () => {
+    const spec: CommandSpec = {
+      definition: {} as RESTPostAPIChatInputApplicationCommandsJSONBody,
+      execute: jest.fn(),
+    };
+    const runner = new CommandRunner(spec);
+
+    await runner.resolveAutocomplete(autocompleteInteraction);
+
+    expect(spec.execute).not.toHaveBeenCalled();
   });
 });
