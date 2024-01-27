@@ -1,12 +1,18 @@
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
+  InteractionReplyOptions,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from "discord.js";
 
 import getLogger from "../logger";
 import { CommandCheckFailHandler, CommandSpec } from "../types/command.types";
+import { isMissingPermissions } from "../types/errors.types";
 import { formatContext } from "../utils/logging.utils";
+import {
+  getReplyForMissingPermissions,
+  getReplyForUnknownError,
+} from "./command.errors";
 
 const log = getLogger(__filename);
 
@@ -161,19 +167,24 @@ export class CommandRunner {
     interaction: ChatInputCommandInteraction,
     error: Error,
   ): Promise<void> {
-    console.error(error);
-    // TODO: Provide more useful responses.
+    let replyOptions: InteractionReplyOptions;
+    if (isMissingPermissions(error)) {
+      replyOptions = getReplyForMissingPermissions(error);
+    }
+    // Extend the if-else ladder for other error types to specially handle.
+    else {
+      replyOptions = getReplyForUnknownError(error);
+      console.error(error);
+    }
+
+    // Enforce ephemeral reply.
+    replyOptions.ephemeral = true;
+
     if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
+      await interaction.followUp(replyOptions);
     }
     else {
-      await interaction.reply({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
+      await interaction.reply(replyOptions);
     }
   }
 }
