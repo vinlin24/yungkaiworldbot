@@ -1,4 +1,5 @@
 jest.mock("../../src/utils/logging.utils");
+jest.mock("../../src/types/errors.types");
 
 import {
   AutocompleteInteraction,
@@ -7,8 +8,10 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from "discord.js";
 
+import * as commandErrors from "../../src/bot/command.errors";
 import { CommandRunner } from "../../src/bot/command.runner";
 import { CommandCheck, CommandSpec } from "../../src/types/command.types";
+import { isMissingPermissions } from "../../src/types/errors.types";
 import { suppressConsoleError } from "../test-utils";
 
 function getCommandInteraction(options?: {
@@ -38,8 +41,17 @@ describe("run", () => {
 
   it("should run the execute callback", async () => {
     const interaction = getCommandInteraction();
+
     await runner.run(interaction);
+
     expect(spec.execute).toHaveBeenCalledWith(interaction);
+  });
+
+  it("should gracefully handle error in generic fallback reply", async () => {
+    const interaction = getCommandInteraction();
+    jest.mocked(interaction.reply).mockRejectedValueOnce(dummyError);
+
+    expect(async () => await runner.run(interaction)).not.toThrow();
   });
 
   describe("checks", () => {
@@ -135,6 +147,26 @@ describe("run", () => {
         }
       });
 
+      it("should not run any cleanup hooks if execute fails", async () => {
+        jest.mocked(specWithChecks.execute).mockResolvedValueOnce(false);
+
+        await runnerWithChecks.run(interaction);
+
+        for (const posthook of posthooks) {
+          expect(posthook).not.toHaveBeenCalled();
+        }
+      });
+
+      it("should not run any cleanup hooks if execute errors", async () => {
+        jest.mocked(specWithChecks.execute).mockRejectedValueOnce(dummyError);
+
+        await runnerWithChecks.run(interaction);
+
+        for (const posthook of posthooks) {
+          expect(posthook).not.toHaveBeenCalled();
+        }
+      });
+
       it("should gracefully handle errors in cleanup hook", async () => {
         jest.mocked(checks[0].afterExecute!).mockRejectedValueOnce(dummyError);
 
@@ -180,6 +212,20 @@ describe("run", () => {
       const interaction = getCommandInteraction({ deferred: true });
       await runner.run(interaction);
       expectCalledWithErrorReply(interaction.followUp);
+    });
+
+    it("should specially handle Missing Permissions error", async () => {
+      const interaction = getCommandInteraction();
+      jest.mocked(spec.execute).mockRejectedValueOnce(dummyError);
+      jest.mocked(isMissingPermissions).mockReturnValueOnce(true);
+      const replyGetterSpy = jest.spyOn(
+        commandErrors,
+        "getReplyForMissingPermissions",
+      );
+
+      await runner.run(interaction);
+
+      expect(replyGetterSpy).toHaveBeenCalled();
     });
   });
 });
