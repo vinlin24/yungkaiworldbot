@@ -18,8 +18,8 @@ import {
   userMention,
 } from "discord.js";
 import { Matcher } from "jest-mock-extended";
-
 import { cloneDeep } from "lodash";
+
 import { ListenerRunner } from "../../../../src/bot/listener.runner";
 import config from "../../../../src/config";
 import timeoutBroadcastSpec from "../../../../src/controllers/moderation/timeout/timeout-broadcast.listener";
@@ -167,13 +167,18 @@ describe("rejecting event", () => {
 function expectSentEmbedTo(
   channel: TextBasedChannel,
   matcher: Matcher<EmbedBuilder>,
+  notifications: boolean = false,
 ): void {
+  const options: MessageCreateOptions = {
+    // @ts-expect-error Claims I need APIEmbed but is actually EmbedBuilder.
+    embeds: [matcher],
+  };
+  if (!notifications) {
+    options.flags = MessageFlags.SuppressNotifications;
+  }
+
   expect(channel.send).toHaveBeenCalledWith(
-    expect.objectContaining<MessageCreateOptions>({
-      // @ts-expect-error Claims I need APIEmbed but is actually EmbedBuilder.
-      embeds: [matcher],
-      flags: MessageFlags.SuppressNotifications,
-    }),
+    expect.objectContaining<MessageCreateOptions>(options),
   );
 }
 
@@ -364,13 +369,13 @@ describe("alerting about long timeout", () => {
 
   it("should send embed to the mod channel", async () => {
     await simulateEvent(mockExtendedTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher, true);
   });
 
   it("should still alert mod channel if alpha mod does it", async () => {
     mockTimeoutApplicability({ alphaOverride: true });
     await simulateEvent(mockExtendedTimeoutIssuedEntry, mockGuild);
-    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher);
+    expectSentEmbedTo(mockModChannel, issuedEmbedMatcher, true);
   });
 
   it("should not alert mod channel if timeout is not long", async () => {

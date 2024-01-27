@@ -191,7 +191,6 @@ class TimeoutLogEventHandler {
         `An unusually long timeout of ${bold(duration)} was issued! ` +
         "Was this intentional?",
       embeds: [embed],
-      flags: MessageFlags.SuppressNotifications,
     };
 
     try {
