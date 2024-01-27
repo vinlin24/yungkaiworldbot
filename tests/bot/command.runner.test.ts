@@ -101,3 +101,19 @@ describe("resolveAutocomplete", () => {
     expect(spec.execute).not.toHaveBeenCalled();
   });
 });
+
+describe("getDeployJSON", () => {
+  it("should return the spec's definition", () => {
+    const spec: CommandSpec = {
+      definition: {
+        name: "dummy-command-name",
+      } as RESTPostAPIChatInputApplicationCommandsJSONBody,
+      execute: jest.fn(),
+    };
+    const runner = new CommandRunner(spec);
+
+    const result = runner.getDeployJSON();
+
+    expect(result).toEqual(spec.definition);
+  });
+});
