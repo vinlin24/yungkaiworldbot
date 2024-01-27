@@ -60,6 +60,10 @@ function expectAuthorTimedOut(): void {
   );
 }
 
+function expectAuthorNotTimedOut(): void {
+  expect(mock.message.member!.timeout).not.toHaveBeenCalled();
+}
+
 it("should call service for each mention in the message", async () => {
   mockMemberMentions(mockTarget1, mockTarget2);
 
@@ -85,7 +89,7 @@ it("should not time out author if within rate limit", async () => {
 
   await mock.simulateEvent();
 
-  expect(mock.message.member!.timeout).not.toHaveBeenCalled();
+  expectAuthorNotTimedOut();
 });
 
 it("should reply to offending message with embed", async () => {
