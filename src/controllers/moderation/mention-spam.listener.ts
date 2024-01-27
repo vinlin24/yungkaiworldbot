@@ -36,7 +36,10 @@ async function timeOutAuthorForMentionSpammingTarget(
   catch {
     log.warning(`failed to reply to ${message.url}.`);
   }
-  await author.timeout(60_000, `Spamming mention @${target.user.username}.`);
+
+  const mention = userMention(target.id);
+  const reason = `Spam mentioning ${mention} (\`@${target.user.username}\`).`;
+  await author.timeout(60_000, reason);
 
   const context = formatContext(message);
   log.info(
