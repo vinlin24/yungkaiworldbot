@@ -350,6 +350,7 @@ export class MockMessage {
   public mockAuthor(options: MockAuthorOptions): this {
     if (options.uid !== undefined) {
       this.message.author.id = options.uid;
+      addMockGetter(this.message.member!, "id", options.uid);
     }
     if (options.displayName !== undefined) {
       addMockGetter(this.message.author, "displayName", options.displayName);
