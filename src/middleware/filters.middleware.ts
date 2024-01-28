@@ -120,3 +120,13 @@ export function containsEmoji(unicodeEmoji: string): MessageFilterFunction {
     return message.content.includes(unicodeEmoji);
   };
 }
+
+/**
+ * Return a filter that checks for whether the message is from a channel that is
+ * one of the ones specified with CIDs.
+ */
+export function inChannel(...cids: string[]): MessageFilterFunction {
+  return function (message) {
+    return cids.includes(message.channelId);
+  };
+}
