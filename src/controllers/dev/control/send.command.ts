@@ -12,10 +12,7 @@ import {
   checkPrivilege,
 } from "../../../middleware/privilege.middleware";
 import { CommandBuilder } from "../../../types/command.types";
-import {
-  fetchMessageByIdentifier,
-  fetchMostRecentMessage,
-} from "./dev-control-utils";
+import { resolveMessageToRespondTo } from "./dev-control-utils";
 
 const devSend = new CommandBuilder();
 
@@ -35,62 +32,37 @@ devSend.define(new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("reference")
     .setDescription(
-      "ID or URL of message to reply to. \"^\" for last message. " +
+      "ID or URL of message to reply to. ^ for last message. " +
       "Overrides channel option if applicable.",
     ),
   )
   .addBooleanOption(input => input
-    .setName("enable_mentions")
-    .setDescription("Whether mentions should ping the user."),
+    .setName("silent")
+    .setDescription("Whether to suppress notifications and mentions."),
   ),
 );
 
 devSend.check(checkPrivilege(RoleLevel.DEV));
 devSend.execute(async interaction => {
   const content = interaction.options.getString("content", true);
-  const enableMentions = !!interaction.options.getBoolean("enable_mentions");
+  const silent = !!interaction.options.getBoolean("silent");
+  const referenceId = interaction.options.getString("reference");
 
-  const reference = await resolveMessageToReplyTo(interaction);
-  // resolveMessageToReplyTo already replies about error.
+  const reference = await resolveMessageToRespondTo(interaction, referenceId);
+  // resolveMessageToRespondTo already replies about error.
   if (reference === "invalid message") return false;
   const channel = resolveChannelToSendTo(interaction, reference);
 
   await channel.send({
     content,
-    allowedMentions: enableMentions ? undefined : { parse: [] },
-    flags: MessageFlags.SuppressNotifications,
+    allowedMentions: silent ? { parse: [] } : undefined,
+    flags: silent ? MessageFlags.SuppressNotifications : undefined,
     reply: reference ? { messageReference: reference } : undefined,
   });
 
   await interaction.reply({ content: "👍", ephemeral: true });
   return true;
 });
-
-/**
- * - Return a `Message` object representing the message to reply to if a
- *   reference is provided and is valid.
- * - Return `null` if no reference is provided, so the bot's message shouldn't
- *   reply to anything.
- * - Return `"invalid message"` if a reference is provided but is invalid, so
- *   the bot should reject the command and show an error to the caller.
- */
-async function resolveMessageToReplyTo(
-  interaction: ChatInputCommandInteraction,
-): Promise<Message | null | "invalid message"> {
-  const referenceIdentifier = interaction.options.getString("reference");
-  if (referenceIdentifier === "^") {
-    return await fetchMostRecentMessage(interaction);
-  }
-  if (referenceIdentifier) {
-    const message = await fetchMessageByIdentifier(
-      referenceIdentifier,
-      interaction,
-    );
-    if (message === null) return "invalid message";
-    return message;
-  }
-  return null;
-}
 
 /**
  * Return the text channel the bot should ultimately send the message to.
