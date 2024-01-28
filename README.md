@@ -68,8 +68,9 @@ values for the production version of the bot.
 
 For Discord IDs, you should enable **Developer Mode** to be able to conveniently
 copy IDs from the right-click context menus of servers, channels, roles, users,
-etc. To enable it, go to **User Settings > Advanced > Developer Mode**. For
-environment variable names, we use this suffix convention:
+etc. To enable it, go to **User Settings > Advanced > Developer Mode**.
+
+For variables names, we use this suffix convention:
 
 * `_GID`: Guild ID. Servers are referred to as "guilds" in the Discord API.
 * `_CID`: Channel ID. This can be any type of channel (text, voice, etc.).
@@ -79,14 +80,16 @@ environment variable names, we use this suffix convention:
 * `_UID`: User ID. This is useful for user-based features (to give the bot a
   little personality, basically).
 
+GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). UIDs
+should be environment variables.
+
 > :warning: **NON-BOT USER IDs SHOULD BE REDACTED IN VERSION CONTROL.**
 >
-> Guild, channel, and role IDs are likely benign. While Discord IDs in general
-> are only used internally by Discord's API, [Discord
-> themselves](https://discord.com/safety/confidentiality-in-moderation) stated
-> that **user IDs** should be considered personally identifiable information
-> (PII). Because this bot is open-source, we want to prevent any chance of PII
-> leak or doxing.
+> While Discord IDs in general are only used internally by Discord's API,
+> [Discord themselves](https://discord.com/safety/confidentiality-in-moderation)
+> stated that **user IDs** should be considered personally identifiable
+> information (PII). Because this bot is open-source, we want to prevent any
+> chance of PII leak or doxing.
 >
 > On a related note, use your common sense when naming user ID keys. Use
 > nicknames or "gamer aliases" where possible. Do not use full or legal names
