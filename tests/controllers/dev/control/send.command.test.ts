@@ -117,17 +117,42 @@ describe("replying to another message", () => {
     mock.expectRepliedGenericACK();
   });
 
-  it("should reply to the most recent message in channel", async () => {
-    mock
-      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
-      .mockOption("String", "content", "i have the high ground")
-      .mockOption("String", "reference", "^");
-    const mockMessage = mockChannelFetchMessage(mock);
+  describe("caret notation", () => {
+    beforeEach(() => {
+      mock
+        .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+        .mockOption("String", "content", "i have the high ground");
+    });
 
-    await mock.simulateCommand();
+    it("should reply to the most recent message in channel", async () => {
+      mock.mockOption("String", "reference", "^");
+      const mockMessage = mockChannelFetchMessage(mock);
 
-    expectRepliedWithReference(mockMessage, "i have the high ground");
-    mock.expectRepliedGenericACK();
+      await mock.simulateCommand();
+
+      expectRepliedWithReference(mockMessage, "i have the high ground");
+      mock.expectRepliedGenericACK();
+    });
+
+    it("should reply to the 3rd most recent message (by ^^^)", async () => {
+      mock.mockOption("String", "reference", "^^^");
+      const mockMessage = mockChannelFetchMessage(mock, 3);
+
+      await mock.simulateCommand();
+
+      expectRepliedWithReference(mockMessage, "i have the high ground");
+      mock.expectRepliedGenericACK();
+    });
+
+    it("should reply to the 3rd most recent message (by ^3)", async () => {
+      mock.mockOption("String", "reference", "^3");
+      const mockMessage = mockChannelFetchMessage(mock, 3);
+
+      await mock.simulateCommand();
+
+      expectRepliedWithReference(mockMessage, "i have the high ground");
+      mock.expectRepliedGenericACK();
+    });
   });
 
   it("should reject invalid message identifiers", async () => {

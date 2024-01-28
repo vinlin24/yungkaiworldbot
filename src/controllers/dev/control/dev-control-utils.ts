@@ -1,6 +1,10 @@
 import { ChatInputCommandInteraction, Message } from "discord.js";
 import { sortBy } from "lodash";
 
+import getLogger from "../../../logger";
+
+const log = getLogger(__filename);
+
 export async function fetchNthMostRecentMessage(
   interaction: ChatInputCommandInteraction,
   n: number,
@@ -40,4 +44,64 @@ export async function fetchMessageByIdentifier(
   }
   const message = await interaction.channel!.messages.fetch(messageId);
   return message;
+}
+
+/**
+ * The `reference` option should support notation with the caret (`^`)
+ * character, inspired by Git reference notation. Examples:
+ *
+ * - `^`: Last message. Also equivalent to `^1`.
+ * - `^^^`: Third last message. Also equivalent to `^3`.
+ * - `^5`: Fifth last message.
+ *
+ * Return a number representing the message's reverse position in the channel.
+ * For example, return 3 for the third last message.
+ */
+export function resolveCaretNotation(
+  referenceId: string | null,
+): number | null {
+  if (referenceId === null) return null;
+
+  // ^N case.
+  const withNumberMatch = referenceId.match(/^\^(\d)+$/);
+  if (withNumberMatch) {
+    const numCarets = Number(withNumberMatch[1]);
+    if (isNaN(numCarets)) {
+      log.error(`unexpectedly extracted NaN from '${referenceId}'.`);
+      return null;
+    }
+    return numCarets;
+  }
+
+  // ^... case.
+  const fullCaretsMatch = referenceId.match(/^\^+$/);
+  if (fullCaretsMatch) {
+    return referenceId.length;
+  }
+
+  log.debug(`unrecognized /send reference caret notation: '${referenceId}'.`);
+  return null;
+}
+
+/**
+ * Resolve a message identifier (ID, URL, caret notation) to a message.
+ */
+export async function resolveMessageToRespondTo(
+  interaction: ChatInputCommandInteraction,
+  referenceIdentifier: string | null,
+): Promise<Message | null | "invalid message"> {
+  const numCarets = resolveCaretNotation(referenceIdentifier);
+  if (numCarets !== null) {
+    if (numCarets <= 0) return "invalid message";
+    return await fetchNthMostRecentMessage(interaction, numCarets);
+  }
+  if (referenceIdentifier) {
+    const message = await fetchMessageByIdentifier(
+      referenceIdentifier,
+      interaction,
+    );
+    if (message === null) return "invalid message";
+    return message;
+  }
+  return null;
 }

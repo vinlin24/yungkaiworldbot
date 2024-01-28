@@ -32,7 +32,6 @@ export type OptionType =
   | "Integer"
   | "Member"
   | "Mentionable"
-  | "Message"
   | "Number"
   | "Role"
   | "String"
@@ -72,6 +71,29 @@ export class MockInteraction {
     // Override attached client with stub.
     this.client = mockDeep<TestClient>();
     addMockGetter(this.interaction, "client", this.client);
+
+    // Make options by default return null, not undefined, since client code is
+    // likely to explicitly check against null.
+    this.interaction.options.getAttachment.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getBoolean.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getChannel.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getInteger.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getMember.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getMentionable.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getNumber.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getRole.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getString.calledWith(expect.any(String))
+      .mockReturnValue(null);
+    this.interaction.options.getUser.calledWith(expect.any(String))
+      .mockReturnValue(null);
   }
 
   /**

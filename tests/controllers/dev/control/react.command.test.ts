@@ -65,6 +65,34 @@ it("should react to the specified message (using URL)", async () => {
   mock.expectRepliedGenericACK();
 });
 
+describe("caret notation", () => {
+  beforeEach(() => {
+    mock
+      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockOption("String", "emoji", "🔥");
+  });
+
+  it("should react to the 3rd most recent message (by ^^^)", async () => {
+    mock.mockOption("String", "message", "^^^");
+    const mockMessage = mockChannelFetchMessage(mock, 3);
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.react).toHaveBeenCalledWith("🔥");
+    mock.expectRepliedGenericACK();
+  });
+
+  it("should react to the 3rd most recent message (by ^3)", async () => {
+    mock.mockOption("String", "message", "^3");
+    const mockMessage = mockChannelFetchMessage(mock, 3);
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.react).toHaveBeenCalledWith("🔥");
+    mock.expectRepliedGenericACK();
+  });
+});
+
 describe("error handling", () => {
   it("should reject invalid emojis", async () => {
     mock

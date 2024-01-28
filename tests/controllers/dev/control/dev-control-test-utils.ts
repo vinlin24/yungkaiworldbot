@@ -20,9 +20,20 @@ export function mockChannelFetchMessageById(
 
 export function mockChannelFetchMessage(
   mock: MockInteraction,
+  nthMostRecent: number = 1,
 ): DeepMockProxy<Message<true>> {
-  const mockMessage = mockDeep<Message<true>>();
-  mock.interaction.channel!.messages.fetch
-    .mockResolvedValueOnce(new Collection([["DUMMY-ID", mockMessage]]));
+  // mockMessages is in ascending order of timestamp.
+  const mockMessages = Array.from({ length: nthMostRecent }).map((_, i) => {
+    const message = mockDeep<Message<true>>();
+    message.createdTimestamp = new Date(i * 1000).getTime();
+    return message;
+  });
+
+  const asIdMessagePairs = mockMessages
+    .map((message, i) => [`DUMMY-ID-${i}`, message] as const);
+  const asCollection = new Collection(asIdMessagePairs);
+  mock.interaction.channel!.messages.fetch.mockResolvedValueOnce(asCollection);
+
+  const mockMessage = mockMessages[0];
   return mockMessage;
 }

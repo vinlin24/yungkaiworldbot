@@ -6,8 +6,8 @@ import {
 } from "../../../middleware/privilege.middleware";
 import { CommandBuilder } from "../../../types/command.types";
 import {
-  fetchMessageByIdentifier,
   fetchNthMostRecentMessage,
+  resolveMessageToRespondTo,
 } from "./dev-control-utils";
 
 const devReact = new CommandBuilder();
@@ -23,7 +23,7 @@ devReact.define(new SlashCommandBuilder()
   .addStringOption(input => input
     .setName("message")
     .setDescription(
-      "Link or ID of message to react to " +
+      "ID, URL, or ^ notation of message to react to. " +
       "(defaults to last message of current channel).",
     ),
   ),
@@ -32,12 +32,15 @@ devReact.define(new SlashCommandBuilder()
 devReact.check(checkPrivilege(RoleLevel.DEV));
 devReact.execute(async interaction => {
   const emoji = interaction.options.getString("emoji", true);
-  const messageIdentifier = interaction.options.getString("message");
+  const messageId = interaction.options.getString("message");
 
-  const message = messageIdentifier
-    ? await fetchMessageByIdentifier(messageIdentifier, interaction)
-    : await fetchNthMostRecentMessage(interaction, 1);
-  if (!message) return false;
+  let message = await resolveMessageToRespondTo(interaction, messageId);
+  // resolveMessageToRespondTo already replies about error.
+  if (message === "invalid message") return false;
+  if (message === null) {
+    message = await fetchNthMostRecentMessage(interaction, 1);
+  }
+  if (message === null) return false;
 
   try {
     await message.react(emoji);
