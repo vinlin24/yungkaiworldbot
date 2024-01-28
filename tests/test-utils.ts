@@ -450,6 +450,15 @@ export class MockMessage {
   /**
    * ASSERT.
    *
+   * Shorthand for expecting that the message has been replied to in any way.
+   */
+  public expectReplied(): void {
+    expect(this.message.reply).toHaveBeenCalled();
+  }
+
+  /**
+   * ASSERT.
+   *
    * Shorthand for expecting that the message has been replied to with the
    * specified argument.
    */
