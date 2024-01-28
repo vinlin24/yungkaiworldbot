@@ -8,14 +8,16 @@ kai](https://linktr.ee/yungkaiboy)!
 
 The iconic **@TempBot** lurks in the channels, always ready to ~~annoy~~ bring
 some humor or personality to the server with stupid Dad jokes, entertaining your
-different catchphrases, and more! ~~Maybe I should also give it timeout
-permissions to keep you rowdy children in check...~~
+different catchphrases, and more! Now complete with timeout permissions.
+**:nekocatshrug:**
 
 This started as a throwaway for-fun project, hence the name "TempBot", but the
-name stuck. This codebase has some simple features up and running but is an
-ongoing project welcome to requests and suggestions. Server members are welcome
-to contribute by requesting features, reporting bugs, or opening pull
-request/issues!
+name stuck. This codebase is an ongoing project welcome to requests and
+suggestions. Server members are welcome to contribute by requesting features,
+reporting bugs, or opening pull request/issues! You can also communicate your
+requests or receive periodic notifications about new features in the [TempBot
+feature requests
+thread](https://discord.com/channels/1101561213663580190/1181497697560186961).
 
 
 ## Setup
@@ -35,9 +37,8 @@ npm --version
 Clone the repository if you haven't:
 
 ```sh
-mkdir yungkaiworldbot
+git clone https://github.com/vinlin24/yungkaiworldbot
 cd yungkaiworldbot
-git clone https://github.com/vinlin24/yungkaiworldbot .
 ```
 
 Install dependencies:
@@ -75,8 +76,7 @@ For variables names, we use this suffix convention:
 * `_GID`: Guild ID. Servers are referred to as "guilds" in the Discord API.
 * `_CID`: Channel ID. This can be any type of channel (text, voice, etc.).
 * `_RID`: Role ID. This is useful for role-based features. It is also the basis
-  of this bot's [privilege
-  system](https://en.wikipedia.org/wiki/Privilege_(computing)).
+  of this bot's [privilege system](src/middleware/privilege.middleware.ts).
 * `_UID`: User ID. This is useful for user-based features (to give the bot a
   little personality, basically).
 
