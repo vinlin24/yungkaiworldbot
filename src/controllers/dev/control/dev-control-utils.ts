@@ -1,11 +1,15 @@
 import { ChatInputCommandInteraction, Message } from "discord.js";
+import { sortBy } from "lodash";
 
-export async function fetchMostRecentMessage(
+export async function fetchNthMostRecentMessage(
   interaction: ChatInputCommandInteraction,
-): Promise<Message> {
-  const messages = await interaction.channel!.messages.fetch({ limit: 1 });
-  const message = Array.from(messages.values())[0];
-  return message;
+  n: number,
+): Promise<Message | null> {
+  const collection = await interaction.channel!.messages.fetch({ limit: n });
+  const messages = Array.from(collection.values());
+  const sortedMessages = sortBy(messages, m => m.createdTimestamp);
+  const nthRecentMessage = sortedMessages.at(0);
+  return nthRecentMessage ?? null;
 }
 
 export function extractMessageID(idOrUrl: string): string | null {

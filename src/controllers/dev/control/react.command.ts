@@ -7,7 +7,7 @@ import {
 import { CommandBuilder } from "../../../types/command.types";
 import {
   fetchMessageByIdentifier,
-  fetchMostRecentMessage,
+  fetchNthMostRecentMessage,
 } from "./dev-control-utils";
 
 const devReact = new CommandBuilder();
@@ -36,7 +36,7 @@ devReact.execute(async interaction => {
 
   const message = messageIdentifier
     ? await fetchMessageByIdentifier(messageIdentifier, interaction)
-    : await fetchMostRecentMessage(interaction);
+    : await fetchNthMostRecentMessage(interaction, 1);
   if (!message) return false;
 
   try {

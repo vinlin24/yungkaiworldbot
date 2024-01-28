@@ -7,6 +7,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
+import getLogger from "../../../logger";
 import {
   RoleLevel,
   checkPrivilege,
@@ -14,8 +15,10 @@ import {
 import { CommandBuilder } from "../../../types/command.types";
 import {
   fetchMessageByIdentifier,
-  fetchMostRecentMessage,
+  fetchNthMostRecentMessage,
 } from "./dev-control-utils";
+
+const log = getLogger(__filename);
 
 const devSend = new CommandBuilder();
 
@@ -78,8 +81,10 @@ async function resolveMessageToReplyTo(
   interaction: ChatInputCommandInteraction,
 ): Promise<Message | null | "invalid message"> {
   const referenceIdentifier = interaction.options.getString("reference");
-  if (referenceIdentifier === "^") {
-    return await fetchMostRecentMessage(interaction);
+  const numCarets = resolveCaretNotation(referenceIdentifier);
+  if (numCarets !== null) {
+    if (numCarets <= 0) return "invalid message";
+    return await fetchNthMostRecentMessage(interaction, numCarets);
   }
   if (referenceIdentifier) {
     const message = await fetchMessageByIdentifier(
@@ -114,6 +119,41 @@ function resolveChannelToSendTo(
     channel = reference.channel as GuildTextBasedChannel;
   }
   return channel;
+}
+
+/**
+ * The `reference` option should support notation with the caret (`^`)
+ * character, inspired by Git reference notation. Examples:
+ *
+ * - `^`: Last message. Also equivalent to `^1`.
+ * - `^^^`: Third last message. Also equivalent to `^3`.
+ * - `^5`: Fifth last message.
+ *
+ * Return a number representing the message's reverse position in the channel.
+ * For example, return 3 for the third last message.
+ */
+function resolveCaretNotation(referenceId: string | null): number | null {
+  if (referenceId === null) return null;
+
+  // ^N case.
+  const withNumberMatch = referenceId.match(/^\^(\d)+$/);
+  if (withNumberMatch) {
+    const numCarets = Number(withNumberMatch[1]);
+    if (isNaN(numCarets)) {
+      log.error(`unexpectedly extracted NaN from '${referenceId}'.`);
+      return null;
+    }
+    return numCarets;
+  }
+
+  // ^... case.
+  const fullCaretsMatch = referenceId.match(/^\^+$/);
+  if (fullCaretsMatch) {
+    return referenceId.length;
+  }
+
+  log.debug(`unrecognized /send reference caret notation: '${referenceId}'.`);
+  return null;
 }
 
 const devSendSpec = devSend.toSpec();
