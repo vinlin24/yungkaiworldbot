@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import { messageFrom } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -33,7 +33,7 @@ function getSniffsToEcho(content: string): string | null {
   return null;
 }
 
-onSniffs.filter(messageFrom(config.CXTIE_UID));
+onSniffs.filter(messageFrom(env.CXTIE_UID));
 onSniffs.execute(async (message) => {
   const responseToEcho = getSniffsToEcho(message.content);
   if (responseToEcho === null) return false;

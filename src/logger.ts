@@ -4,7 +4,7 @@ import path from "node:path";
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 
-import config from "./config";
+import env from "./config";
 
 /** Path to the directory log files should be written to. */
 const LOGS_DIR_PATH = path.join(path.dirname(__dirname), "logs");
@@ -49,13 +49,13 @@ transports.push(new winston.transports.Console({
 }));
 
 // But also add some form of persistent logging based on runtime environment.
-if (config.NODE_ENV === "development") {
+if (env.NODE_ENV === "development") {
   transports.push(new winston.transports.File({
     filename: VOLATILE_LOG_PATH,
     format: getLogFormat({ colorized: false }),
   }));
 }
-else if (config.NODE_ENV === "production") {
+else if (env.NODE_ENV === "production") {
   transports.push(new DailyRotateFile({
     dirname: LOGS_DIR_PATH,
     filename: "production-%DATE%.log",
@@ -69,7 +69,7 @@ else if (config.NODE_ENV === "production") {
 
 const baseLogger = winston.createLogger({
   levels: winston.config.syslog.levels,
-  level: config.LOGGER_LEVEL ?? "info",
+  level: env.LOGGER_LEVEL ?? "info",
   transports,
 });
 

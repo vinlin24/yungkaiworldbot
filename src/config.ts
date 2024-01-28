@@ -6,4 +6,22 @@ dotenv.config();
 
 export const ASSETS_PATH = path.join(__dirname, "assets");
 
-export default process.env;
+export const YUNG_KAI_WORLD_GID = "1101561213663580190";
+
+export const BOT_SPAM_CID = "1102459171087056897";
+export const MOD_CHAT_CID = "1162118069334855810";
+export const INTRODUCTIONS_CID = "1153997801882136576";
+export const MEDIA_CID = "1153997878457540638";
+export const ARTWORK_CID = "1102093485353480202";
+export const STINKYS_FRIENDS_CID = "1102022714769821836";
+export const MUSIC_CHAT_CID = "1102108372565753916";
+export const GAMING_CID = "1102087663688884314";
+export const COOKING_TIME_CID = "1161041458590134434";
+
+export const BOT_DEV_RID = "1186942954095525908";
+export const KAI_RID = "1101995406994444299";
+export const ALPHA_MOD_RID = "1102008787340103682";
+export const BABY_MOD_RID = "1162114191876960318";
+
+const { env } = process;
+export default env;

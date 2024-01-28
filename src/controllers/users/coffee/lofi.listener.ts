@@ -1,6 +1,6 @@
 import { Events, Message } from "discord.js";
 
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import {
   ListenerSpec,
@@ -10,7 +10,7 @@ import { formatContext } from "../../../utils/logging.utils";
 
 const log = getLogger(__filename);
 
-const { LUKE_UID, COFFEE_UID } = config;
+const { LUKE_UID, COFFEE_UID } = env;
 
 async function reactWithLOFI(message: Message) {
   await message.react("🇱");

@@ -1,6 +1,6 @@
 import { Events, Message } from "discord.js";
 
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import {
   ListenerSpec,
@@ -29,7 +29,7 @@ const chatReviveSpec: ListenerSpec<Events.MessageCreate>
     .cooldown({
       type: "user",
       defaultSeconds: 600,
-      overrides: new Map([[config.CXTIE_UID, 0]]),
+      overrides: new Map([[env.CXTIE_UID, 0]]),
     })
     .toSpec();
 

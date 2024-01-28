@@ -1,6 +1,6 @@
 jest.mock("../../../../src/services/luke.service");
 
-import config from "../../../../src/config";
+import env from "../../../../src/config";
 import randomMeowerSpec from "../../../../src/controllers/users/luke/random-meow.listener";
 import lukeService from "../../../../src/services/luke.service";
 import { MockMessage, spyOnRandom } from "../../../test-utils";
@@ -11,7 +11,7 @@ describe("random-meow listener", () => {
   let mock: MockMessage;
   beforeEach(() => {
     mock = new MockMessage(randomMeowerSpec)
-      .mockAuthor({ uid: config.LUKE_UID });
+      .mockAuthor({ uid: env.LUKE_UID });
   });
 
   describe("should meow randomly based on chance computed by service", () => {

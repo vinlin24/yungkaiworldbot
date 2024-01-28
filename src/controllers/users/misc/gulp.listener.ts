@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import {
   contentMatching,
   messageFrom,
@@ -8,7 +8,7 @@ import { replySilentlyWith } from "../../../utils/interaction.utils";
 
 const onGulp = new MessageListenerBuilder().setId("gulp");
 
-onGulp.filter(messageFrom(config.BUNNY_UID));
+onGulp.filter(messageFrom(env.BUNNY_UID));
 onGulp.filter(contentMatching(/^gulp$/i));
 onGulp.execute(replySilentlyWith("gulp"));
 onGulp.cooldown({ type: "global", seconds: 600 });

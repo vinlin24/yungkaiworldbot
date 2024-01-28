@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import { contentMatching } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -18,8 +18,8 @@ onPookie.cooldown({
   type: "user",
   defaultSeconds: 300,
   overrides: new Map([
-    [config.WAV_UID, 0],
-    [config.COFFEE_UID, 0],
+    [env.WAV_UID, 0],
+    [env.COFFEE_UID, 0],
   ]),
 });
 

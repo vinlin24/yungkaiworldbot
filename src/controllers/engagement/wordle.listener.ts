@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import _ from "lodash";
 
-import config from "../../config";
+import { BOT_SPAM_CID } from "../../config";
 import getLogger from "../../logger";
 import { inChannel } from "../../middleware/filters.middleware";
 import wordleService, {
@@ -26,7 +26,7 @@ const log = getLogger(__filename);
 
 const wordle = new MessageListenerBuilder().setId("wordle");
 
-wordle.filter(inChannel(config.BOT_SPAM_CID));
+wordle.filter(inChannel(BOT_SPAM_CID));
 wordle.execute(async message => {
   const { channel } = message;
   // TODO: Can this type guard checking be automated so we don't have to keep

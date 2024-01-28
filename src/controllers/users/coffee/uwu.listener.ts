@@ -1,6 +1,6 @@
 import { Events, Message } from "discord.js";
 
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import { contentMatching } from "../../../middleware/filters.middleware";
 import {
@@ -24,7 +24,7 @@ async function reactWithKofi(message: Message): Promise<void> {
 }
 
 async function reactBasedOnAuthor(message: Message): Promise<void> {
-  if (message.author.id === config.COFFEE_UID) {
+  if (message.author.id === env.COFFEE_UID) {
     await reactWithKofi(message);
   }
   else {
@@ -40,7 +40,7 @@ const uwuSpec: ListenerSpec<Events.MessageCreate>
     .cooldown({
       type: "global",
       seconds: 10,
-      bypassers: [config.COFFEE_UID],
+      bypassers: [env.COFFEE_UID],
     })
     .toSpec();
 

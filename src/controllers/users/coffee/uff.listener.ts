@@ -1,6 +1,6 @@
 import { Events } from "discord.js";
 
-import config from "../../../config";
+import env from "../../../config";
 import {
   contentMatching,
   messageFrom,
@@ -14,7 +14,7 @@ import { replySilentlyWith } from "../../../utils/interaction.utils";
 const uffSpec: ListenerSpec<Events.MessageCreate>
   = new MessageListenerBuilder()
     .setId("uff")
-    .filter(messageFrom(config.COFFEE_UID))
+    .filter(messageFrom(env.COFFEE_UID))
     .filter(contentMatching(/^uff+$/i))
     .execute(replySilentlyWith("woof"))
     .cooldown({ type: "global", seconds: 600 })

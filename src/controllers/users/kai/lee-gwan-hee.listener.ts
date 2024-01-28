@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { MessageFlags } from "discord.js";
 
-import config from "../../../config";
+import env from "../../../config";
 import {
   contentMatching,
   messageFrom,
@@ -18,7 +18,7 @@ const LEE_GWAN_HEE_REGEXP = /lee ?[gk]wan[ -]?hee/i;
 
 const onLeeGwanHee = new MessageListenerBuilder().setId("lee-gwan-hee");
 
-onLeeGwanHee.filter(messageFrom(config.KAI_UID));
+onLeeGwanHee.filter(messageFrom(env.KAI_UID));
 onLeeGwanHee.filter(contentMatching(LEE_GWAN_HEE_REGEXP));
 onLeeGwanHee.execute(async (interaction) => {
   await interaction.reply({

@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { ClientEvents, Collection, REST, Routes } from "discord.js";
 
-import config from "../config";
+import env, { YUNG_KAI_WORLD_GID } from "../config";
 import getLogger from "../logger";
 import { ClientWithIntentsAndRunnersABC } from "../types/client.abc";
 import {
@@ -58,7 +58,7 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     await this.loadCommands();
     const commandsJSON = this.commandRunners.map(r => r.getDeployJSON());
 
-    const { BOT_TOKEN, APPLICATION_ID, YUNG_KAI_WORLD_GID } = config;
+    const { BOT_TOKEN, APPLICATION_ID } = env;
     const rest = new REST().setToken(BOT_TOKEN);
 
     try {

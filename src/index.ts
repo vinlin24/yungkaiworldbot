@@ -1,7 +1,7 @@
 // Program entry point.
 
 import client from "./bot/client";
-import config from "./config";
+import env from "./config";
 import getLogger from "./logger";
 
 const log = getLogger(__filename);
@@ -18,7 +18,7 @@ async function main() {
   if (!success) process.exit(1);
 
   log.info("starting bot runtime...");
-  await client.login(config.BOT_TOKEN);
+  await client.login(env.BOT_TOKEN);
 }
 
 main();
