@@ -21,7 +21,11 @@ import { Matcher } from "jest-mock-extended";
 import { cloneDeep } from "lodash";
 
 import { ListenerRunner } from "../../../../src/bot/listener.runner";
-import config from "../../../../src/config";
+import env, {
+  BOT_SPAM_CID,
+  MOD_CHAT_CID,
+  YUNG_KAI_WORLD_GID,
+} from "../../../../src/config";
 import timeoutBroadcastSpec from "../../../../src/controllers/moderation/timeout/timeout-broadcast.listener";
 import {
   checkPrivilege,
@@ -98,7 +102,7 @@ const mockModChannel = {
 } as unknown as GuildTextBasedChannel;
 
 const mockGuild = {
-  id: config.YUNG_KAI_WORLD_GID,
+  id: YUNG_KAI_WORLD_GID,
   name: "yung kai world",
   members: {
     fetch: jest.fn(id => {
@@ -109,10 +113,10 @@ const mockGuild = {
   },
   channels: {
     fetch: jest.fn(id => {
-      if (id === config.BOT_SPAM_CID) {
+      if (id === BOT_SPAM_CID) {
         return Promise.resolve(mockBroadcastChannel);
       }
-      if (id === config.MOD_CHAT_CID) {
+      if (id === MOD_CHAT_CID) {
         return Promise.resolve(mockModChannel);
       }
       return Promise.resolve(null);
@@ -120,7 +124,7 @@ const mockGuild = {
   },
   client: {
     user: {
-      id: config.CLIENT_UID,
+      id: env.CLIENT_UID,
     },
   },
 } as unknown as Guild;

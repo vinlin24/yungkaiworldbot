@@ -10,7 +10,7 @@ import { GuildMember, TimestampStyles, time, userMention } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
 import { cloneDeep } from "lodash";
-import config from "../../../../src/config";
+import { ALPHA_MOD_RID, BABY_MOD_RID } from "../../../../src/config";
 import timeoutImmunitySpec from "../../../../src/controllers/moderation/timeout/set-timeout-immunity.command";
 import timeoutService from "../../../../src/services/timeout.service";
 import { durationToSeconds } from "../../../../src/utils/dates.utils";
@@ -36,7 +36,7 @@ function expectServiceNotCalled(): void {
 
 it("should require privilege level >= ALPHA_MOD", async () => {
   mock
-    .mockCaller({ roleIds: [config.BABY_MOD_RID] })
+    .mockCaller({ roleIds: [BABY_MOD_RID] })
     .mockOption("Boolean", "immune", true)
     .mockOption<GuildMember>("Member", "user", mockMember);
 
@@ -64,7 +64,7 @@ describe("granting immunity", () => {
 
   it("should grant immunity", async () => {
     mock
-      .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
+      .mockCaller({ roleIds: [ALPHA_MOD_RID] })
       .mockOption("Boolean", "immune", true)
       .mockOption<GuildMember>("Member", "user", mockMember)
       .mockOption("String", "duration", "DUMMY-DURATION");
@@ -89,7 +89,7 @@ describe("granting immunity", () => {
 
   it("should untime timed out users when granting immunity", async () => {
     mock
-      .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
+      .mockCaller({ roleIds: [ALPHA_MOD_RID] })
       .mockOption("Boolean", "immune", true)
       .mockOption("String", "duration", "DUMMY-DURATION")
       .mockOption<GuildMember>("Member", "user", {
@@ -119,7 +119,7 @@ describe("granting immunity", () => {
 
 it("should revoke immunity", async () => {
   mock
-    .mockCaller({ roleIds: [config.ALPHA_MOD_RID] })
+    .mockCaller({ roleIds: [ALPHA_MOD_RID] })
     .mockOption("Boolean", "immune", false)
     .mockOption<GuildMember>("Member", "user", mockMember);
 

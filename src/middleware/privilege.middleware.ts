@@ -1,6 +1,6 @@
 import { CommandInteraction, GuildMember, roleMention } from "discord.js";
 
-import config from "../config";
+import { ALPHA_MOD_RID, BABY_MOD_RID, BOT_DEV_RID, KAI_RID } from "../config";
 import getLogger from "../logger";
 import { CommandCheck } from "../types/command.types";
 import { iterateEnum } from "../utils/iteration.utils";
@@ -38,10 +38,10 @@ export const LEVEL_TO_RID: Record<
   Exclude<RoleLevel, RoleLevel.NONE>,
   string
 > = {
-  [RoleLevel.DEV]: config.BOT_DEV_RID,
-  [RoleLevel.KAI]: config.KAI_RID,
-  [RoleLevel.ALPHA_MOD]: config.ALPHA_MOD_RID,
-  [RoleLevel.BABY_MOD]: config.BABY_MOD_RID,
+  [RoleLevel.DEV]: BOT_DEV_RID,
+  [RoleLevel.KAI]: KAI_RID,
+  [RoleLevel.ALPHA_MOD]: ALPHA_MOD_RID,
+  [RoleLevel.BABY_MOD]: BABY_MOD_RID,
 };
 
 export function checkPrivilege(

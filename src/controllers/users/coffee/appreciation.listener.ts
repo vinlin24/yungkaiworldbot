@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import { containsCustomEmoji } from "../../../middleware/filters.middleware";
 import { MessageListenerBuilder } from "../../../types/listener.types";
 import { GUILD_EMOJIS } from "../../../utils/emojis.utils";
@@ -15,7 +15,7 @@ coffeeAppreciation.execute(replySilentlyWith("daily kofi appreciation"));
 coffeeAppreciation.cooldown({
   type: "global",
   seconds: 300,
-  bypassers: [config.COFFEE_UID],
+  bypassers: [env.COFFEE_UID],
 });
 
 const coffeeAppreciationSpec = coffeeAppreciation.toSpec();

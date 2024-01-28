@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
-import config from "../../../config";
+
+import env from "../../../config";
 import { messageFrom } from "../../../middleware/filters.middleware";
 import cxtieService from "../../../services/cxtie.service";
 import { MessageListenerBuilder } from "../../../types/listener.types";
@@ -12,7 +13,7 @@ function containsTucksHairWithPossibleMarkdown(message: Message): boolean {
   return !!message.content.match(tucksHairWithPossibleMD);
 }
 
-onRizz.filter(messageFrom(config.CXTIE_UID));
+onRizz.filter(messageFrom(env.CXTIE_UID));
 onRizz.filter(message => {
   const containsEmojis = cxtieService.containsCringeEmojis(message);
   const containsTucksHair = containsTucksHairWithPossibleMarkdown(message);

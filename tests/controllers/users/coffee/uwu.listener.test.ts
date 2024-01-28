@@ -1,4 +1,4 @@
-import config from "../../../../src/config";
+import env from "../../../../src/config";
 import uwuSpec from "../../../../src/controllers/users/coffee/uwu.listener";
 import { GUILD_EMOJIS } from "../../../../src/utils/emojis.utils";
 import { MockMessage } from "../../../test-utils";
@@ -25,7 +25,7 @@ it("should trigger even on extended uwu", async () => {
 });
 
 it("should react with kofi if coffee says uwu", async () => {
-  mock.mockContent("uwu").mockAuthor({ uid: config.COFFEE_UID });
+  mock.mockContent("uwu").mockAuthor({ uid: env.COFFEE_UID });
   await mock.simulateEvent();
   mock.expectReactedWith(GUILD_EMOJIS.KOFI);
 });

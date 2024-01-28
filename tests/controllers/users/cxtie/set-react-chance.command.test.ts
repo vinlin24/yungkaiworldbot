@@ -1,11 +1,11 @@
-import config from "../../../../src/config";
+import { BABY_MOD_RID } from "../../../../src/config";
 import setReactChanceSpec from "../../../../src/controllers/users/cxtie/set-react-chance.command";
 import cxtieService from "../../../../src/services/cxtie.service";
 import { MockInteraction } from "../../../test-utils";
 
 it("should update the service with the new chance", async () => {
   const mock = new MockInteraction(setReactChanceSpec)
-    .mockCallerRoles(config.BABY_MOD_RID)
+    .mockCallerRoles(BABY_MOD_RID)
     .mockOption("Number", "probability", 0.42);
   const setterSpy = jest.spyOn(cxtieService, "reactChance", "set");
 
@@ -17,7 +17,7 @@ it("should update the service with the new chance", async () => {
 
 it("should reply to the caller with the updated probability", async () => {
   const mock = new MockInteraction(setReactChanceSpec)
-    .mockCallerRoles(config.BABY_MOD_RID)
+    .mockCallerRoles(BABY_MOD_RID)
     .mockOption("Number", "probability", 0.42);
 
   await mock.simulateCommand();

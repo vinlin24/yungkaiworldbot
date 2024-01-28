@@ -1,7 +1,7 @@
 import { GuildTextBasedChannel, Message, MessageFlags } from "discord.js";
 import { DeepMockProxy } from "jest-mock-extended";
 
-import config from "../../../../src/config";
+import { BOT_DEV_RID, KAI_RID } from "../../../../src/config";
 import devSendSpec from "../../../../src/controllers/dev/control/send.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import { MockInteraction } from "../../../test-utils";
@@ -15,7 +15,7 @@ beforeEach(() => { mock = new MockInteraction(devSendSpec); });
 
 it("should require privilege level >= DEV", async () => {
   mock
-    .mockCaller({ roleIds: [config.KAI_RID] })
+    .mockCaller({ roleIds: [KAI_RID] })
     .mockOption("String", "content", "please let me use this");
   await mock.simulateCommand();
   expect(mock.interaction.channel!.send).not.toHaveBeenCalled();
@@ -24,7 +24,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should forward content to current channel", async () => {
   mock
-    .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "content", "hello there");
   await mock.simulateCommand();
   expect(mock.interaction.channel!.send).toHaveBeenCalledWith(
@@ -36,7 +36,7 @@ it("should forward content to current channel", async () => {
 it("should forward content to specified channel", async () => {
   const mockChannel = { send: jest.fn() } as unknown as GuildTextBasedChannel;
   mock
-    .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "content", "general kenobi")
     .mockOption<GuildTextBasedChannel>("Channel", "channel", mockChannel);
   await mock.simulateCommand();
@@ -48,7 +48,7 @@ it("should forward content to specified channel", async () => {
 
 it("should enable mentions by default", async () => {
   mock
-    .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "content", "you are a bold one");
   await mock.simulateCommand();
   expect(mock.interaction.channel!.send).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ it("should enable mentions by default", async () => {
 
 it("should disable mentions if explicitly specified", async () => {
   mock
-    .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "content", "you're shorter than i expected")
     .mockOption("Boolean", "silent", true);
   await mock.simulateCommand();
@@ -92,7 +92,7 @@ describe("replying to another message", () => {
 
   it("should reply to the correct message (using ID)", async () => {
     mock
-      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
       .mockOption("String", "content", "jedi scum")
       .mockOption("String", "reference", dummyMessageId);
     const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -106,7 +106,7 @@ describe("replying to another message", () => {
   it("should reply to the correct message (using URL)", async () => {
     const dummyUrl = `https://discord.com/channels/3344/6677/${dummyMessageId}`;
     mock
-      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
       .mockOption("String", "content", "it's over anakin")
       .mockOption("String", "reference", dummyUrl);
     const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -120,7 +120,7 @@ describe("replying to another message", () => {
   describe("caret notation", () => {
     beforeEach(() => {
       mock
-        .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+        .mockCaller({ roleIds: [BOT_DEV_RID] })
         .mockOption("String", "content", "i have the high ground");
     });
 
@@ -157,7 +157,7 @@ describe("replying to another message", () => {
 
   it("should reject invalid message identifiers", async () => {
     mock
-      .mockCaller({ roleIds: [config.BOT_DEV_RID] })
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
       .mockOption("String", "content", "you underestimate my power")
       .mockOption("String", "reference", "don't try it");
 

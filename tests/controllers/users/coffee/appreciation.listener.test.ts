@@ -1,4 +1,4 @@
-import config from "../../../../src/config";
+import env from "../../../../src/config";
 import coffeeAppreciationSpec from "../../../../src/controllers/users/coffee/appreciation.listener";
 import { GUILD_EMOJIS } from "../../../../src/utils/emojis.utils";
 import { MockMessage } from "../../../test-utils";
@@ -15,7 +15,7 @@ it("should appreciate coffee when conditions are met", async () => {
 it("should allow coffee to bypass cooldown", async () => {
   const mock = new MockMessage(coffeeAppreciationSpec)
     .mockContent(`lorem ${KOFI_EMOJI} ipsum`)
-    .mockAuthor({ uid: config.COFFEE_UID });
+    .mockAuthor({ uid: env.COFFEE_UID });
 
   await mock.simulateEvent();
   await mock.simulateEvent();

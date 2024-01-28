@@ -1,6 +1,6 @@
 jest.mock("../../../../src/services/cxtie.service");
 
-import config from "../../../../src/config";
+import env from "../../../../src/config";
 import randomReacterSpec from "../../../../src/controllers/users/cxtie/timer-reacter.listener";
 import cxtieService from "../../../../src/services/cxtie.service";
 import { GUILD_EMOJIS } from "../../../../src/utils/emojis.utils";
@@ -14,7 +14,7 @@ describe("anti-cxtie listener", () => {
   let mock: MockMessage;
   beforeEach(() => {
     mock = new MockMessage(randomReacterSpec)
-      .mockAuthor({ uid: config.CXTIE_UID });
+      .mockAuthor({ uid: env.CXTIE_UID });
   });
 
   describe("should react randomly based on chance computed by service", () => {

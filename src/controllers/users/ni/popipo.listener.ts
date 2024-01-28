@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import {
   channelPollutionAllowedOrBypass,
@@ -14,7 +14,7 @@ const log = getLogger(__filename);
 const onPopipo = new MessageListenerBuilder().setId("popipo");
 
 onPopipo.filter(contentMatching(/(popipo|뽀삐뽀)/i));
-onPopipo.filter(channelPollutionAllowedOrBypass(config.NI_UID));
+onPopipo.filter(channelPollutionAllowedOrBypass(env.NI_UID));
 
 onPopipo.execute(async (message) => {
   const randomNum = randRange(2, 6);
@@ -26,7 +26,7 @@ onPopipo.execute(async (message) => {
 onPopipo.cooldown({
   type: "user",
   defaultSeconds: 60,
-  overrides: new Map([[config.NI_UID, 0]]),
+  overrides: new Map([[env.NI_UID, 0]]),
 });
 
 const onPopipoSpec = onPopipo.toSpec();

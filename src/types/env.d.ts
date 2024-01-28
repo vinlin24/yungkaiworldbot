@@ -31,73 +31,6 @@ declare global {
      * Client application ID generated on the Discord Developer Dashboard.
      */
     APPLICATION_ID: string;
-    /**
-     * Guild ID of yung kai world, the sole server for which this bot is
-     * specialized.
-     */
-    YUNG_KAI_WORLD_GID: string;
-
-    // ////////////////////////// //
-    //      Discord Role IDs      //
-    // ////////////////////////// //
-
-    /**
-     * Role ID for bot developers.
-     */
-    BOT_DEV_RID: string;
-    /**
-     * Role ID for Kai, the server owner.
-     */
-    KAI_RID: string;
-    /**
-     * Role ID for "alpha mods", the greater moderator role of the server.
-     */
-    ALPHA_MOD_RID: string;
-    /**
-     * Role ID for "baby mods", the lesser moderator role of the server.
-     */
-    BABY_MOD_RID: string;
-
-    // //////////////////////////// //
-    //      Discord Channel IDs     //
-    // //////////////////////////// //
-
-    /**
-     * ID of the text channel where bot commands are generally directed.
-     */
-    BOT_SPAM_CID: string;
-    /**
-     * ID of the text channel for moderator discussion.
-     */
-    MOD_CHAT_CID: string;
-    /**
-     * ID of the text channel where new members introduce themselves.
-     */
-    INTRODUCTIONS_CID: string;
-    /**
-     * ID of the text channel for general pictures, photographs, and GIFs.
-     */
-    MEDIA_CID: string;
-    /**
-     * ID of the text channel for artwork.
-     */
-    ARTWORK_CID: string;
-    /**
-     * ID of the text channel for pet pictures.
-     */
-    STINKYS_FRIENDS_CID: string;
-    /**
-     * ID of the text channel for music discussion or song links.
-     */
-    MUSIC_CHAT_CID: string;
-    /**
-     * ID of the text channel for gaming-related discussion.
-     */
-    GAMING_CID: string;
-    /**
-     * ID of the text channel for recipes and food pictures.
-     */
-    COOKING_TIME_CID: string;
 
     // ////////////////////////// //
     //      Discord User IDs      //
@@ -139,16 +72,6 @@ declare global {
     [K in keyof EnvironmentVariables]: K extends Template ? K : never;
   }[keyof EnvironmentVariables], undefined>;
 
-  /**
-   * Utility type for narrowing a string to the available CID environment
-   * variable keys.
-   */
-  type CIDKey = KeyWithFormat<`${string}_CID`>;
-  /**
-   * Utility type for narrowing a string to the available RID environment
-   * variable keys.
-   */
-  type RIDKey = KeyWithFormat<`${string}_RID`>;
   /**
    * Utility type for narrowing a string to the available UID environment
    * variable keys.

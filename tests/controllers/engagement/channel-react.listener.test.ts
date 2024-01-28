@@ -1,6 +1,14 @@
 import { Attachment, Message } from "discord.js";
 
-import config from "../../../src/config";
+import {
+  ARTWORK_CID,
+  COOKING_TIME_CID,
+  GAMING_CID,
+  INTRODUCTIONS_CID,
+  MEDIA_CID,
+  MUSIC_CHAT_CID,
+  STINKYS_FRIENDS_CID,
+} from "../../../src/config";
 import channelReactSpec from "../../../src/controllers/engagement/channel-react.listener";
 import { MockMessage } from "../../test-utils";
 
@@ -15,31 +23,31 @@ describe("PATTERN 1: non-reply messages with image attachments", () => {
   }
 
   it("should react to posted artwork", async () => {
-    arrangeWithAttachment(config.ARTWORK_CID);
+    arrangeWithAttachment(ARTWORK_CID);
     await mock.simulateEvent();
     mock.expectReactedWith("🤩");
   });
 
   it("should react to posted media", async () => {
-    arrangeWithAttachment(config.MEDIA_CID);
+    arrangeWithAttachment(MEDIA_CID);
     await mock.simulateEvent();
     mock.expectReactedWith("❤️");
   });
 
   it("should react to posted pet pictures", async () => {
-    arrangeWithAttachment(config.STINKYS_FRIENDS_CID);
+    arrangeWithAttachment(STINKYS_FRIENDS_CID);
     await mock.simulateEvent();
     mock.expectReactedWith("🥺");
   });
 
   it("should react to gaming pictures", async () => {
-    arrangeWithAttachment(config.GAMING_CID);
+    arrangeWithAttachment(GAMING_CID);
     await mock.simulateEvent();
     mock.expectReactedWith("🫡");
   });
 
   it("should react to food pictures", async () => {
-    arrangeWithAttachment(config.COOKING_TIME_CID);
+    arrangeWithAttachment(COOKING_TIME_CID);
     await mock.simulateEvent();
     mock.expectReactedWith("🤤");
   });
@@ -48,7 +56,7 @@ describe("PATTERN 1: non-reply messages with image attachments", () => {
 describe("PATTERN 2: messages that have no replies", () => {
   it("should wave at what looks like an introduction", async () => {
     mock
-      .mockChannel({ cid: config.INTRODUCTIONS_CID })
+      .mockChannel({ cid: INTRODUCTIONS_CID })
       .mockContent("hi i'm joe");
     await mock.simulateEvent();
     mock.expectReactedWith("👋");
@@ -56,7 +64,7 @@ describe("PATTERN 2: messages that have no replies", () => {
 
   it("should ignore messages that are replies", async () => {
     mock
-      .mockChannel({ cid: config.INTRODUCTIONS_CID })
+      .mockChannel({ cid: INTRODUCTIONS_CID })
       .mockContent("hi joe i'm dave")
       .mockReference({ content: "hi i'm joe" } as Message);
     await mock.simulateEvent();
@@ -67,7 +75,7 @@ describe("PATTERN 2: messages that have no replies", () => {
 describe("PATTERN 3: Spotify song links", () => {
   it("should react to shared song links", async () => {
     mock
-      .mockChannel({ cid: config.MUSIC_CHAT_CID })
+      .mockChannel({ cid: MUSIC_CHAT_CID })
       .mockContent(
         "yo this song is fire: https://open.spotify.com/track/" +
         "5Yiwmn4PZAzVAms9UDICU2?si=ae5ddf5fd3f345ce lol",
@@ -77,7 +85,7 @@ describe("PATTERN 3: Spotify song links", () => {
   });
 
   it("should ignore messages that don't contain song links", async () => {
-    mock.mockChannel({ cid: config.MUSIC_CHAT_CID }).mockContent("nice one!");
+    mock.mockChannel({ cid: MUSIC_CHAT_CID }).mockContent("nice one!");
     await mock.simulateEvent();
     mock.expectNotResponded();
   });

@@ -1,4 +1,4 @@
-import config from "../../../../src/config";
+import env from "../../../../src/config";
 import onSniffsSpec from "../../../../src/controllers/users/cxtie/sniffs.listener";
 import {
   GUILD_EMOJIS,
@@ -20,7 +20,7 @@ describe("sniffs listener", () => {
   it("should echo sniffs half the time", async () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent("sniffs")
-      .mockAuthor({ uid: config.CXTIE_UID });
+      .mockAuthor({ uid: env.CXTIE_UID });
     spyOnRandom().mockReturnValueOnce(0.99);
     await mock.simulateEvent();
     mock.expectRepliedSilentlyWith({ content: "sniffs" });
@@ -29,7 +29,7 @@ describe("sniffs listener", () => {
   it("should appreciatie cxtie half the time", async () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent("sniffs")
-      .mockAuthor({ uid: config.CXTIE_UID });
+      .mockAuthor({ uid: env.CXTIE_UID });
     spyOnRandom().mockReturnValueOnce(0);
     await mock.simulateEvent();
     mock.expectRepliedSilentlyWith({ content: "daily cxtie appreciation" });
@@ -42,7 +42,7 @@ describe("sniffs listener", () => {
     });
     const mock = new MockMessage(onSniffsSpec)
       .mockContent(`You ${sniffsEmoji} make me cry ${sniffsEmoji}!`)
-      .mockAuthor({ uid: config.CXTIE_UID });
+      .mockAuthor({ uid: env.CXTIE_UID });
     spyOnRandom().mockReturnValueOnce(0.99);
 
     await mock.simulateEvent();
@@ -53,7 +53,7 @@ describe("sniffs listener", () => {
   it("should do nothing if neither condition is met", async () => {
     const mock = new MockMessage(onSniffsSpec)
       .mockContent("hello there")
-      .mockAuthor({ uid: config.CXTIE_UID });
+      .mockAuthor({ uid: env.CXTIE_UID });
     await mock.simulateEvent();
     mock.expectNotResponded();
   });

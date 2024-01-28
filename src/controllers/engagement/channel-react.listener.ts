@@ -1,6 +1,14 @@
 import { EmojiIdentifierResolvable, Events, Message } from "discord.js";
 
-import config from "../../config";
+import {
+  ARTWORK_CID,
+  COOKING_TIME_CID,
+  GAMING_CID,
+  INTRODUCTIONS_CID,
+  MEDIA_CID,
+  MUSIC_CHAT_CID,
+  STINKYS_FRIENDS_CID,
+} from "../../config";
 import getLogger from "../../logger";
 import {
   ListenerSpec,
@@ -19,15 +27,15 @@ function getEmojiToUse(message: Message): EmojiIdentifierResolvable | null {
   // PATTERN 1.
   if (!isAReply && hasImage) {
     switch (channelId) {
-      case config.ARTWORK_CID:
+      case ARTWORK_CID:
         return "🤩";
-      case config.MEDIA_CID:
+      case MEDIA_CID:
         return "❤️";
-      case config.STINKYS_FRIENDS_CID:
+      case STINKYS_FRIENDS_CID:
         return "🥺";
-      case config.GAMING_CID:
+      case GAMING_CID:
         return "🫡";
-      case config.COOKING_TIME_CID:
+      case COOKING_TIME_CID:
         return "🤤";
       default:
         return null;
@@ -35,7 +43,7 @@ function getEmojiToUse(message: Message): EmojiIdentifierResolvable | null {
   }
 
   // PATTERN 2.
-  if (channelId === config.INTRODUCTIONS_CID && !isAReply) {
+  if (channelId === INTRODUCTIONS_CID && !isAReply) {
     return "👋";
   }
 
@@ -47,7 +55,7 @@ function getEmojiToUse(message: Message): EmojiIdentifierResolvable | null {
   );
 
   // PATTERN 3.
-  if (channelId === config.MUSIC_CHAT_CID && spotifyLinkPattern.exec(content)) {
+  if (channelId === MUSIC_CHAT_CID && spotifyLinkPattern.exec(content)) {
     return "🔥";
   }
 

@@ -1,5 +1,6 @@
 import { MessageFlags, userMention } from "discord.js";
-import config from "../../../config";
+
+import env from "../../../config";
 import {
   contentMatching,
   messageFrom,
@@ -8,15 +9,15 @@ import { MessageListenerBuilder } from "../../../types/listener.types";
 
 const helloWorld = new MessageListenerBuilder().setId("hello-world");
 
-helloWorld.filter(messageFrom(config.S_UID));
+helloWorld.filter(messageFrom(env.S_UID));
 helloWorld.filter(contentMatching(/^(# )?hello world[.~!?-]*$/i));
 helloWorld.execute(async (message) => {
-  const tacoMention = userMention(config.TACO_UID);
+  const tacoMention = userMention(env.TACO_UID);
   await message.reply({
     content: tacoMention,
     allowedMentions: {
       repliedUser: false,
-      users: [config.TACO_UID],
+      users: [env.TACO_UID],
     },
     flags: MessageFlags.SuppressNotifications,
   });

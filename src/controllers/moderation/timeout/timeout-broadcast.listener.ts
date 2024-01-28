@@ -15,7 +15,11 @@ import {
   userMention,
 } from "discord.js";
 
-import config from "../../../config";
+import {
+  BOT_SPAM_CID,
+  MOD_CHAT_CID,
+  YUNG_KAI_WORLD_GID,
+} from "../../../config";
 import getLogger from "../../../logger";
 import {
   RoleLevel,
@@ -180,7 +184,7 @@ class TimeoutLogEventHandler {
     if (!isLongTimeout) return;
 
     if (!this.modChannel) {
-      log.error(`no channel found with CID=${config.MOD_CHAT_CID}`);
+      log.error(`no channel found with CID=${MOD_CHAT_CID}`);
       return;
     }
 
@@ -284,7 +288,7 @@ class TimeoutLogEventHandler {
 
     try {
       if (!this.broadcastChannel) {
-        log.error(`no channel found with CID=${config.BOT_SPAM_CID}.`);
+        log.error(`no channel found with CID=${BOT_SPAM_CID}.`);
         failed = true;
       }
       else {
@@ -302,7 +306,7 @@ class TimeoutLogEventHandler {
   }
 }
 
-timeoutBroadcast.filter((_, guild) => guild.id === config.YUNG_KAI_WORLD_GID);
+timeoutBroadcast.filter((_, guild) => guild.id === YUNG_KAI_WORLD_GID);
 timeoutBroadcast.filter(entry => entry.action === AuditLogEvent.MemberUpdate);
 
 timeoutBroadcast.execute(async (auditLogEntry, guild) => {
@@ -314,9 +318,9 @@ timeoutBroadcast.execute(async (auditLogEntry, guild) => {
   const target = await guild.members.fetch(targetId!);
 
   const dmChannel = await getDMChannel(target);
-  const broadcastChannel = await guild.channels.fetch(config.BOT_SPAM_CID) as
+  const broadcastChannel = await guild.channels.fetch(BOT_SPAM_CID) as
     GuildTextBasedChannel | null;
-  const modChannel = await guild.channels.fetch(config.MOD_CHAT_CID) as
+  const modChannel = await guild.channels.fetch(MOD_CHAT_CID) as
     GuildTextBasedChannel | null;
 
   const handler = new TimeoutLogEventHandler(

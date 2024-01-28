@@ -3,7 +3,7 @@ jest.mock("../../../src/utils/meta.utils");
 import { EmbedBuilder } from "discord.js";
 import { Matcher } from "jest-mock-extended";
 
-import config from "../../../src/config";
+import { BOT_DEV_RID, KAI_RID } from "../../../src/config";
 import reloadSpec from "../../../src/controllers/dev/reload.command";
 import { getCurrentBranchName } from "../../../src/utils/meta.utils";
 import { MockInteraction } from "../../test-utils";
@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 it("should require privilege level >= DEV", async () => {
-  mock.mockCallerRoles(config.KAI_RID);
+  mock.mockCallerRoles(KAI_RID);
 
   await mock.simulateCommand();
 
@@ -37,7 +37,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should clear defs, deploy commands, and reload defs", async () => {
   mock
-    .mockCallerRoles(config.BOT_DEV_RID)
+    .mockCallerRoles(BOT_DEV_RID)
     .mockOption("Boolean", "redeploy_slash_commands", true);
 
   await mock.simulateCommand();
@@ -49,7 +49,7 @@ it("should clear defs, deploy commands, and reload defs", async () => {
 });
 
 it("shouldn't deploy commands if option not explicitly set", async () => {
-  mock.mockCallerRoles(config.BOT_DEV_RID);
+  mock.mockCallerRoles(BOT_DEV_RID);
 
   await mock.simulateCommand();
 
@@ -60,7 +60,7 @@ it("shouldn't deploy commands if option not explicitly set", async () => {
 });
 
 it("should update the client's branch name", async () => {
-  mock.mockCallerRoles(config.BOT_DEV_RID);
+  mock.mockCallerRoles(BOT_DEV_RID);
   mockedGetCurrentBranchName.mockReturnValueOnce("DUMMY-BRANCH-NAME");
 
   await mock.simulateCommand();
@@ -71,7 +71,7 @@ it("should update the client's branch name", async () => {
 describe("error handling", () => {
   beforeEach(() => {
     mock
-      .mockCallerRoles(config.BOT_DEV_RID)
+      .mockCallerRoles(BOT_DEV_RID)
       .mockOption("Boolean", "redeploy_slash_commands", true);
 
     // Also suppress console.error output.

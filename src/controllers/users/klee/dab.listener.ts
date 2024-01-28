@@ -1,4 +1,4 @@
-import config from "../../../config";
+import env from "../../../config";
 import getLogger from "../../../logger";
 import {
   channelPollutionAllowedOrBypass,
@@ -17,7 +17,7 @@ const onDab = new MessageListenerBuilder().setId("dab");
 onDab.filter(ignoreBots);
 onDab.filter(contentMatching(/^dab$/i));
 onDab.filter({
-  predicate: channelPollutionAllowedOrBypass(config.KLEE_UID),
+  predicate: channelPollutionAllowedOrBypass(env.KLEE_UID),
   onFail: async (message) => await message.react(GUILD_EMOJIS.NEKO_L),
 });
 
@@ -29,7 +29,7 @@ onDab.execute(async (message) => {
 onDab.cooldown({
   type: "global",
   seconds: 600,
-  bypassers: [config.KLEE_UID],
+  bypassers: [env.KLEE_UID],
   async onCooldown(message) {
     await message.react(GUILD_EMOJIS.NEKO_L);
   },
