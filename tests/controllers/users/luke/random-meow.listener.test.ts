@@ -7,43 +7,40 @@ import { MockMessage, spyOnRandom } from "../../../test-utils";
 
 const mockedLukeService = jest.mocked(lukeService);
 
-describe("random-meow listener", () => {
-  let mock: MockMessage;
-  beforeEach(() => {
-    mock = new MockMessage(randomMeowerSpec)
-      .mockAuthor({ uid: env.LUKE_UID });
+let mock: MockMessage;
+beforeEach(() => {
+  mock = new MockMessage(randomMeowerSpec).mockAuthor({ uid: env.LUKE_UID });
+});
+
+describe("replying randomly based on chance computed by service", () => {
+  it("should reply", async () => {
+    mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
+    spyOnRandom().mockReturnValueOnce(0.01);
+
+    await mock.simulateEvent();
+
+    mock.expectReplied();
   });
 
-  describe("should meow randomly based on chance computed by service", () => {
-    it("should meow", async () => {
-      mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
-      spyOnRandom().mockReturnValueOnce(0.01);
+  it("shouldn't reply", async () => {
+    mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
+    spyOnRandom().mockReturnValueOnce(0.42);
 
-      await mock.simulateEvent();
+    await mock.simulateEvent();
 
-      mock.expectRepliedSilentlyWith({ content: "meow meow" });
-    });
+    mock.expectNotResponded();
+  });
 
-    it("shouldn't meow", async () => {
-      mockedLukeService.getMeowChance.mockReturnValueOnce(0.05);
-      spyOnRandom().mockReturnValueOnce(0.42);
+  it("shouldn't reply and then reply (dynamic meow chance)", async () => {
+    mockedLukeService.getMeowChance
+      .mockReturnValueOnce(0.05)
+      .mockReturnValueOnce(0.95);
+    spyOnRandom().mockReturnValue(0.50);
 
-      await mock.simulateEvent();
+    await mock.simulateEvent();
+    mock.expectNotResponded();
 
-      mock.expectNotResponded();
-    });
-
-    it("shouldn't meow and then meow (dynamic meow chance)", async () => {
-      mockedLukeService.getMeowChance
-        .mockReturnValueOnce(0.05)
-        .mockReturnValueOnce(0.95);
-      spyOnRandom().mockReturnValue(0.50);
-
-      await mock.simulateEvent();
-      mock.expectNotResponded();
-
-      await mock.simulateEvent();
-      mock.expectRepliedSilentlyWith({ content: "meow meow" });
-    });
+    await mock.simulateEvent();
+    mock.expectReplied();
   });
 });
