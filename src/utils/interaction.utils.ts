@@ -1,8 +1,10 @@
 import {
+  ChatInputCommandInteraction,
   DMChannel,
   EmojiResolvable,
   Events,
   GuildMember,
+  InteractionReplyOptions,
   Message,
   MessageCreateOptions,
   MessageFlags,
@@ -69,4 +71,15 @@ export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
  */
 export async function getDMChannel(member: GuildMember): Promise<DMChannel> {
   return member.dmChannel ?? await member.createDM();
+}
+
+export async function replyWithGenericACK(
+  interaction: ChatInputCommandInteraction,
+  options?: Omit<InteractionReplyOptions, "content">,
+): Promise<void> {
+  await interaction.reply({
+    content: "👍",
+    ephemeral: true, // Default to ephemeral (possibly overridden thru options).
+    ...(options ?? {}),
+  });
 }
