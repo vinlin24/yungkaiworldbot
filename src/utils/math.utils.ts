@@ -1,5 +1,7 @@
 /**
  * Return a random integer in the inclusive range [`lower`, `upper`].
+ *
+ * @deprecated Use `_.random()` from lodash instead.
  */
 export function randRange(lower: number, upper: number): number {
   if (!Number.isInteger(lower)) {
