@@ -170,6 +170,11 @@ export class MockInteraction {
     // null` is to pacify this TS error when switching param value from `any` to
     // `T`. Code still works as expected.
     options[`get${type}`].calledWith(name).mockReturnValue(value as null);
+    if (type === "User") {
+      // SlashCommandBuilder doesn't define an `addMemberOption`, but
+      // interaction.options has `getMember`...
+      options.getMember.calledWith(name).mockReturnValue(value as null);
+    }
     return this;
   }
 
