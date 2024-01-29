@@ -18,3 +18,8 @@ export function isMissingPermissions(error: unknown):
   error is DiscordAPIErrorWithCode<50013> {
   return error instanceof DiscordAPIError && error.code === 50013;
 }
+
+export function isReactionBlocked(error: unknown):
+  error is DiscordAPIErrorWithCode<90001> {
+  return error instanceof DiscordAPIError && error.code === 90001;
+}
