@@ -1,6 +1,7 @@
 import { ClientEvents } from "discord.js";
 
 import getLogger from "../logger";
+import { isReactionBlocked } from "../types/errors.types";
 import { ListenerSpec } from "../types/listener.types";
 
 const log = getLogger(__filename);
@@ -108,6 +109,16 @@ export class ListenerRunner<Type extends keyof ClientEvents> {
   }
 
   protected handleListenerError(error: Error): void {
-    console.error(error);
+    if (isReactionBlocked(error)) {
+      // TODO: Maybe define a helper function that all controllers can use to
+      // react to a message such that errors can still be handled in one place
+      // but can have access to the message's context.
+      log.warning("reaction blocked.");
+    }
+    // Extend the if-else ladder for other error types to specially handle.
+    else {
+      console.error(error);
+    }
+
   }
 }
