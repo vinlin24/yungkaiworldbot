@@ -11,6 +11,7 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../middleware/privilege.middleware";
+import settingsService from "../../services/settings.service";
 import { CommandBuilder, CommandSpec } from "../../types/command.types";
 import { iterateEnum } from "../../utils/iteration.utils";
 import { formatContext } from "../../utils/logging.utils";
@@ -76,6 +77,7 @@ async function updateBotPresence(
   // Ignore the other activity options and just clear the activity.
   if (clearActivity) {
     client.user.setActivity();
+    await settingsService.updatePresence(null);
   }
   else {
     // Activity requires a name. Type is optional. If the caller specifies a
@@ -92,15 +94,19 @@ async function updateBotPresence(
     if (activityName) {
       const activityTypeValue = activityType
         ? ActivityType[activityType]
-        : undefined;
+        : ActivityType.Custom;
       client.user.setActivity({
         name: activityName,
         type: activityTypeValue,
       });
       log.info(
         `${context}: set bot activity to ` +
-        `(${activityTypeValue}, ${activityName}).`,
+        `(${ActivityType[activityTypeValue]}, ${activityName}).`,
       );
+      await settingsService.updatePresence({
+        activity_type: activityType ?? "Custom",
+        activity_name: activityName,
+      });
     }
   }
 

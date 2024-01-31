@@ -6,12 +6,12 @@ export type SettingKeys =
 
 export interface ISettings {
   key: SettingKeys;
-  value: string;
+  value: string | null;
 }
 
 export type PresenceEntry = {
-  activity_type?: keyof typeof ActivityType;
-  activity_name?: string;
+  activity_type: keyof typeof ActivityType;
+  activity_name: string;
 };
 
 const settingsSchema = new Schema<ISettings>({
