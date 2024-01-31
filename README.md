@@ -305,3 +305,16 @@ From [listener.runner.ts](src/bot/listener.runner.ts):
  *    -> error: handleListenerError, DON'T short-circuit
  */
 ```
+
+
+### Database
+
+This bot uses [MongoDB](https://www.mongodb.com/) for persistent storage. You
+can use this script to connect to the MongoDB cluster:
+
+```sh
+scripts/db-connect.sh
+```
+
+This automatically loads the [.env](#environment-file) file and uses the
+`DB_CONN_STRING` to connect to the cluster.

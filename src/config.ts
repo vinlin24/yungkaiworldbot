@@ -1,8 +1,18 @@
 import path from "node:path";
 
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
 dotenv.config();
+
+/**
+ * Open a connection to the MongoDB database.
+ */
+export async function connectToDatabase(): Promise<void> {
+  await mongoose.connect(process.env.DB_CONN_STRING, {
+    dbName: process.env.DB_NAME,
+  });
+}
 
 export const ASSETS_PATH = path.join(__dirname, "assets");
 
