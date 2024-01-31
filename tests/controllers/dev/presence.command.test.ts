@@ -1,3 +1,5 @@
+jest.mock("../../../src/services/settings.service");
+
 import {
   ActivityOptions,
   ActivityType,
@@ -9,6 +11,8 @@ import presenceSpec, {
   ActivityTypeName,
   PresenceUpdateStatusName,
 } from "../../../src/controllers/dev/presence.command";
+import { RoleLevel } from "../../../src/middleware/privilege.middleware";
+import settingsService from "../../../src/services/settings.service";
 import { MockInteraction } from "../../test-utils";
 
 let mock: MockInteraction;
@@ -17,32 +21,39 @@ beforeEach(() => {
 });
 
 it("should require privilege >= DEV", async () => {
-  mock.mockCallerRoles(KAI_RID);
-  mock.mockOption("Boolean", "clear_activity", true);
+  mock
+    .mockCaller({ roleIds: [KAI_RID] })
+    .mockOption("Boolean", "clear_activity", true);
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setActivity).not.toHaveBeenCalled();
   expect(mock.interaction.client.user.setStatus).not.toHaveBeenCalled();
-  mock.expectRepliedWith({
-    // Any mention of the DEV level.
-    content: expect.stringMatching(/\bDEV\b/i),
-    ephemeral: true,
-  });
+  expect(settingsService.getPresence).not.toHaveBeenCalled();
+  expect(settingsService.updatePresence).not.toHaveBeenCalled();
+  mock.expectMentionedMissingPrivilege(RoleLevel.DEV);
 });
 
 it("should clear the activity as long as the flag is set", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("Boolean", "clear_activity", true)
     .mockOption("String", "activity_name", "unit testing!");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setActivity).toHaveBeenLastCalledWith();
+  expect(settingsService.updatePresence).toHaveBeenCalledWith(null);
   mock.expectReplied();
 });
 
 it("should disallow providing an activity type without a name", async () => {
-  mock.mockCallerRoles(BOT_DEV_RID);
-  mock.mockOption<ActivityTypeName>("String", "activity_type", "Listening");
+  mock
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockOption<ActivityTypeName>("String", "activity_type", "Listening");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setActivity).not.toHaveBeenCalled();
   expect(mock.interaction.client.user.setStatus).not.toHaveBeenCalled();
   mock.expectRepliedWith({
@@ -53,37 +64,54 @@ it("should disallow providing an activity type without a name", async () => {
 
 it("should set the activity name if provided", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "activity_name", "unit testing!");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setActivity).toHaveBeenLastCalledWith(
-    expect.objectContaining<ActivityOptions>({ name: "unit testing!" }),
+    expect.objectContaining<ActivityOptions>({
+      name: "unit testing!",
+      type: ActivityType.Custom,
+    }),
   );
+  expect(settingsService.updatePresence).toHaveBeenCalledWith({
+    activity_type: "Custom",
+    activity_name: "unit testing!",
+  });
   expect(mock.interaction.client.user.setStatus).not.toHaveBeenCalled();
   mock.expectReplied();
 });
 
 it("should set the activity name with type if provided", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("String", "activity_name", "unit testing!")
     .mockOption<ActivityTypeName>("String", "activity_type", "Listening");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setActivity).toHaveBeenLastCalledWith(
     expect.objectContaining<ActivityOptions>({
       name: "unit testing!",
       type: ActivityType.Listening,
     }),
   );
+  expect(settingsService.updatePresence).toHaveBeenCalledWith({
+    activity_type: "Listening",
+    activity_name: "unit testing!",
+  });
   expect(mock.interaction.client.user.setStatus).not.toHaveBeenCalled();
   mock.expectReplied();
 });
 
 it("should set the status if provided", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption<PresenceUpdateStatusName>("String", "status", "Idle");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setStatus).toHaveBeenLastCalledWith(
     PresenceUpdateStatus.Idle,
   );
@@ -93,11 +121,13 @@ it("should set the status if provided", async () => {
 
 it("should set everything if all provided", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption<PresenceUpdateStatusName>("String", "status", "Idle")
     .mockOption<ActivityTypeName>("String", "activity_type", "Listening")
     .mockOption("String", "activity_name", "unit testing!");
+
   await mock.simulateCommand();
+
   expect(mock.interaction.client.user.setStatus).toHaveBeenLastCalledWith(
     PresenceUpdateStatus.Idle,
   );
@@ -107,4 +137,8 @@ it("should set everything if all provided", async () => {
       type: ActivityType.Listening,
     }),
   );
+  expect(settingsService.updatePresence).toHaveBeenCalledWith({
+    activity_type: "Listening",
+    activity_name: "unit testing!",
+  });
 });
