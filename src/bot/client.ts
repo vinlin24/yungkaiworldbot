@@ -34,9 +34,11 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     SPECIAL_LISTENERS_DIR_PATH,
   );
 
-  public override async prepareRuntime(): Promise<boolean> {
+  public override async prepareRuntime(
+    disableListeners = false,
+  ): Promise<boolean> {
     await this.loadCommands();
-    await this.loadListeners();
+    await this.loadListeners(disableListeners);
 
     try {
       this.registerListeners();
@@ -92,8 +94,8 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     }
   }
 
-  private async loadListeners(): Promise<void> {
-    const allListenerSpecs = await this.listenerLoader.load();
+  private async loadListeners(specialOnly?: boolean): Promise<void> {
+    const allListenerSpecs = await this.listenerLoader.load(specialOnly);
     for (const spec of allListenerSpecs) {
       const { id, type } = spec;
       this.listenerRunners.set(id, new ListenerRunner(spec));

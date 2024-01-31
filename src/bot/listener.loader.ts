@@ -71,11 +71,14 @@ export class ListenerLoader {
     return null;
   }
 
-  public async load(): Promise<ListenerSpec<any>[]> {
+  public async load(specialOnly?: boolean): Promise<ListenerSpec<any>[]> {
     const specs: ListenerSpec<any>[] = [];
     const customListenerPaths = this.discoverListenerFiles();
     const specialListenerPaths = this.discoverSpecialListenerFiles();
-    const listenerPaths = [...specialListenerPaths, ...customListenerPaths];
+
+    const listenerPaths = specialOnly
+      ? specialListenerPaths
+      : [...specialListenerPaths, ...customListenerPaths];
 
     for (const fullPath of listenerPaths) {
       const module = await dynamicRequire(fullPath);

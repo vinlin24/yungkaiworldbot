@@ -13,8 +13,12 @@ async function main() {
     return;
   }
 
-  log.info("preparing bot runtime...");
-  const success = client.prepareRuntime();
+  const disableListeners = process.argv.includes("--disable-listeners");
+  log.info(
+    "preparing bot runtime..." +
+    (disableListeners ? " (listeners disabled)" : ""),
+  );
+  const success = client.prepareRuntime(disableListeners);
   if (!success) process.exit(1);
 
   log.info("starting bot runtime...");

@@ -107,6 +107,7 @@ should be environment variables.
 | `npm run clean`    | Clear JavaScript build files.                                                                |
 | `npm run build`    | Compile TypeScript source to JavaScript.                                                     |
 | `npm start`        | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
+| `npm run silent`   | Same as `npm run dev` but disable custom listeners.                                          |
 | `npm run now`      | Run existing JavaScript build files right away.                                              |
 | `npm test`         | Run tests.                                                                                   |
 | `npm run lint`     | Run the linter to report errors/warnings.                                                    |

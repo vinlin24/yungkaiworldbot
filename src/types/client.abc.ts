@@ -93,7 +93,7 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
    * state to log in and start its main event loop. Return whether the operation
    * succeeded.
    */
-  public abstract prepareRuntime(): Promise<boolean>;
+  public abstract prepareRuntime(disableListeners?: boolean): Promise<boolean>;
   /**
    * Load command definitions and deploy them to Discord's backend. It is
    * expected that this method does NOT start the bot's main runtime.
