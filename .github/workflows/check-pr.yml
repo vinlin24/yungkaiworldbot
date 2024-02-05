@@ -14,6 +14,7 @@ jobs:
       APPLICATION_ID: ${{ secrets.PROD_APPLICATION_ID }}
       DB_CONN_STRING: ${{ secrets.PROD_DB_CONN_STRING }}
       DB_NAME: ${{ vars.PROD_DB_NAME }}
+      WORDNIK_API_KEY: ${{ secrets.WORDNIK_API_KEY }}
 
       LUKE_UID: ${{ vars.LUKE_UID }}
       KLEE_UID: ${{ vars.KLEE_UID }}
