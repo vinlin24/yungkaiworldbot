@@ -71,6 +71,10 @@ declare global {
      * Name of MongoDB database to use.
      */
     DB_NAME: string;
+    /**
+     * API Key for the Wordnik API, an English dictionary service.
+     */
+    WORDNIK_API_KEY: string;
   };
 
   namespace NodeJS {
