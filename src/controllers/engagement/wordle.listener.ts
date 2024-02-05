@@ -6,11 +6,12 @@ import {
   UserMention,
   bold,
   inlineCode,
+  italic,
   userMention,
 } from "discord.js";
 import _ from "lodash";
 
-import { BOT_SPAM_CID } from "../../config";
+import { BOT_SPAM_CID, EXPERIMENTAL_BOT_SPAM_CID } from "../../config";
 import getLogger from "../../logger";
 import { inChannel } from "../../middleware/filters.middleware";
 import wordleService, {
@@ -18,15 +19,17 @@ import wordleService, {
   WordleGuessState,
   WordleSessionStatus,
 } from "../../services/wordle.service";
+import wordnikService from "../../services/wordnik.service";
 import { MessageListenerBuilder } from "../../types/listener.types";
 import { replySilently } from "../../utils/interaction.utils";
 import { formatContext } from "../../utils/logging.utils";
+import { toBulletedList } from "../../utils/markdown.utils";
 
 const log = getLogger(__filename);
 
 const wordle = new MessageListenerBuilder().setId("wordle");
 
-wordle.filter(inChannel(BOT_SPAM_CID));
+wordle.filter(inChannel(BOT_SPAM_CID, EXPERIMENTAL_BOT_SPAM_CID));
 wordle.execute(async message => {
   const { channel } = message;
   // TODO: Can this type guard checking be automated so we don't have to keep
@@ -119,12 +122,23 @@ class WordleCommandProcessor {
       title: guessTitle,
     };
 
+    // Formatted definitions of guess word if it happens to be the answer.
+    let definitions: string | null = null;
+
     switch (status) {
       case WordleSessionStatus.WINNER:
         wordleService.removeSession(this.channel);
         embedType = "positive";
         embedOptions.title = `${guessTitle} - WINNER!`;
         embedOptions.footer = `Guessed with ${session.numGuesses} guess(es).`;
+        // Also get the meaning of the word.
+        definitions = await this.getAndFormatMeaningOfWord(word);
+        if (definitions === null) { // Shouldn't happen but just in case.
+          definitions = `😱 Failed to load definition for ${bold(word)}...`;
+        }
+        // TODO: What if there are hella definitions? Causing the embed
+        // description to exceed the character limit?
+        embedOptions.description += `\n\n${definitions}`;
         break;
       case WordleSessionStatus.IN_PROGRESS:
         embedType = "positive";
@@ -258,6 +272,21 @@ class WordleCommandProcessor {
 
     result += "\n";
     result += charStates.map(state => STATE_TO_EMOJI[state]).join(" ");
+    return result;
+  }
+
+  private async getAndFormatMeaningOfWord(
+    word: string,
+  ): Promise<string | null> {
+    const definitions = await wordnikService.getDefinitions(word);
+    if (definitions === "Not Found" || definitions === "Unknown Error") {
+      return null;
+    }
+    let result = bold(word);
+    for (const [partOfSpeech, definitionEntries] of definitions) {
+      result += `\n(${italic(partOfSpeech)})\n`;
+      result += toBulletedList(definitionEntries);
+    }
     return result;
   }
 }

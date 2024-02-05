@@ -27,6 +27,11 @@ export const STINKYS_FRIENDS_CID = "1102022714769821836";
 export const MUSIC_CHAT_CID = "1102108372565753916";
 export const GAMING_CID = "1102087663688884314";
 export const COOKING_TIME_CID = "1161041458590134434";
+/**
+ * The channel set aside to test bot commands without disturbing the real bot
+ * spam channel.
+ */
+export const EXPERIMENTAL_BOT_SPAM_CID = "1204000920720117760";
 
 export const BOT_DEV_RID = "1186942954095525908";
 export const KAI_RID = "1101995406994444299";
