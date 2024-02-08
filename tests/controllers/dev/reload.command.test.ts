@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 it("should require privilege level >= DEV", async () => {
-  mock.mockCallerRoles(KAI_RID);
+  mock.mockCaller({ roleIds: [KAI_RID] });
 
   await mock.simulateCommand();
 
@@ -38,7 +38,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should clear defs, deploy commands, and reload defs", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("Boolean", "redeploy_slash_commands", true);
 
   await mock.simulateCommand();
@@ -51,7 +51,7 @@ it("should clear defs, deploy commands, and reload defs", async () => {
 });
 
 it("shouldn't deploy commands if option not explicitly set", async () => {
-  mock.mockCallerRoles(BOT_DEV_RID);
+  mock.mockCaller({ roleIds: [BOT_DEV_RID] });
 
   await mock.simulateCommand();
 
@@ -63,7 +63,7 @@ it("shouldn't deploy commands if option not explicitly set", async () => {
 });
 
 it("should update the client's branch name", async () => {
-  mock.mockCallerRoles(BOT_DEV_RID);
+  mock.mockCaller({ roleIds: [BOT_DEV_RID] });
   mockedGetCurrentBranchName.mockReturnValueOnce("DUMMY-BRANCH-NAME");
 
   await mock.simulateCommand();
@@ -74,7 +74,7 @@ it("should update the client's branch name", async () => {
 describe("error handling", () => {
   beforeEach(() => {
     mock
-      .mockCallerRoles(BOT_DEV_RID)
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
       .mockOption("Boolean", "redeploy_slash_commands", true);
 
     // Also suppress console.error output.
