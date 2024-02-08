@@ -39,10 +39,21 @@ class ClientReloadPipeline {
    *
    * Postcondition: The interaction will be replied to regardless of success.
    */
-  public async run(redeploy: boolean): Promise<void> {
-    log.warning(`${this.context}: reloading client (redeploy=${redeploy})...`);
+  public async run(redeploy: boolean, stealth: boolean | null): Promise<void> {
+    log.warning(
+      `${this.context}: reloading client ` +
+      `(redeploy=${redeploy}, stealth=${stealth})...`,
+    );
 
     const branchName = getCurrentBranchName();
+
+    if (stealth !== null) {
+      this.client.stealth = stealth;
+      // Return the bot to online status.
+      if (!stealth) {
+        await this.client.user!.setStatus("online");
+      }
+    }
 
     let success: boolean;
     if (redeploy) {
@@ -142,13 +153,18 @@ reload.define(new SlashCommandBuilder()
   .addBooleanOption(input => input
     .setName("redeploy_slash_commands")
     .setDescription("Whether to redeploy slash commands as well."),
+  )
+  .addBooleanOption(input => input
+    .setName("stealth_mode")
+    .setDescription("Stealth mode setting (keeps current setting it omitted)."),
   ),
 );
 reload.check(checkPrivilege(RoleLevel.DEV));
 reload.execute(async (interaction) => {
   const redeploy = !!interaction.options.getBoolean("redeploy_slash_commands");
+  const stealth = interaction.options.getBoolean("stealth_mode");
   const handler = new ClientReloadPipeline(interaction);
-  await handler.run(redeploy);
+  await handler.run(redeploy, stealth);
 });
 
 const reloadSpec = reload.toSpec();

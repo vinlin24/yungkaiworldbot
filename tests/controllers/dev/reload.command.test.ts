@@ -71,6 +71,38 @@ it("should update the client's branch name", async () => {
   expect(mock.client.branchName).toEqual("DUMMY-BRANCH-NAME");
 });
 
+describe("stealth mode setting", () => {
+  beforeEach(() => {
+    mock.mockCaller({ roleIds: [BOT_DEV_RID] });
+  });
+
+  it("should reload with stealth mode enabled", async () => {
+    mock.mockOption("Boolean", "stealth_mode", true);
+    mock.client.stealth = false;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(true);
+  });
+
+  it("should reload with stealth mode disabled", async () => {
+    mock.mockOption("Boolean", "stealth_mode", false);
+    mock.client.stealth = true;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(false);
+  });
+
+  it("should preserve the stealth mode setting if omitted", async () => {
+    mock.client.stealth = true;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(true);
+  });
+});
+
 describe("error handling", () => {
   beforeEach(() => {
     mock
