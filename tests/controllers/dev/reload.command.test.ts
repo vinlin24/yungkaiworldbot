@@ -21,13 +21,14 @@ beforeEach(() => {
 });
 
 it("should require privilege level >= DEV", async () => {
-  mock.mockCallerRoles(KAI_RID);
+  mock.mockCaller({ roleIds: [KAI_RID] });
 
   await mock.simulateCommand();
 
   expect(mock.client.clearDefinitions).not.toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).not.toHaveBeenCalled();
   expect(mock.client.prepareRuntime).not.toHaveBeenCalled();
+  expect(mock.client.emit).not.toHaveBeenCalled();
   mock.expectRepliedWith({
     // Any mention of the DEV level.
     content: expect.stringMatching(/\bDEV\b/i),
@@ -37,7 +38,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should clear defs, deploy commands, and reload defs", async () => {
   mock
-    .mockCallerRoles(BOT_DEV_RID)
+    .mockCaller({ roleIds: [BOT_DEV_RID] })
     .mockOption("Boolean", "redeploy_slash_commands", true);
 
   await mock.simulateCommand();
@@ -45,22 +46,24 @@ it("should clear defs, deploy commands, and reload defs", async () => {
   expect(mock.client.clearDefinitions).toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).toHaveBeenCalled();
   expect(mock.client.prepareRuntime).toHaveBeenCalled();
+  expect(mock.client.emit).toHaveBeenCalled();
   mock.expectRepliedWith({ ephemeral: true });
 });
 
 it("shouldn't deploy commands if option not explicitly set", async () => {
-  mock.mockCallerRoles(BOT_DEV_RID);
+  mock.mockCaller({ roleIds: [BOT_DEV_RID] });
 
   await mock.simulateCommand();
 
   expect(mock.client.clearDefinitions).toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).not.toHaveBeenCalled();
   expect(mock.client.prepareRuntime).toHaveBeenCalled();
+  expect(mock.client.emit).toHaveBeenCalled();
   mock.expectRepliedWith({ ephemeral: true });
 });
 
 it("should update the client's branch name", async () => {
-  mock.mockCallerRoles(BOT_DEV_RID);
+  mock.mockCaller({ roleIds: [BOT_DEV_RID] });
   mockedGetCurrentBranchName.mockReturnValueOnce("DUMMY-BRANCH-NAME");
 
   await mock.simulateCommand();
@@ -68,10 +71,42 @@ it("should update the client's branch name", async () => {
   expect(mock.client.branchName).toEqual("DUMMY-BRANCH-NAME");
 });
 
+describe("stealth mode setting", () => {
+  beforeEach(() => {
+    mock.mockCaller({ roleIds: [BOT_DEV_RID] });
+  });
+
+  it("should reload with stealth mode enabled", async () => {
+    mock.mockOption("Boolean", "stealth_mode", true);
+    mock.client.stealth = false;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(true);
+  });
+
+  it("should reload with stealth mode disabled", async () => {
+    mock.mockOption("Boolean", "stealth_mode", false);
+    mock.client.stealth = true;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(false);
+  });
+
+  it("should preserve the stealth mode setting if omitted", async () => {
+    mock.client.stealth = true;
+
+    await mock.simulateCommand();
+
+    expect(mock.client.stealth).toEqual(true);
+  });
+});
+
 describe("error handling", () => {
   beforeEach(() => {
     mock
-      .mockCallerRoles(BOT_DEV_RID)
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
       .mockOption("Boolean", "redeploy_slash_commands", true);
 
     // Also suppress console.error output.
@@ -117,7 +152,7 @@ describe("error handling", () => {
     });
   }
 
-  it("should false from prepareRuntime as a failure", async () => {
+  it("should treat false from prepareRuntime as a failure", async () => {
     mock.client.prepareRuntime.mockResolvedValueOnce(false);
 
     await mock.simulateCommand();

@@ -10,7 +10,7 @@
     "build": "npm run clean && tsc --project tsconfig.build.json",
     "start": "npm run build && node .",
     "now": "LOGGER_LEVEL=debug node .",
-    "silent": "LOGGER_LEVEL=debug ts-node src/index.ts --disable-listeners",
+    "stealth": "LOGGER_LEVEL=debug ts-node src/index.ts --stealth",
     "test": "jest",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint -- --fix"

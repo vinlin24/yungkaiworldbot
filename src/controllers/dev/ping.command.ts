@@ -2,6 +2,7 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
   TimestampStyles,
+  bold,
   time,
 } from "discord.js";
 
@@ -36,7 +37,9 @@ async function respondWithDevDetails(
     }
   }
 
-  const { branchName, readySince } = client;
+  const { branchName, readySince, stealth } = client;
+
+  text += `\n* Mode: ${bold(stealth ? "Stealth" : "Normal")}`;
 
   if (branchName) {
     text += `\n* Branch: \`${branchName}\``;

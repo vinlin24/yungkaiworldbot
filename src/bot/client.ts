@@ -34,11 +34,9 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     SPECIAL_LISTENERS_DIR_PATH,
   );
 
-  public override async prepareRuntime(
-    disableListeners = false,
-  ): Promise<boolean> {
+  public override async prepareRuntime(): Promise<boolean> {
     await this.loadCommands();
-    await this.loadListeners(disableListeners);
+    await this.loadListeners();
 
     try {
       this.registerListeners();
@@ -105,8 +103,8 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     }
   }
 
-  private async loadListeners(specialOnly?: boolean): Promise<void> {
-    const allListenerSpecs = await this.listenerLoader.load(specialOnly);
+  private async loadListeners(): Promise<void> {
+    const allListenerSpecs = await this.listenerLoader.load(this.stealth);
     for (const spec of allListenerSpecs) {
       const { id, type } = spec;
       this.listenerRunners.set(id, new ListenerRunner(spec));
@@ -139,9 +137,3 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     log.warning(`removed ${numListeners} listeners from client mapping.`);
   }
 }
-
-/**
- * Singleton bot to use when starting the bot runtime normally or deploying
- * slash commands.
- */
-export default new BotClient();

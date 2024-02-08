@@ -1,4 +1,4 @@
-import { TimestampStyles, time } from "discord.js";
+import { TimestampStyles, bold, time } from "discord.js";
 
 import pingSpec from "../../../src/controllers/dev/ping.command";
 import { MockInteraction, TestClient, addMockGetter } from "../../test-utils";
@@ -16,6 +16,7 @@ describe("/ping command", () => {
 
     const mockClient = new TestClient();
     mockClient.readySince = dummyReadySince;
+    mockClient.stealth = true;
     addMockGetter(mockClient, "branchName", dummyBranchName);
     addMockGetter(mockClient.ws, "ping", dummyPing);
     mock.mockClient(mockClient);
@@ -26,6 +27,7 @@ describe("/ping command", () => {
     const relativeTime = time(dummyReadySince, TimestampStyles.RelativeTime);
     const expectedParts = [
       `Latency: **${dummyPing}**`,
+      `Mode: ${bold("Stealth")}`,
       `Branch: \`${dummyBranchName}\``,
       `Ready: ${timestamp} (${relativeTime})`,
     ];

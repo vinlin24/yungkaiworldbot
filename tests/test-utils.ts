@@ -289,6 +289,8 @@ export function addMockGetter<ObjectType extends object, ValueType>(
  * mocks.
  */
 export class TestClient extends ClientWithIntentsAndRunnersABC {
+  constructor() { super(false); }
+
   public override deploySlashCommands = jest.fn();
   public override prepareRuntime = jest.fn();
   public override clearDefinitions = jest.fn();
