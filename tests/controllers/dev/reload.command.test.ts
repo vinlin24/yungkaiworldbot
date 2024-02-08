@@ -28,6 +28,7 @@ it("should require privilege level >= DEV", async () => {
   expect(mock.client.clearDefinitions).not.toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).not.toHaveBeenCalled();
   expect(mock.client.prepareRuntime).not.toHaveBeenCalled();
+  expect(mock.client.emit).not.toHaveBeenCalled();
   mock.expectRepliedWith({
     // Any mention of the DEV level.
     content: expect.stringMatching(/\bDEV\b/i),
@@ -45,6 +46,7 @@ it("should clear defs, deploy commands, and reload defs", async () => {
   expect(mock.client.clearDefinitions).toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).toHaveBeenCalled();
   expect(mock.client.prepareRuntime).toHaveBeenCalled();
+  expect(mock.client.emit).toHaveBeenCalled();
   mock.expectRepliedWith({ ephemeral: true });
 });
 
@@ -56,6 +58,7 @@ it("shouldn't deploy commands if option not explicitly set", async () => {
   expect(mock.client.clearDefinitions).toHaveBeenCalled();
   expect(mock.client.deploySlashCommands).not.toHaveBeenCalled();
   expect(mock.client.prepareRuntime).toHaveBeenCalled();
+  expect(mock.client.emit).toHaveBeenCalled();
   mock.expectRepliedWith({ ephemeral: true });
 });
 
@@ -117,7 +120,7 @@ describe("error handling", () => {
     });
   }
 
-  it("should false from prepareRuntime as a failure", async () => {
+  it("should treat false from prepareRuntime as a failure", async () => {
     mock.client.prepareRuntime.mockResolvedValueOnce(false);
 
     await mock.simulateCommand();

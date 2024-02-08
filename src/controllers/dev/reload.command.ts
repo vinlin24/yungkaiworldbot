@@ -1,6 +1,8 @@
 import {
   ChatInputCommandInteraction,
+  Client,
   EmbedBuilder,
+  Events,
   SlashCommandBuilder,
 } from "discord.js";
 
@@ -47,12 +49,14 @@ class ClientReloadPipeline {
       success
         = await this.clearDefinitions()
         && await this.deploySlashCommands()
-        && await this.prepareRuntime();
+        && await this.prepareRuntime()
+        && await this.reemitReadyEvent();
     }
     else {
       success
         = await this.clearDefinitions()
-        && await this.prepareRuntime();
+        && await this.prepareRuntime()
+        && await this.reemitReadyEvent();
     }
     if (!success) return;
 
@@ -115,6 +119,18 @@ class ClientReloadPipeline {
     );
     await this.logAndReplyWithError(customError);
     return false;
+  }
+
+  private async reemitReadyEvent(): Promise<boolean> {
+    try {
+      this.client.emit(Events.ClientReady, this.client as Client<true>);
+      return true;
+    }
+    catch (error) {
+      log.crit(`${this.context}: error in re-emitting client ready event.`);
+      await this.logAndReplyWithError(error as Error);
+      return false;
+    }
   }
 }
 
