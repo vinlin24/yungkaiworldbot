@@ -19,6 +19,12 @@ async function main() {
   const success = client.prepareRuntime();
   if (!success) process.exit(1);
 
+  process.on("SIGINT", async () => {
+    await client.destroy();
+    log.warning("program terminating by SIGINT, client destroyed.");
+    process.exit(130);
+  });
+
   log.info(`starting bot runtime... (stealth=${stealth})`);
   await client.login(env.BOT_TOKEN);
 }
