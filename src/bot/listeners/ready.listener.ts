@@ -8,17 +8,24 @@ import { ListenerBuilder, ListenerSpec } from "../../types/listener.types";
 const log = getLogger(__filename);
 
 async function handleReady(client: Client): Promise<void> {
+  const botClient = client as ClientWithIntentsAndRunnersABC;
+
   const now = new Date();
-  (client as ClientWithIntentsAndRunnersABC).readySince = now;
-  log.info(`bot ready! Logged in as ${client.user!.tag}.`);
+  botClient.readySince = now;
+  log.info(`bot ready! Logged in as ${botClient.user!.tag}.`);
 
   const presence = await settingsService.getPresence();
   if (!presence) return;
-  await client.user!.setActivity({
+  await botClient.user!.setActivity({
     name: presence.activity_name,
     type: ActivityType[presence.activity_type],
   });
   log.info(`set startup activity to: ${JSON.stringify(presence)}.`);
+
+  if (botClient.stealth) {
+    await botClient.user!.setStatus("invisible");
+    log.info("client is in stealth mode, set status to invisible.");
+  }
 }
 
 const onReady: ListenerSpec<Events.ClientReady>
