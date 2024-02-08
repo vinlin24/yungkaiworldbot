@@ -1,4 +1,5 @@
 import { Collection, Role } from "discord.js";
+
 import {
   getAllMembers,
   getAllPermute2,
@@ -6,12 +7,11 @@ import {
   unorderedEquals,
 } from "../../src/utils/iteration.utils";
 
-describe.skip("iterating over an enum", () => {
+describe("iterating over an enum", () => {
   enum DummyEnum { A = 0, B, C }
 
   it("should yield name-value pairs", () => {
     const result = iterateEnum(DummyEnum);
-    // TODO: the order within each 2-tuple seems to be flipped as well!
     expect(result).toEqual([
       ["A", 0],
       ["B", 1],

@@ -1,24 +1,35 @@
 import { GuildMember, Role } from "discord.js";
 
 /**
- * Wrapper of `Object.entries(enumerable)` that preserves the key type of
- * `enumerable`. This gets around the problem where TypeScript always assumes
- * the key type is `string`. Example usage:
+ * Iterate over the [key, value] pairs of a TypeScript enum. One cannot use
+ * `Object.entries()` directly because this would include pairs corresponding to
+ * the reverse mapping generated at runtime. Note that this function does not
+ * work with `const enum`s for obvious reasons.
  *
  *    ```
- *    let mapping: Record<SomeEnum, number>;
- *    // ...
- *    for (const [member, num] of iterateEnum(mapping)) {
- *      // member is typed as SomeEnum instead of string.
+ *    enum Mapping {
+ *      // ...
+ *    }
+ *    for (const [key, value] of iterateEnum(Mapping)) {
+ *      // ...
  *    }
  *    ```
- *
- * NOTE: This doesn't seem to work as expected! When iterating over a numeric
- * enum, the numbers seem to be included as part of the keys.
  */
-export function iterateEnum<T extends object>(enumerable: T)
-  : [keyof T, T[keyof T]][] {
-  return Object.entries(enumerable) as [keyof T, T[keyof T]][];
+export function iterateEnum<T extends object>(
+  enumerable: T,
+): [keyof T, T[keyof T]][] {
+  // Ref: https://blog.logrocket.com/iterate-over-enums-typescript/#for-loops
+  function getEnumKeysOnly() {
+    // This includes the enum keys AND values (due to enums becoming reverse
+    // mappings at runtime).
+    const allKeys = Object.keys(enumerable);
+    // Preserve only the enum keys.
+    const enumKeysOnly = allKeys.filter(k => isNaN(Number(k)));
+    return enumKeysOnly as (keyof T)[];
+  }
+
+  const keys = getEnumKeysOnly();
+  return keys.map(key => [key, enumerable[key]]);
 }
 
 /**

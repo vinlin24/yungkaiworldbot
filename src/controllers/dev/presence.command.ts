@@ -25,10 +25,7 @@ export type PresenceUpdateStatusName
   = Exclude<keyof typeof PresenceUpdateStatus, "Offline">;
 
 const activityTypeNames: ActivityTypeName[]
-  = iterateEnum(ActivityType)
-    .map(([name]) => name)
-    // TODO: enum values (numbers) being included through iterateEnum somehow.
-    .filter(name => isNaN(Number(name)));
+  = iterateEnum(ActivityType).map(([name]) => name);
 const activityChoices: Choice<ActivityTypeName>[]
   = activityTypeNames.map(name => ({ name, value: name }));
 

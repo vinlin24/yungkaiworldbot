@@ -3,7 +3,6 @@ import { CommandInteraction, GuildMember, roleMention } from "discord.js";
 import { ALPHA_MOD_RID, BABY_MOD_RID, BOT_DEV_RID, KAI_RID } from "../config";
 import getLogger from "../logger";
 import { CommandCheck } from "../types/command.types";
-import { iterateEnum } from "../utils/iteration.utils";
 import { formatContext } from "../utils/logging.utils";
 
 const log = getLogger(__filename);
@@ -54,10 +53,12 @@ export function checkPrivilege(
   memberToCheck?: GuildMember,
 ): boolean | CommandCheck {
   function isAuthorized(member: GuildMember): boolean {
-    for (const [level, roleId] of iterateEnum(LEVEL_TO_RID)) {
+    for (const level of Object.keys(LEVEL_TO_RID)) {
+      const levelValue = Number(level) as Exclude<RoleLevel, RoleLevel.NONE>;
+      const roleId = LEVEL_TO_RID[levelValue];
       // As long as the level required by the command is less than any of the
       // levels for which the caller has a role, then they pass.
-      if (commandLevel <= level && member.roles.cache.has(roleId)) {
+      if (commandLevel <= levelValue && member.roles.cache.has(roleId)) {
         return true;
       }
     }
