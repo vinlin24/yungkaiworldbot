@@ -83,7 +83,8 @@ For variables names, we use this suffix convention:
 GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). UIDs
 should be environment variables.
 
-> :warning: **NON-BOT USER IDs SHOULD BE REDACTED IN VERSION CONTROL.**
+> [!CAUTION]
+> **NON-BOT USER IDs SHOULD BE REDACTED IN VERSION CONTROL.**
 >
 > While Discord IDs in general are only used internally by Discord's API,
 > [Discord themselves](https://discord.com/safety/confidentiality-in-moderation)
