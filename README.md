@@ -1,7 +1,8 @@
 # yung kai world's TempBot
 
 Misc bot for **yung kai world**, the Discord server for the music artist [yung
-kai](https://linktr.ee/yungkaiboy)!
+kai](https://linktr.ee/yungkaiboy)! Created with
+[discord.js](https://discord.js.org/#/).
 
 
 ## Overview
@@ -175,8 +176,8 @@ Thus, your flow would look something like:
 
 ## Project Architecture
 
-**This codebase uses the [discord.js](https://discord.js.org/#/) framework for
-creating the Discord bot.**
+
+### Directory Structure
 
 The directory structure loosely resembles the pattern recommended in the
 [discord.js Guide](https://discordjs.guide/) in that commands and events are
@@ -209,6 +210,8 @@ middleware-controller-service layer design from backend REST API architecture:
 * TypeScript-related utilities or helper classes/abstract classes/interfaces are
   under [types/](src/types/).
 * Project-wide utility functions are under [utils/](src/utils/).
+* Now that we have a database set up, there's a place for the
+  [models/](src/models/) layer too.
 
 My main goal with this is to promote code reusability and modularity, also
 making it easier to test the modules through a code mocking framework (we use
@@ -218,12 +221,14 @@ and spamming commands/messages on the real server.
 
 ### Commands
 
-Command modules should be created anywhere under
-[controllers/](src/controllers/) and end with `.command.ts` to be discovered
-and loaded by our [dynamic command loader](src/bot/command.loader.ts) on bot
-startup. The module *must* export a `CommandSpec` object, but I've defined a
-`CommandBuilder` helper class to make building this object more convenient and
-readable.
+> [!IMPORTANT]
+>
+> Command modules should be created anywhere under
+> [controllers/](src/controllers/) and end with `.command.ts` to be discovered
+> and loaded by our [dynamic command loader](src/bot/command.loader.ts) on bot
+> startup. The module *must* export a `CommandSpec` object, but I've defined a
+> `CommandBuilder` helper class to make building this object more convenient and
+> readable.
 
 Refer to the [`CommandSpec`](src/types/command.types.ts) type for documentation
 on the different parts of a command to expose per module. At a high-level, a
@@ -234,7 +239,7 @@ whether the main callback should run, followed by the main `execute` controller.
 #### Command Lifecycle
 
 0. Command is deployed to Discord via REST API (using a special [command line
-   switch](#packagejson-scripts)).
+   flag](#program-entry-points)).
 1. User enters a slash command on the Discord application.
 2. Command is forwarded from Discord server to discord.js runtime, which
    encapsulates the context as a `ChatInputCommandInteraction` object and emits
@@ -245,41 +250,44 @@ whether the main callback should run, followed by the main `execute` controller.
 4. `CommandRunner` executes the [command pipeline](#command-execution-pipeline)
    defined by the `CommandSpec` with which it was initialized.
 
-*Note that commands are really just a special form of event,
-`interactionCreate`.*
+> [!TIP]
+>
+> \*Note that commands are really just a special form of event,
+> `interactionCreate`.
 
 
 #### Command Execution Pipeline
 
-From [command.runner.ts](src/bot/command.runner.ts):
-
-```ts
-/**
- * COMMAND EXECUTION PIPELINE
- * --------------------------
- * Checks: run predicate
- *    -> success: move onto Execute
- *    -> fail: run onFail if provided, short-circuit
- *        -> error: handleCommandError, short-circuit
- *    -> error: handleCommandError, short-circuit
- * Execute: run execute
- *    -> success: move onto Cleanup
- *    -> error: handleCommandError, return
- * Cleanup: run all afterExecute hooks of checks
- *    -> success: return
- *    -> error: handleCommandError, DON'T short-circuit
- */
+```mermaid
+graph LR;
+  Checks-->Execute-->Cleanup
 ```
+
+1. **Checks**: run `predicate` of each check, in the order they were provided in
+   the command spec.
+   1. On (all) success: move onto **Execute**.
+   2. On failure: run `onFail` of the check if provided and short-circuit.
+   3. On error: run the global `handleCommandError` and short-circuit.
+2. **Execute**: run `execute`.
+   1. On success: move onto **Cleanup**.
+   2. On failure: simply short-circuit.
+   3. On error: run the global `handleCommandError` and short-circuit.
+3. **Cleanup**: run the `afterExecute` hook of ALL checks.
+   1. On success: continue.
+   2. On error: run the global `handleCommandError`, but DON'T short-circuit;
+      give every hook a chance to execute.
 
 
 ### Event Listeners
 
-Event listener modules should be created anywhere under
-[controllers/](src/controllers/) and end with `.listener.ts` to be discovered,
-loaded, and registered on our bot by our [dynamic listener
-loader](src/bot/listener.loader.ts) on bot startup. The module *must* export a
-`ListenerSpec` object, but I've defined a `ListenerBuilder` helper class to make
-building this object more convenient and readable.
+> [!IMPORTANT]
+>
+> Event listener modules should be created anywhere under
+> [controllers/](src/controllers/) and end with `.listener.ts` to be discovered,
+> loaded, and registered on our bot by our [dynamic listener
+> loader](src/bot/listener.loader.ts) on bot startup. The module *must* export a
+> `ListenerSpec` object, but I've defined a `ListenerBuilder` helper class to
+> make building this object more convenient and readable.
 
 Refer to the [`ListenerSpec`](src/types/listener.types.ts) type for
 documentation on the different parts of a listener to expose per module. At a
@@ -307,25 +315,24 @@ mechanism, which has become very popular with requests.
 
 #### Listener Execution Pipeline
 
-From [listener.runner.ts](src/bot/listener.runner.ts):
-
-```ts
-/**
- * LISTENER EXECUTION PIPELINE
- * ---------------------------
- * Filters: run predicate
- *    -> success: move onto Execute
- *    -> fail: run onFail if provided, short-circuit
- *        -> error: handleListenerError, short-circuit
- *    -> error: handleListenerError, short-circuit
- * Execute: run execute
- *    -> success: move onto Cleanup
- *    -> error: handleListenerError, return
- * Cleanup: run all afterExecute hooks of filters
- *    -> success: return
- *    -> error: handleListenerError, DON'T short-circuit
- */
+```mermaid
+graph LR;
+  Filters-->Execute-->Cleanup;
 ```
+
+1. **Checks**: run `predicate` of each filter, in the order they were provided in
+   the listener spec.
+   1. On (all) success: move onto **Execute**.
+   2. On failure: run `onFail` of the filter if provided and short-circuit.
+   3. On error: run the global `handleListenerError` and short-circuit.
+2. **Execute**: run `execute`.
+   1. On success: move onto **Cleanup**.
+   2. On failure: simply short-circuit.
+   3. On error: run the global `handleListenerError` and short-circuit.
+3. **Cleanup**: run the `afterExecute` hook of ALL filters.
+   1. On success: continue.
+   2. On error: run the global `handleListenerError`, but DON'T short-circuit;
+      give every hook a chance to execute.
 
 
 ### Database
