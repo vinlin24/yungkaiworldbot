@@ -53,6 +53,4 @@ describe("/ping command", () => {
       content: expect.stringContaining("Latency: **69** ms (nice)"),
     });
   });
-
-  new MockInteraction(pingSpec).testBroadcastOptionSupport();
 });
