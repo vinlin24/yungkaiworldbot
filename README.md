@@ -26,13 +26,13 @@ thread](https://discord.com/channels/1101561213663580190/1181497697560186961).
 
 Prerequisites:
 
-* [Node.js](https://nodejs.org/) v16+
+* [Node.js](https://nodejs.org/) v20+
 * [npm](https://www.npmjs.com/) v9+
 
-```sj
-node --version
-npm --version
-```
+> [!NOTE]
+>
+> Older versions may or may not work. These are just what I have been developing
+> on and thus what I know to be stable.
 
 Clone the repository if you haven't:
 
@@ -67,24 +67,34 @@ each key and possibly where to find them to fill out the redacted values.
 Contact any of the bot developers for any values you need help with or the
 values for the production version of the bot.
 
-For Discord IDs, you should enable **Developer Mode** to be able to conveniently
-copy IDs from the right-click context menus of servers, channels, roles, users,
-etc. To enable it, go to **User Settings > Advanced > Developer Mode**.
+> [!TIP]
+>
+> For Discord IDs (also referred to as [snowflakes](https://en.wikipedia.org/wiki/Snowflake_ID)), you should enable **Developer Mode** to be able to
+> conveniently copy IDs from the right-click context menus of servers, channels,
+> roles, users, etc. To enable it, go to **User Settings > Advanced > Developer
+> Mode**.
 
-For variables names, we use this suffix convention:
+We use this suffix convention:
 
 * `_GID`: Guild ID. Servers are referred to as "guilds" in the Discord API.
 * `_CID`: Channel ID. This can be any type of channel (text, voice, etc.).
 * `_RID`: Role ID. This is useful for role-based features. It is also the basis
   of this bot's [privilege system](src/middleware/privilege.middleware.ts).
 * `_UID`: User ID. This is useful for user-based features (to give the bot a
-  little personality, basically).
+  little personality, basically). I learned later that "UID" is more commonly
+  accepted as the general term [unique
+  identifier](https://en.wikipedia.org/wiki/Unique_identifier), NOT "user ID",
+  but hopefully this ambiguity isn't a problem in the contexts they're used.
 
-GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). UIDs
-should be environment variables.
+GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). **UIDs
+should be environment variables.**
 
 > [!CAUTION]
-> **NON-BOT USER IDs SHOULD BE REDACTED IN VERSION CONTROL.**
+> **UIDs should be environment variables. Furthermore, non-bot UIDs should
+> ALWAYS be redacted in version control.**
+>
+> <details>
+> <summary>Explanation</summary>
 >
 > While Discord IDs in general are only used internally by Discord's API,
 > [Discord themselves](https://discord.com/safety/confidentiality-in-moderation)
@@ -95,6 +105,8 @@ should be environment variables.
 > On a related note, use your common sense when naming user ID keys. Use
 > nicknames or "gamer aliases" where possible. Do not use full or legal names
 > under any circumstances.
+>
+> </details>
 
 
 ## Running
