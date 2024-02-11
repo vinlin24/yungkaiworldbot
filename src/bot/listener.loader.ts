@@ -28,7 +28,6 @@ export class ListenerLoader {
     for (const file of contents) {
       const fullPath = path.join(this.specialListenersDirectoryPath, file);
       specialListenerPaths.push(fullPath);
-      log.debug(`discovered special event listener file: ${file}.`);
     }
     return specialListenerPaths;
   }
@@ -52,10 +51,6 @@ export class ListenerLoader {
       // Base case: file is a controller file.
       if (file.endsWith(".listener.js") || file.endsWith("listener.ts")) {
         listenerPaths.push(fullPath);
-        log.debug(
-          "discovered event listener implementation file: " +
-          `${path.relative(this.listenersBaseDirectoryPath, fullPath)}.`,
-        );
         continue;
       }
     }

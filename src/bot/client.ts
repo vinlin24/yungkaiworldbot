@@ -99,16 +99,13 @@ export class BotClient extends ClientWithIntentsAndRunnersABC {
     for (const spec of commandSpecs) {
       const commandName = spec.definition.name;
       this.commandRunners.set(commandName, new CommandRunner(spec));
-      log.debug(`imported command module for /${commandName}.`);
     }
   }
 
   private async loadListeners(): Promise<void> {
     const allListenerSpecs = await this.listenerLoader.load(this.stealth);
     for (const spec of allListenerSpecs) {
-      const { id, type } = spec;
-      this.listenerRunners.set(id, new ListenerRunner(spec));
-      log.debug(`imported ${type} listener module ID=${id}.`);
+      this.listenerRunners.set(spec.id, new ListenerRunner(spec));
     }
   }
 
