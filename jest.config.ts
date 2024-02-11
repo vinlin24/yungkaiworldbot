@@ -36,6 +36,9 @@ const config: Config = {
   // Automatically reset mock state before every test
   resetMocks: true,
 
+  // Automatically restore mock state and implementation before every test
+  restoreMocks: true,
+
   // The root directory that Jest should scan for tests and modules within
   rootDir: "./",
 

@@ -96,8 +96,6 @@ describe("run", () => {
       }
     });
 
-    afterAll(() => errorHandlerSpy.mockRestore());
-
     it("should run all checks", async () => {
       await runnerWithChecks.run(interaction);
 
