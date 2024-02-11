@@ -230,23 +230,6 @@ export class MockInteraction {
     );
     expect(this.interaction.reply).toHaveBeenCalledTimes(1);
   }
-
-  public async testBroadcastOptionSupport(
-    arrange?: (mock: this) => Awaitable<any>,
-  ) {
-    it("should respond ephemerally by default", async () => {
-      if (arrange) await arrange(this);
-      await this.simulateCommand();
-      this.expectRepliedWith({ ephemeral: true });
-    });
-
-    it("should respond publicly if the broadcast option is set", async () => {
-      if (arrange) await arrange(this);
-      this.mockOption("Boolean", "broadcast", true);
-      await this.simulateCommand();
-      this.expectRepliedWith({ ephemeral: false });
-    });
-  }
 }
 
 export function addMockGetter<ObjectType extends object, ValueType>(
@@ -564,29 +547,6 @@ export async function testBroadcastOptionSupport(
     mock.mockOption("Boolean", "broadcast", true);
     await mock.simulateCommand();
     mock.expectRepliedWith({ ephemeral: false });
-  });
-}
-
-/**
- * Shorthand for running the pair of tests testing the universal `ephemeral`
- * command option. Takes an optional `arrange` callback to properly initialize
- * the `mock` object before each test.
- */
-export async function testEphemeralOptionSupport(
-  mock: MockInteraction,
-  arrange?: (mock: MockInteraction) => Awaitable<any>,
-): Promise<void> {
-  it("should respond publicly by default", async () => {
-    if (arrange) await arrange(mock);
-    await mock.simulateCommand();
-    mock.expectRepliedWith({ ephemeral: false });
-  });
-
-  it("should respond ephemerally if the ephemeral option is set", async () => {
-    if (arrange) await arrange(mock);
-    mock.mockOption("Boolean", "ephemeral", true);
-    await mock.simulateCommand();
-    mock.expectRepliedWith({ ephemeral: true });
   });
 }
 

@@ -7,6 +7,7 @@ import {
   InteractionReplyOptions,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from "discord.js";
+import { DeepMockProxy, mockDeep } from "jest-mock-extended";
 
 import * as commandErrors from "../../src/bot/command.errors";
 import { CommandRunner } from "../../src/bot/command.runner";
@@ -17,13 +18,11 @@ import { suppressConsoleError } from "../test-utils";
 function getCommandInteraction(options?: {
   replied?: boolean,
   deferred?: boolean,
-}): ChatInputCommandInteraction {
-  return {
-    replied: !!options?.replied,
-    deferred: !!options?.deferred,
-    reply: jest.fn(),
-    followUp: jest.fn(),
-  } as unknown as ChatInputCommandInteraction;
+}): DeepMockProxy<ChatInputCommandInteraction> {
+  const interaction = mockDeep<ChatInputCommandInteraction>();
+  interaction.replied = !!options?.replied;
+  interaction.deferred = !!options?.deferred;
+  return interaction;
 }
 
 const dummyError = new Error("DUMMY-ERROR");
@@ -57,17 +56,17 @@ describe("run", () => {
   describe("checks", () => {
     const checks: CommandCheck[] = [
       {
-        predicate: jest.fn().mockResolvedValue(true),
+        predicate: jest.fn(),
         onFail: jest.fn(),
         afterExecute: jest.fn(),
       },
       {
-        predicate: jest.fn().mockResolvedValue(true),
+        predicate: jest.fn(),
         onFail: jest.fn(),
         afterExecute: jest.fn(),
       },
       {
-        predicate: jest.fn().mockResolvedValue(true),
+        predicate: jest.fn(),
         onFail: jest.fn(),
         afterExecute: jest.fn(),
       },
@@ -91,6 +90,10 @@ describe("run", () => {
         CommandRunner.prototype as any, // Access protected method.
         "handleCommandError",
       );
+      // Default to predicates returning true (passing).
+      for (const check of checks) {
+        jest.mocked(check.predicate).mockResolvedValue(true);
+      }
     });
 
     it("should run all checks", async () => {

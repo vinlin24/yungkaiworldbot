@@ -17,7 +17,7 @@ import {
   time,
   userMention,
 } from "discord.js";
-import { Matcher } from "jest-mock-extended";
+import { DeepMockProxy, Matcher, mockDeep } from "jest-mock-extended";
 import { cloneDeep } from "lodash";
 
 import { ListenerRunner } from "../../../../src/bot/listener.runner";
@@ -43,93 +43,77 @@ const mockedGetDMChannel = jest.mocked(getDMChannel);
 const runner = new ListenerRunner(timeoutBroadcastSpec);
 const simulateEvent = runner.callbackToRegister;
 
-const dummyExecutor = {
-  id: "123456789",
-  user: {
-    username: "dummyexecutor",
-  },
-  timeout: jest.fn(),
-} as unknown as GuildMember;
-
-const dummyTarget = {
-  id: "987654321",
-  user: {
-    username: "dummytarget",
-  },
-  timeout: jest.fn(),
-} as unknown as GuildMember;
-
 const dummyUntil = new Date();
 
-const mockTimeoutIssuedEntry = {
-  action: AuditLogEvent.MemberUpdate,
-  executorId: dummyExecutor.id,
-  targetId: dummyTarget.id,
-  reason: "for being weird",
-  changes: [
+let mockGuild: DeepMockProxy<Guild>;
+let dummyExecutor: DeepMockProxy<GuildMember>;
+let dummyTarget: DeepMockProxy<GuildMember>;
+let mockTimeoutIssuedEntry: DeepMockProxy<GuildAuditLogsEntry>;
+let mockTimeoutRemovedEntry: DeepMockProxy<GuildAuditLogsEntry>;
+let mockDMChannel: DeepMockProxy<DMChannel>;
+let mockBroadcastChannel: DeepMockProxy<GuildTextBasedChannel>;
+let mockModChannel: DeepMockProxy<GuildTextBasedChannel>;
+
+beforeEach(() => {
+  mockGuild = mockDeep<Guild>();
+  mockGuild.id = YUNG_KAI_WORLD_GID;
+  mockGuild.name = "yung kai world";
+  mockGuild.client.user.id = env.CLIENT_UID;
+  // @ts-expect-error Narrow options type to just user ID.
+  mockGuild.members.fetch.mockImplementation(id => {
+    if (id === dummyExecutor.id) return Promise.resolve(dummyExecutor);
+    if (id === dummyTarget.id) return Promise.resolve(dummyTarget);
+    return Promise.resolve(null);
+  });
+  // @ts-expect-error I don't even know at this point.
+  mockGuild.channels.fetch.mockImplementation(id => {
+    if (id === BOT_SPAM_CID) {
+      return Promise.resolve(mockBroadcastChannel);
+    }
+    if (id === MOD_CHAT_CID) {
+      return Promise.resolve(mockModChannel);
+    }
+    return Promise.resolve(null);
+  });
+
+  dummyExecutor = mockDeep<GuildMember>();
+  addMockGetter(dummyExecutor, "id", "123456789");
+  dummyExecutor.user.username = "dummyexecutor";
+
+  dummyTarget = mockDeep<GuildMember>();
+  addMockGetter(dummyTarget, "id", "98765421");
+  dummyTarget.user.username = "dummytarget";
+
+  mockTimeoutIssuedEntry = mockDeep<GuildAuditLogsEntry>();
+  mockTimeoutIssuedEntry.action = AuditLogEvent.MemberUpdate;
+  mockTimeoutIssuedEntry.executorId = dummyExecutor.id;
+  mockTimeoutIssuedEntry.targetId = dummyTarget.id;
+  mockTimeoutIssuedEntry.reason = "for being weird";
+  mockTimeoutIssuedEntry.changes = [
     {
       key: "communication_disabled_until",
       old: undefined,
       new: dummyUntil.toISOString(),
     },
-  ],
-} as GuildAuditLogsEntry;
+  ];
 
-const mockTimeoutRemovedEntry = {
-  action: AuditLogEvent.MemberUpdate,
-  executorId: dummyExecutor.id,
-  targetId: dummyTarget.id,
-  reason: null,
-  changes: [
+  mockTimeoutRemovedEntry = mockDeep<GuildAuditLogsEntry>();
+  mockTimeoutRemovedEntry.action = AuditLogEvent.MemberUpdate;
+  mockTimeoutRemovedEntry.executorId = dummyExecutor.id;
+  mockTimeoutRemovedEntry.targetId = dummyTarget.id;
+  mockTimeoutRemovedEntry.reason = null;
+  mockTimeoutRemovedEntry.changes = [
     {
       key: "communication_disabled_until",
       old: dummyUntil.toISOString(),
       new: undefined,
     },
-  ],
-} as GuildAuditLogsEntry;
+  ];
 
-const mockDMChannel = {
-  send: jest.fn(),
-} as unknown as DMChannel;
+  mockDMChannel = mockDeep<DMChannel>();
+  mockBroadcastChannel = mockDeep<GuildTextBasedChannel>();
+  mockModChannel = mockDeep<GuildTextBasedChannel>();
 
-const mockBroadcastChannel = {
-  send: jest.fn(),
-} as unknown as GuildTextBasedChannel;
-
-const mockModChannel = {
-  send: jest.fn(),
-} as unknown as GuildTextBasedChannel;
-
-const mockGuild = {
-  id: YUNG_KAI_WORLD_GID,
-  name: "yung kai world",
-  members: {
-    fetch: jest.fn(id => {
-      if (id === dummyExecutor.id) return Promise.resolve(dummyExecutor);
-      if (id === dummyTarget.id) return Promise.resolve(dummyTarget);
-      return Promise.resolve(null);
-    }),
-  },
-  channels: {
-    fetch: jest.fn(id => {
-      if (id === BOT_SPAM_CID) {
-        return Promise.resolve(mockBroadcastChannel);
-      }
-      if (id === MOD_CHAT_CID) {
-        return Promise.resolve(mockModChannel);
-      }
-      return Promise.resolve(null);
-    }),
-  },
-  client: {
-    user: {
-      id: env.CLIENT_UID,
-    },
-  },
-} as unknown as Guild;
-
-beforeAll(() => {
   mockedGetDMChannel.mockResolvedValue(mockDMChannel);
   jest.spyOn(console, "error").mockImplementation(() => { });
 });
@@ -217,7 +201,7 @@ describe("error handling", () => {
 
   it("should still try to DM if broadcast channel not found", async () => {
     // @ts-expect-error fetch() can resolve to null. IDK why it says it can't.
-    jest.mocked(mockGuild.channels.fetch).mockResolvedValueOnce(null);
+    mockGuild.channels.fetch.mockResolvedValueOnce(null);
     await simulateEvent(mockTimeoutIssuedEntry, mockGuild);
     expect(mockDMChannel.send).toHaveBeenCalled();
     expect(mockBroadcastChannel.send).not.toHaveBeenCalled();
