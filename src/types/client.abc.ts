@@ -8,11 +8,8 @@ import {
 
 import { CommandRunner } from "../bot/command.runner";
 import { ListenerRunner } from "../bot/listener.runner";
-import getLogger from "../logger";
 import { getCurrentBranchName } from "../utils/meta.utils";
 import { ListenerFilter } from "./listener.types";
-
-const log = getLogger(__filename);
 
 export abstract class ClientWithIntentsAndRunnersABC extends Client {
   public readonly commandRunners
@@ -72,7 +69,7 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
   }
 
   public registerListeners(): void {
-    for (const [id, runner] of this.listenerRunners) {
+    for (const runner of this.listenerRunners.values()) {
       if (runner.spec.type === Events.MessageCreate) {
         this.enforceIgnoreOwnMessages(runner);
       }
@@ -83,7 +80,6 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
       else {
         this.on(runner.spec.type, runner.callbackToRegister);
       }
-      log.debug(`registered event listener '${id}'.`);
     }
   }
 

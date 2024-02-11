@@ -36,10 +36,6 @@ export class CommandLoader {
       // Base case: file is a controller file.
       if (file.endsWith(".command.js") || file.endsWith("command.ts")) {
         commandPaths.push(fullPath);
-        log.debug(
-          "discovered command implementation file: " +
-          `${path.relative(this.commandsBaseDirectoryPath, fullPath)}.`,
-        );
         continue;
       }
     }
