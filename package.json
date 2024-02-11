@@ -1,17 +1,16 @@
 {
-  "name": "tempbot",
+  "name": "yungkaiworldbot",
   "version": "0.0.0",
   "description": "yung kai world's Misc Bot",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "LOGGER_LEVEL=debug ts-node src/index.ts",
+    "dev": "ts-node src/index.ts",
     "sync": "ts-node src/index.ts --sync",
+    "stealth": "ts-node src/index.ts --stealth",
     "clean": "rm -rf dist/*",
     "build": "npm run clean && tsc --project tsconfig.build.json && npm run copy-assets",
     "copy-assets": "copyfiles -u 1 src/assets/**/* dist",
     "start": "npm run build && node .",
-    "now": "LOGGER_LEVEL=debug node .",
-    "stealth": "LOGGER_LEVEL=debug ts-node src/index.ts --stealth",
     "test": "jest",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint -- --fix"

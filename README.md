@@ -111,20 +111,25 @@ should be environment variables.**
 
 ## Running
 
-### package.json Scripts
 
-| Shell Command      | Description                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| `npm run dev`      | Start the bot runtime. This interprets the TypeScript source directly for fastest startup.   |
-| `npm run sync`     | Deploy application commands to Discord's backend. This does not start the bot runtime.       |
-| `npm run clean`    | Clear JavaScript build files.                                                                |
-| `npm run build`    | Compile TypeScript source to JavaScript.                                                     |
-| `npm start`        | Start the bot runtime. This invokes Node.js on the compiled JavaScript ready for production. |
-| `npm run stealth`  | Same as `npm run dev` but run in "stealth mode".                                             |
-| `npm run now`      | Run existing JavaScript build files right away.                                              |
-| `npm test`         | Run tests.                                                                                   |
-| `npm run lint`     | Run the linter to report errors/warnings.                                                    |
-| `npm run lint:fix` | Run the linter and fix all fixable errors in-place.                                          |
+### Program Entry Points
+
+| Shell Command     | Description                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| `npm run dev`     | Start the bot runtime. This interprets the TypeScript source directly for fastest startup. |
+| `npm run sync`    | Deploy application commands to Discord's backend. This does not start the bot runtime.     |
+| `npm run stealth` | Same as `npm run dev` but run in "stealth mode".                                           |
+| `npm start`       | Start the bot runtime. This invokes Node.js on compiled JavaScript, ready for production.  |
+
+### Housekeeping Commands
+
+| Shell Command      | Description                                                |
+| ------------------ | ---------------------------------------------------------- |
+| `npm run build`    | Compile TypeScript source to JavaScript.                   |
+| `npm run clean`    | Clear JavaScript build files.                              |
+| `npm test`         | Run tests. Include a regex after it to filter test suites. |
+| `npm run lint`     | Run the linter to report errors/warnings.                  |
+| `npm run lint:fix` | Run the linter and fix all fixable errors in-place.        |
 
 
 ### Command Registration vs. Bot Runtime
@@ -143,21 +148,24 @@ program thus separates the two modes through command line flags:
 
     ```sh
     # npm run sync
-    node dist/index.js --sync
+    node . --sync
     ```
 
 * Start the bot runtime (log in to Discord and listen for commands and events):
 
     ```sh
     # npm start
-    node dist/index.js
+    node .
     ```
 
 The [discord.js
 Guide](https://discordjs.guide/creating-your-bot/command-deployment.html#command-registration)
 explains well the rationale behind this kind of separation.
 
-Your flow would look something like:
+
+### Development Flow
+
+Thus, your flow would look something like:
 
 1. Define/update a command definition in source code.
 2. Deploy the command with `--sync`.
