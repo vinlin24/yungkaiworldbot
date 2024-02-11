@@ -199,7 +199,7 @@ and spamming commands/messages on the real server.
 ### Commands
 
 Command modules should be created anywhere under
-[controllers/](src/controllers/) and end with `.controller.ts` to be discovered
+[controllers/](src/controllers/) and end with `.command.ts` to be discovered
 and loaded by our [dynamic command loader](src/bot/command.loader.ts) on bot
 startup. The module *must* export a `CommandSpec` object, but I've defined a
 `CommandBuilder` helper class to make building this object more convenient and
