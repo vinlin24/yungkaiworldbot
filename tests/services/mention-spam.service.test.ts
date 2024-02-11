@@ -30,6 +30,7 @@ it("should return false if mentioner exceeds rate limit", async () => {
 });
 
 it("should count mentions to different users independently", async () => {
+  trackerSpy.mockRestore();
   // Reach the rate limit mentioning dummy target 1.
   for (let i = 0; i < 3; i++) {
     mentionSpamService.mentioned(mentioner, mentioned1);
