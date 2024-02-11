@@ -75,21 +75,6 @@ values for the production version of the bot.
 > roles, users, etc. To enable it, go to **User Settings > Advanced > Developer
 > Mode**.
 
-We use this suffix convention:
-
-* `_GID`: Guild ID. Servers are referred to as "guilds" in the Discord API.
-* `_CID`: Channel ID. This can be any type of channel (text, voice, etc.).
-* `_RID`: Role ID. This is useful for role-based features. It is also the basis
-  of this bot's [privilege system](src/middleware/privilege.middleware.ts).
-* `_UID`: User ID. This is useful for user-based features (to give the bot a
-  little personality, basically). I learned later that "UID" is more commonly
-  accepted as the general term [unique
-  identifier](https://en.wikipedia.org/wiki/Unique_identifier), NOT "user ID",
-  but hopefully this ambiguity isn't a problem in the contexts they're used.
-
-GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). **UIDs
-should be environment variables.**
-
 > [!CAUTION]
 > **UIDs should be environment variables. Furthermore, non-bot UIDs should
 > ALWAYS be redacted in version control.**
@@ -108,6 +93,9 @@ should be environment variables.**
 > under any circumstances.
 >
 > </details>
+
+Also see [our naming conventions for snowflake-related
+variables](#discord-snowflakes).
 
 
 ## Running
@@ -346,3 +334,90 @@ scripts/db-connect.sh
 
 This automatically loads the [.env](#environment-file) file and uses the
 `DB_CONN_STRING` to connect to the cluster.
+
+
+## Repository Conventions
+
+
+### Discord Snowflakes
+
+We use this suffix convention:
+
+* `_GID`: Guild ID. Servers are referred to as "guilds" in the Discord API.
+* `_CID`: Channel ID. This can be any type of channel (text, voice, etc.).
+* `_RID`: Role ID. This is useful for role-based features. It is also the basis
+  of this bot's [privilege system](src/middleware/privilege.middleware.ts).
+* `_UID`: User ID. This is useful for user-based features (to give the bot a
+  little personality, basically). I learned later that "UID" is more commonly
+  accepted as the general term ["unique
+  identifier"](https://en.wikipedia.org/wiki/Unique_identifier), NOT "user ID",
+  but hopefully this ambiguity isn't a problem in the contexts they're used.
+
+GIDs, CIDs, and RIDs can be hard-coded into [config.ts](src/config.ts). **UIDs
+should be [environment variables](#environment-file).**
+
+
+### Git/GitHub
+
+> [!NOTE]
+>
+> Some of these are opinionated, so it does not matter that much, but I
+> think that staying *consistent* with the practices I've set will help reduce
+> friction in collaborative development, if/when it happens. I'm also a
+> fledgling myself, so if a senior happens to stumble across this codebase, I
+> would be happy to learn more about version control best practices.
+
+I tend to use these prefixes for branch names (for readability as well as ease
+of filtering/categorization):
+
+| Prefix      | Description                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| `main`      | This is not a prefix. `main` is the stable branch. It's also protected.                    |
+| `feat/`     | A new feature for the bot.                                                                 |
+| `setup/`    | Set up something new related to project itself (e.g. introducing a new 3rd party service). |
+| `refactor/` | Refactoring related to project itself. Preferably no changes in features themselves.       |
+| `test/`     | Adding or improving tests.                                                                 |
+| `tweak/`    | A minor change to existing features (e.g. changing the values of constants).               |
+
+Also, try to make use of labels on
+[**GitHub issues**](https://github.com/vinlin24/yungkaiworldbot/issues) to
+~~make them look better~~ better organize them based on category/urgency.
+
+
+### Style
+
+
+#### Code Style
+
+We use [ESLint](https://eslint.org/) for code linting. The
+[CI](.github/workflows/) is set up to run the linter before allowing PRs to
+pass, so please respect it. Try to configure your editor of choice to
+automatically detect and/or fix linter errors based on our [.eslintrc.json
+configuration](.eslintrc.json). Feel free to suggest (justified) changes to the
+linting setup too.
+
+> [!TIP]
+>
+> For VS Code users (like me!), [this ESLint
+> extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+> should be all you need to get started.
+
+
+#### Encodings
+
+Keep all whitespace to LF (Unix-style) EOL and use UTF-8
+character encoding. These settings are also written in the repository
+[.gitattributes](.gitattributes).
+
+
+#### File Naming
+
+Prepend the architecture layer to the file extension e.g.
+`.command.ts`, `.service.ts`, `.utils.ts`, etc. *(Plural or singular? Uhhh...
+just be consistent with what I have LOL)* For unit test files, make sure to add
+a `test` to it e.g. `feature.command.test.ts`, as that is the suffix [Jest is
+configured](jest.config.ts) to match when finding test suites.
+
+This makes each
+file name feel more self-contained, and it also makes searching for files by
+name within an editor much easier.
