@@ -379,6 +379,11 @@ of filtering/categorization):
 | `test/`     | Adding or improving tests.                                                                 |
 | `tweak/`    | A minor change to existing features (e.g. changing the values of constants).               |
 
+Capitalize the first letter and use present, imperative tense for commit
+messages, [the way Git itself does
+it](https://stackoverflow.com/a/3580764/14226122). Think of your message as the
+blank in "This commit will _____".
+
 Also, try to make use of labels on
 [**GitHub issues**](https://github.com/vinlin24/yungkaiworldbot/issues) to
 ~~make them look better~~ better organize them based on category/urgency.
