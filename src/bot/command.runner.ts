@@ -75,9 +75,7 @@ export class CommandRunner {
       log.warning(`${context}: no handler to resolve autocomplete.`);
       return;
     }
-    log.debug(`${context}: processing autocomplete.`);
     await this.spec.autocomplete(interaction); // TODO: error handling.
-    log.debug(`${context}: finished processing autocomplete.`);
   }
 
   protected async runChecks(
