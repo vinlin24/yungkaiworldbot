@@ -16,11 +16,22 @@ const slashCommandDefinition = new SlashCommandBuilder()
 
 async function shutdownBot(
   interaction: ChatInputCommandInteraction,
-): Promise<void> {
-  await interaction.reply({ content: "🫡", ephemeral: true });
-  await interaction.client.destroy();
+): Promise<never> {
   const context = formatContext(interaction);
+  try {
+    await interaction.reply({ content: "🫡", ephemeral: true });
+  }
+  // Command should still try to shut down bot no matter what.
+  catch (error) {
+    log.error(`${context}: failed to acknowledge the command.`);
+    console.error(error);
+  }
+
+  await interaction.client.destroy();
   log.info(`${context}: terminated bot runtime.`);
+  // TODO: Is this safe? What if we have teardown code? Should we just use
+  // process.on("exit", ...)?
+  process.exit(0);
 }
 
 const shutdownSpec: CommandSpec = new CommandBuilder()
