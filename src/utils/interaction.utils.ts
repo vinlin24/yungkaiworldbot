@@ -2,7 +2,6 @@ import {
   ChatInputCommandInteraction,
   DMChannel,
   EmojiResolvable,
-  Events,
   GuildMember,
   InteractionReplyOptions,
   Message,
@@ -11,7 +10,7 @@ import {
 } from "discord.js";
 
 import getLogger from "../logger";
-import { ListenerExecuteFunction } from "../types/listener.types";
+import { MessageListenerExecuteFunction } from "../types/listener.types";
 import { formatContext } from "./logging.utils";
 
 const log = getLogger(__filename);
@@ -38,7 +37,7 @@ export async function replySilently(
  * `Listener#execute`.
  */
 export function replySilentlyWith(content: string)
-  : ListenerExecuteFunction<Events.MessageCreate> {
+  : MessageListenerExecuteFunction {
   return async (message) => {
     await replySilently(message, content);
     log.debug(`${formatContext(message)}: replied with '${content}'.`);
@@ -50,7 +49,7 @@ export function replySilentlyWith(content: string)
  * to the message with the specified emoji.
  */
 export function reactWith(emoji: EmojiResolvable)
-  : ListenerExecuteFunction<Events.MessageCreate> {
+  : MessageListenerExecuteFunction {
   return async (message) => {
     await message.react(emoji);
     log.debug(`${formatContext(message)}: reacted with ${emoji}.`);
@@ -60,7 +59,7 @@ export function reactWith(emoji: EmojiResolvable)
 /**
  * Silently reply to the message with the message's own content.
  */
-export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
+export const echoContent: MessageListenerExecuteFunction
   = async function (message) {
     await replySilently(message, message.content);
     log.debug(`${formatContext(message)}: echoed '${message.content}'.`);
