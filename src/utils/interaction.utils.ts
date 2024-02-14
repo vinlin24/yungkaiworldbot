@@ -4,10 +4,12 @@ import {
   EmojiResolvable,
   GuildMember,
   InteractionReplyOptions,
+  InteractionResponse,
   Message,
   MessageCreateOptions,
   MessageFlags,
 } from "discord.js";
+import winston from "winston";
 
 import getLogger from "../logger";
 import { MessageListenerExecuteFunction } from "../types/listener.types";
@@ -81,4 +83,67 @@ export async function replyWithGenericACK(
     ephemeral: true, // Default to ephemeral (possibly overridden thru options).
     ...(options ?? {}),
   });
+}
+
+/**
+ * Wrapper for a discord.js `ChatInputCommandInteraction` to centralize error
+ * handling as well as abstract common operations on interactions.
+ */
+export class ChatInputCommandInteractionHandler {
+  constructor(
+    /** The Discord slash command interaction to wrap. */
+    public readonly interaction: ChatInputCommandInteraction,
+    /* The logger to use. */
+    logger?: winston.Logger,
+  ) {
+    this.log = logger ?? getLogger(__filename);
+  }
+
+  private log: winston.Logger;
+  private context = formatContext(this.interaction);
+
+  /**
+   * Reply to the interaction. This wraps `ChatInputCommandInteraction#reply` by
+   * providing our own centralized, custom error handling.
+   */
+  public async reply(
+    options: string | InteractionReplyOptions,
+  ): Promise<InteractionResponse | null> {
+    try {
+      return await this.interaction.reply(options);
+    }
+    catch (error) {
+      this.log.error(
+        `${this.context}: failed to reply to interaction.`,
+      );
+      this.handleError(error as Error);
+      return null;
+    }
+  }
+
+  /**
+   * Reply with some generic acknowledgement. Every interaction should be
+   * replied to as to not display an "Application failed to respond." error
+   * as the slash command output. If there is no meaningful response to give,
+   * you can use this method.
+   */
+  public async replyWithGenericACK(
+    options?: Omit<InteractionReplyOptions, "content">,
+  ): Promise<InteractionResponse | null> {
+    return await this.reply({
+      content: "👍",
+      // Default to ephemeral (possibly overridden thru options).
+      ephemeral: true,
+      ...(options ?? {}),
+    });
+  }
+
+  /**
+   * Centralized custom error handler.
+   */
+  private handleError(error: Error): void {
+    // TODO: console.error() should be the fallback behavior. Implement an
+    // if-else ladder with specialized behavior for specific types of errors.
+    console.error(error);
+  }
 }
