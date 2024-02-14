@@ -8,25 +8,22 @@ import {
 import winston from "winston";
 
 import getLogger from "../logger";
+import { HandlerProxy } from "../types/handler-proxy.abc";
 import { MessageListenerExecuteFunction } from "../types/listener.types";
-import { formatContext } from "./logging.utils";
 
 /**
  * Wrapper for a discord.js `Message` to centralize error handling as well as
  * abstract common operations on messages.
  */
-export class MessageHandler {
+export class MessageHandler extends HandlerProxy {
   constructor(
     /** The Discord message to wrap. */
     public readonly message: Message,
     /* The logger to use. */
     logger?: winston.Logger,
   ) {
-    this.log = logger ?? getLogger(__filename);
+    super(message, logger ?? getLogger(__filename));
   }
-
-  private log: winston.Logger;
-  private context = formatContext(this.message);
 
   /**
    * Reply to the message. This wraps `Message#reply` by providing our own
@@ -128,10 +125,7 @@ export class MessageHandler {
     };
   }
 
-  /**
-   * Centralized custom error handler.
-   */
-  private handleError(error: Error): void {
+  protected override handleError(error: Error): void {
     // TODO: console.error() should be the fallback behavior. Implement an
     // if-else ladder with specialized behavior for specific types of errors.
     console.error(error);

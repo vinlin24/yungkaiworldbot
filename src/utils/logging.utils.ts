@@ -1,12 +1,12 @@
 import {
   AutocompleteInteraction,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   GuildTextBasedChannel,
   Message,
 } from "discord.js";
 
 export function formatContext(message: Message): string;
-export function formatContext(interaction: CommandInteraction): string;
+export function formatContext(interaction: ChatInputCommandInteraction): string;
 export function formatContext(interaction: AutocompleteInteraction): string;
 
 /**
@@ -21,7 +21,7 @@ export function formatContext(interaction: AutocompleteInteraction): string;
  * TODO: Not sure if there's a way to automate this through Winston.
  */
 export function formatContext(
-  obj: Message | CommandInteraction | AutocompleteInteraction,
+  obj: Message | ChatInputCommandInteraction | AutocompleteInteraction,
 ): string {
   if (obj instanceof Message) {
     const message = obj;

@@ -12,6 +12,7 @@ import {
 import winston from "winston";
 
 import getLogger from "../logger";
+import { HandlerProxy } from "../types/handler-proxy.abc";
 import { MessageListenerExecuteFunction } from "../types/listener.types";
 import { formatContext } from "./logging.utils";
 
@@ -89,18 +90,15 @@ export async function replyWithGenericACK(
  * Wrapper for a discord.js `ChatInputCommandInteraction` to centralize error
  * handling as well as abstract common operations on interactions.
  */
-export class ChatInputCommandInteractionHandler {
+export class ChatInputCommandInteractionHandler extends HandlerProxy {
   constructor(
     /** The Discord slash command interaction to wrap. */
     public readonly interaction: ChatInputCommandInteraction,
     /* The logger to use. */
     logger?: winston.Logger,
   ) {
-    this.log = logger ?? getLogger(__filename);
+    super(interaction, logger ?? getLogger(__filename));
   }
-
-  private log: winston.Logger;
-  private context = formatContext(this.interaction);
 
   /**
    * Reply to the interaction. This wraps `ChatInputCommandInteraction#reply` by
@@ -138,10 +136,7 @@ export class ChatInputCommandInteractionHandler {
     });
   }
 
-  /**
-   * Centralized custom error handler.
-   */
-  private handleError(error: Error): void {
+  protected override handleError(error: Error): void {
     // TODO: console.error() should be the fallback behavior. Implement an
     // if-else ladder with specialized behavior for specific types of errors.
     console.error(error);
