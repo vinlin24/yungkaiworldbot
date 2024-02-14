@@ -21,6 +21,8 @@ const log = getLogger(__filename);
 /**
  * Wrapper for the boilerplate of replying to a `Message` with the `@silent`
  * setting and without pinging anyone.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export async function replySilently(
   message: Message,
@@ -38,6 +40,8 @@ export async function replySilently(
 /**
  * Same as `replySilently` but return a closure that can be passed directly to
  * `Listener#execute`.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export function replySilentlyWith(content: string)
   : MessageListenerExecuteFunction {
@@ -50,6 +54,8 @@ export function replySilentlyWith(content: string)
 /**
  * Return a closure that can be passed directly to `Listener#execute`. Reacts
  * to the message with the specified emoji.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export function reactWith(emoji: EmojiResolvable)
   : MessageListenerExecuteFunction {
@@ -61,6 +67,8 @@ export function reactWith(emoji: EmojiResolvable)
 
 /**
  * Silently reply to the message with the message's own content.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export const echoContent: MessageListenerExecuteFunction
   = async function (message) {
@@ -70,11 +78,16 @@ export const echoContent: MessageListenerExecuteFunction
 
 /**
  * Get the DM channel of a member.
+ *
+ * @deprecated Use `TextChannelHandler`.
  */
 export async function getDMChannel(member: GuildMember): Promise<DMChannel> {
   return member.dmChannel ?? await member.createDM();
 }
 
+/**
+ * @deprecated Use `ChatInputCommandInteractionHandler`.
+ */
 export async function replyWithGenericACK(
   interaction: ChatInputCommandInteraction,
   options?: Omit<InteractionReplyOptions, "content">,
