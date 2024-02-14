@@ -1,7 +1,6 @@
-import { ChatInputCommandInteraction, Message } from "discord.js";
 import winston from "winston";
 
-import { formatContext } from "../utils/logging.utils";
+import { Contextable, formatContext } from "../utils/logging.utils";
 
 /**
  * Wrapper for some discord.js object to centralize error handling as well as
@@ -10,7 +9,7 @@ import { formatContext } from "../utils/logging.utils";
 export abstract class HandlerProxy {
   constructor(
     /** discord.js object to wrap. */
-    contextable: ChatInputCommandInteraction | Message,
+    contextable: Contextable,
     /**
      * Log to use within this handler. This serves to provide more granular
      * control over logging. For example, one can provide a child logger when
