@@ -1,4 +1,4 @@
-import { Collection, Message } from "discord.js";
+import { Collection, Message, inlineCode } from "discord.js";
 import { mockDeep } from "jest-mock-extended";
 
 import { BOT_DEV_RID, KAI_RID } from "../../../../src/config";
@@ -10,13 +10,22 @@ import {
   mockChannelFetchMessageById,
 } from "./dev-control-test-utils";
 
+const dummyMessageId = "123456789";
+
 let mock: MockInteraction;
 beforeEach(() => { mock = new MockInteraction(devReactSpec); });
+
+function expectRepliedWithSucceededEmojis(...emojis: string[]): void {
+  mock.expectRepliedWith({
+    content: expect.stringContaining(`✅ Reacted with ${emojis.join(" ")}`),
+    ephemeral: true,
+  });
+}
 
 it("should require privilege level >= DEV", async () => {
   mock
     .mockCaller({ roleIds: [KAI_RID] })
-    .mockOption("String", "emoji", "🥺");
+    .mockOption("String", "emojis", "🥺");
   await mock.simulateCommand();
   expect(mock.interaction.channel!.messages.fetch).not.toHaveBeenCalled();
   mock.expectMentionedMissingPrivilege(RoleLevel.DEV);
@@ -25,7 +34,7 @@ it("should require privilege level >= DEV", async () => {
 it("should react to the most recent message", async () => {
   mock
     .mockCaller({ roleIds: [BOT_DEV_RID] })
-    .mockOption("String", "emoji", "🤩");
+    .mockOption("String", "emojis", "🤩");
   const mockMessage = mockDeep<Message<true>>();
   mock.interaction.channel!.messages.fetch
     .mockResolvedValueOnce(new Collection([["DUMMY-ID", mockMessage]]));
@@ -33,43 +42,41 @@ it("should react to the most recent message", async () => {
   await mock.simulateCommand();
 
   expect(mockMessage.react).toHaveBeenCalledWith("🤩");
-  mock.expectRepliedGenericACK();
+  expectRepliedWithSucceededEmojis("🤩");
 });
 
 it("should react to the specified message (using ID)", async () => {
-  const dummyMessageId = "123456789";
   mock
     .mockCaller({ roleIds: [BOT_DEV_RID] })
-    .mockOption("String", "emoji", "🫡")
+    .mockOption("String", "emojis", "🫡")
     .mockOption("String", "message", dummyMessageId);
   const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
   await mock.simulateCommand();
 
   expect(mockMessage.react).toHaveBeenCalledWith("🫡");
-  mock.expectRepliedGenericACK();
+  expectRepliedWithSucceededEmojis("🫡");
 });
 
 it("should react to the specified message (using URL)", async () => {
-  const dummyMessageId = "123456789";
   const dummyUrl = `https://discord.com/channels/3344/6677/${dummyMessageId}`;
   mock
     .mockCaller({ roleIds: [BOT_DEV_RID] })
-    .mockOption("String", "emoji", "😪")
+    .mockOption("String", "emojis", "😪")
     .mockOption("String", "message", dummyUrl);
   const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
 
   await mock.simulateCommand();
 
   expect(mockMessage.react).toHaveBeenCalledWith("😪");
-  mock.expectRepliedGenericACK();
+  expectRepliedWithSucceededEmojis("😪");
 });
 
 describe("caret notation", () => {
   beforeEach(() => {
     mock
       .mockCaller({ roleIds: [BOT_DEV_RID] })
-      .mockOption("String", "emoji", "🔥");
+      .mockOption("String", "emojis", "🔥");
   });
 
   it("should react to the 3rd most recent message (by ^^^)", async () => {
@@ -79,7 +86,7 @@ describe("caret notation", () => {
     await mock.simulateCommand();
 
     expect(mockMessage.react).toHaveBeenCalledWith("🔥");
-    mock.expectRepliedGenericACK();
+    expectRepliedWithSucceededEmojis("🔥");
   });
 
   it("should react to the 3rd most recent message (by ^3)", async () => {
@@ -89,7 +96,7 @@ describe("caret notation", () => {
     await mock.simulateCommand();
 
     expect(mockMessage.react).toHaveBeenCalledWith("🔥");
-    mock.expectRepliedGenericACK();
+    expectRepliedWithSucceededEmojis("🔥");
   });
 });
 
@@ -97,14 +104,16 @@ describe("error handling", () => {
   it("should reject invalid emojis", async () => {
     mock
       .mockCaller({ roleIds: [BOT_DEV_RID] })
-      .mockOption("String", "emoji", "😨");
+      .mockOption("String", "emojis", "😨");
     const mockMessage = mockChannelFetchMessage(mock);
     mockMessage.react.mockRejectedValueOnce("DUMMY-ERROR");
 
     await mock.simulateCommand();
 
     mock.expectRepliedWith({
-      content: expect.stringContaining("Failed to react with `😨`"),
+      content: expect.stringContaining(
+        `Failed to react with emojis: ${inlineCode("😨")}.`,
+      ),
       ephemeral: true,
     });
   });
@@ -112,7 +121,7 @@ describe("error handling", () => {
   it("should reject invalid message identifiers", async () => {
     mock
       .mockCaller({ roleIds: [BOT_DEV_RID] })
-      .mockOption("String", "emoji", "😨")
+      .mockOption("String", "emojis", "😨")
       .mockOption("String", "message", "lmao");
 
     await mock.simulateCommand();
