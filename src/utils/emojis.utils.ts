@@ -1,3 +1,5 @@
+import { EmojiIdentifierResolvable } from "discord.js";
+
 export type CustomEmoji = {
   name: string;
   id: string;
@@ -28,6 +30,15 @@ export function toEscapedEmoji(emoji: CustomEmoji): string {
   // Animated emojis take the form of <a:NAME:ID>. Non-animated emojis take the
   // form of <:NAME:ID>.
   return `<${animated ? "a" : ""}:${name}:${id}>`;
+}
+
+/**
+ * Extract and return all Unicode and custom emojis from a string
+ */
+export function extractAllEmojis(input: string): EmojiIdentifierResolvable[] {
+  const emojiRegex = /(\p{Emoji_Presentation}|<a?:.+?:\d+?>)/gu;
+  const matches = input.match(emojiRegex);
+  return matches ?? [];
 }
 
 // TODO: Should these only store IDs or full CustomEmoji objects?
