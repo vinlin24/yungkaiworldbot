@@ -131,4 +131,71 @@ describe("error handling", () => {
       ephemeral: true,
     });
   });
+
+  it("should reject input strings without any emojis", async () => {
+    mock
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockOption("String", "emojis", "lorem ipsum");
+
+    await mock.simulateCommand();
+
+    mock.expectRepliedWith({
+      content: expect.stringContaining(
+        `No emojis found in your input ${inlineCode("lorem ipsum")}!`,
+      ),
+      ephemeral: true,
+    });
+  });
+});
+
+describe("multiple emojis at once", () => {
+  it("should react with all emojis in the string", async () => {
+    mock
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockOption("String", "emojis", "hello 💯 there 🥳!")
+      .mockOption("String", "message", dummyMessageId);
+    const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.react).toHaveBeenCalledWith("💯");
+    expect(mockMessage.react).toHaveBeenCalledWith("🥳");
+    expectRepliedWithSucceededEmojis("💯", "🥳");
+  });
+
+  it("should work with both Unicode and custom emojis", async () => {
+    const dummyCustomEmoji = "<:customEmoji:4242424242>";
+    mock
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockOption("String", "emojis", `general ${dummyCustomEmoji} kenobi 😠!`)
+      .mockOption("String", "message", dummyMessageId);
+    const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.react).toHaveBeenCalledWith(dummyCustomEmoji);
+    expect(mockMessage.react).toHaveBeenCalledWith("😠");
+    expectRepliedWithSucceededEmojis(dummyCustomEmoji, "😠");
+  });
+
+  it("should continue reacting even on a failed reaction", async () => {
+    mock
+      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockOption("String", "emojis", "wow ❌ amazing ✅ lol")
+      .mockOption("String", "message", dummyMessageId);
+    const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
+    mockMessage.react.mockRejectedValueOnce("DUMMY-ERROR");
+
+    await mock.simulateCommand();
+
+    expect(mockMessage.react).toHaveBeenCalledWith("✅");
+    // But as long as any reaction failed, the interaction reply is a failure
+    // notification.
+    mock.expectRepliedWith({
+      content: expect.stringContaining(
+        `Failed to react with emojis: ${inlineCode("❌")}.`,
+      ),
+      ephemeral: true,
+    });
+  });
 });
