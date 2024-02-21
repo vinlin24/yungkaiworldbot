@@ -4,6 +4,7 @@ import {
   Events,
   GatewayIntentBits,
   Message,
+  Partials,
 } from "discord.js";
 
 import { CommandRunner } from "../bot/command.runner";
@@ -39,6 +40,12 @@ export abstract class ClientWithIntentsAndRunnersABC extends Client {
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildModeration,
         GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.GuildMessageReactions,
+      ],
+      // https://discordjs.guide/popular-topics/partials.html#enabling-partials.
+      partials: [
+        Partials.Message,
+        Partials.Reaction,
       ],
     });
     this.setMaxListeners(Infinity); // Pacify warning.
