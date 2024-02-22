@@ -50,7 +50,7 @@ function getEmojiToUse(message: Message): EmojiIdentifierResolvable | null {
   // Example link obtained from "Share > Copy Song Link":
   // https://open.spotify.com/track/5Yiwmn4PZAzVAms9UDICU2?si=67b6598c0b2d46aa
   const spotifyLinkPattern = new RegExp(
-    "\\bhttps://open\\.spotify\\.com/(track|playlist)/[a-zA-Z0-9]+" +
+    "\\bhttps://open\\.spotify\\.com/(track|playlist|album)/[a-zA-Z0-9]+" +
     "(\\?si=[a-zA-Z0-9]+)?\\b",
   );
 
