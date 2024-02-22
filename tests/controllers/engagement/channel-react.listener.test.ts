@@ -72,13 +72,35 @@ describe("PATTERN 2: messages that have no replies", () => {
   });
 });
 
-describe("PATTERN 3: Spotify song links", () => {
+describe("PATTERN 3: Spotify links", () => {
   it("should react to shared song links", async () => {
     mock
       .mockChannel({ cid: MUSIC_CHAT_CID })
       .mockContent(
         "yo this song is fire: https://open.spotify.com/track/" +
         "5Yiwmn4PZAzVAms9UDICU2?si=ae5ddf5fd3f345ce lol",
+      );
+    await mock.simulateEvent();
+    mock.expectReactedWith("🔥");
+  });
+
+  it("should react to shared playlist links", async () => {
+    mock
+      .mockChannel({ cid: MUSIC_CHAT_CID })
+      .mockContent(
+        "check out my playlist! https://open.spotify.com/playlist/" +
+        "5FpuSaX0kDeItlPMIIYBZS?si=14d4e45fc99e44e1 <3",
+      );
+    await mock.simulateEvent();
+    mock.expectReactedWith("🔥");
+  });
+
+  it("should react to shared album links", async () => {
+    mock
+      .mockChannel({ cid: MUSIC_CHAT_CID })
+      .mockContent(
+        "check out my playlist! https://open.spotify.com/album/" +
+        "08CvAj58nVMpq1Nw7T6maj?si=TXkSI8AKTNqmXTGt4L0Zdg <3",
       );
     await mock.simulateEvent();
     mock.expectReactedWith("🔥");
