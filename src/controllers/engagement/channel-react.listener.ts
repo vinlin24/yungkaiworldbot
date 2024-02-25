@@ -21,11 +21,13 @@ const log = getLogger(__filename);
 function getEmojiToUse(message: Message): EmojiIdentifierResolvable | null {
   const { attachments, channelId, reference, content } = message;
 
-  const hasImage = attachments.some(a => a.contentType?.startsWith("image/"));
+  const hasImageOrVideo = attachments.some(
+    a => a.contentType?.match(/^(?:image|video)\//),
+  );
   const isAReply = !!reference;
 
   // PATTERN 1.
-  if (!isAReply && hasImage) {
+  if (!isAReply && hasImageOrVideo) {
     switch (channelId) {
       case ARTWORK_CID:
         return "🤩";

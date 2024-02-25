@@ -15,41 +15,51 @@ import { MockMessage } from "../../test-utils";
 let mock: MockMessage;
 beforeEach(() => mock = new MockMessage(channelReactSpec));
 
-describe("PATTERN 1: non-reply messages with image attachments", () => {
+describe("PATTERN 1: non-reply messages with media attachments", () => {
   function arrangeWithAttachment(cid: string): void {
     mock
       .mockChannel({ cid })
       .mockAttachments({ contentType: "image/png" } as Attachment);
   }
 
-  it("should react to posted artwork", async () => {
-    arrangeWithAttachment(ARTWORK_CID);
-    await mock.simulateEvent();
-    mock.expectReactedWith("🤩");
+  describe("image attachments", () => {
+    it("should react to posted artwork", async () => {
+      arrangeWithAttachment(ARTWORK_CID);
+      await mock.simulateEvent();
+      mock.expectReactedWith("🤩");
+    });
+
+    it("should react to posted media", async () => {
+      arrangeWithAttachment(MEDIA_CID);
+      await mock.simulateEvent();
+      mock.expectReactedWith("❤️");
+    });
+
+    it("should react to posted pet pictures", async () => {
+      arrangeWithAttachment(STINKYS_FRIENDS_CID);
+      await mock.simulateEvent();
+      mock.expectReactedWith("🥺");
+    });
+
+    it("should react to gaming pictures", async () => {
+      arrangeWithAttachment(GAMING_CID);
+      await mock.simulateEvent();
+      mock.expectReactedWith("🫡");
+    });
+
+    it("should react to food pictures", async () => {
+      arrangeWithAttachment(COOKING_TIME_CID);
+      await mock.simulateEvent();
+      mock.expectReactedWith("🤤");
+    });
   });
 
-  it("should react to posted media", async () => {
-    arrangeWithAttachment(MEDIA_CID);
+  it("should react to video attachments", async () => {
+    mock
+      .mockChannel({ cid: MEDIA_CID })
+      .mockAttachments({ contentType: "video/mp4" } as Attachment);
     await mock.simulateEvent();
     mock.expectReactedWith("❤️");
-  });
-
-  it("should react to posted pet pictures", async () => {
-    arrangeWithAttachment(STINKYS_FRIENDS_CID);
-    await mock.simulateEvent();
-    mock.expectReactedWith("🥺");
-  });
-
-  it("should react to gaming pictures", async () => {
-    arrangeWithAttachment(GAMING_CID);
-    await mock.simulateEvent();
-    mock.expectReactedWith("🫡");
-  });
-
-  it("should react to food pictures", async () => {
-    arrangeWithAttachment(COOKING_TIME_CID);
-    await mock.simulateEvent();
-    mock.expectReactedWith("🤤");
   });
 });
 
