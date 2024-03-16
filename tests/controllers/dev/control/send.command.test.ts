@@ -144,8 +144,8 @@ describe("replying to another message", () => {
       mock.expectRepliedGenericACK();
     });
 
-    it("should reply to the 3rd most recent message (by ^3)", async () => {
-      mock.mockOption("String", "reference", "^3");
+    it("should reply to the 3rd most recent message (by ~3)", async () => {
+      mock.mockOption("String", "reference", "~3");
       const mockMessage = mockChannelFetchMessage(mock, 3);
 
       await mock.simulateCommand();

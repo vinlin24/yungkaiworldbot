@@ -50,20 +50,21 @@ export async function fetchMessageByIdentifier(
  * The `reference` option should support notation with the caret (`^`)
  * character, inspired by Git reference notation. Examples:
  *
- * - `^`: Last message. Also equivalent to `^1`.
- * - `^^^`: Third last message. Also equivalent to `^3`.
- * - `^5`: Fifth last message.
+ * - `^`: Last message. Also equivalent to `~1`.
+ * - `^^^`: Third last message. Also equivalent to `~3`.
+ * - `~5`: Fifth last message.
  *
  * Return a number representing the message's reverse position in the channel.
- * For example, return 3 for the third last message.
+ * For example, return 3 for the third last message. If the provided reference
+ * is not in valid caret notation, return null.
  */
 export function resolveCaretNotation(
   referenceId: string | null,
 ): number | null {
   if (referenceId === null) return null;
 
-  // ^N case.
-  const withNumberMatch = referenceId.match(/^\^(\d)+$/);
+  // ~N case.
+  const withNumberMatch = referenceId.match(/^~(\d+)$/);
   if (withNumberMatch) {
     const numCarets = Number(withNumberMatch[1]);
     if (isNaN(numCarets)) {
