@@ -1,4 +1,8 @@
-import { CommandInteraction, GuildMember, roleMention } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  GuildMember,
+  roleMention,
+} from "discord.js";
 
 import { ALPHA_MOD_RID, BABY_MOD_RID, BOT_DEV_RID, KAI_RID } from "../config";
 import getLogger from "../logger";
@@ -69,12 +73,14 @@ export function checkPrivilege(
     return isAuthorized(memberToCheck);
   }
 
-  function predicate(interaction: CommandInteraction): boolean {
+  function predicate(interaction: ChatInputCommandInteraction): boolean {
     const member = interaction.member as GuildMember;
     return isAuthorized(member);
   }
 
-  async function onFail(interaction: CommandInteraction): Promise<void> {
+  async function onFail(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<void> {
     const member = interaction.member as GuildMember;
 
     if (commandLevel === RoleLevel.NONE) { // Pacify LEVEL_TO_RID lookup.
