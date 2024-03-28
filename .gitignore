@@ -132,3 +132,6 @@ dist
 # Workspace settings
 .vscode/
 *.code-workspace
+
+# Throwaway files
+temp/
