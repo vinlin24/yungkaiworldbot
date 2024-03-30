@@ -2,6 +2,7 @@ import { Awaitable, Events, Message } from "discord.js";
 import lodash from "lodash";
 
 import getLogger from "../logger";
+import cooldownService from "../services/cooldown.service";
 import { ListenerFilter } from "../types/listener.types";
 import { addDateSeconds } from "../utils/dates.utils";
 
@@ -418,31 +419,17 @@ export class CooldownManager implements ICooldownManager {
   }
 }
 
-export function useCooldown(
-  manager: CooldownManager,
-): ListenerFilter<Events.MessageCreate>;
-export function useCooldown(
-  spec: CooldownSpec,
-): ListenerFilter<Events.MessageCreate>;
 /**
  * Add a cooldown mechanism to this event listener. This filter passes only if
  * cooldown isn't currently active.
- *
- * NOTE: If adding this middleware to a message creation listener, it might be
- * better to use its custom `.cooldown()` method as that also saves the cooldown
- * manager instance such that it can be dynamically updated at runtime later.
  */
 export function useCooldown(
-  value: CooldownManager | CooldownSpec,
+  id: string,
+  spec: CooldownSpec,
 ): ListenerFilter<Events.MessageCreate> {
-  let manager: CooldownManager;
-  if (value instanceof CooldownManager) {
-    manager = value;
-  }
-  else {
-    manager = new CooldownManager();
-    manager.set(value);
-  }
+  const manager = new CooldownManager();
+  manager.set(spec);
+  cooldownService.setManager(id, manager);
 
   return {
     predicate: message => !manager.isActive(message),
