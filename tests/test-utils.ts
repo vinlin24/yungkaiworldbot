@@ -21,6 +21,7 @@ import { fromZodError } from "zod-validation-error";
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
 import { RoleLevel } from "../src/middleware/privilege.middleware";
+import cooldownService from "../src/services/cooldown.service";
 import { ClientWithIntentsAndRunnersABC } from "../src/types/client.abc";
 import { CommandSpec } from "../src/types/command.types";
 import { ListenerSpec } from "../src/types/listener.types";
@@ -303,11 +304,12 @@ export class MockMessage {
     this.listener = new ListenerRunner(spec);
     this.client.listenerRunners.set(spec.id, this.listener);
     this.client.registerListeners();
-    // TODO: A "spec" shouldn't have state saved on it but it does at the moment
-    // in the form of CooldownManager. Thus, we have to manually reset this
-    // manager for each instance of MockMessage to make sure tests using a
-    // distinct MockMessage don't share cooldown state.
-    this.listener.spec.cooldown?.clearCooldowns();
+
+    // Cooldown state is, by design, globally shared via CooldownService as its
+    // source of truth. Thus, we should make sure cooldown state is independent
+    // between tests.
+    const manager = cooldownService.getManager(this.listener.spec.id);
+    manager?.clearCooldowns();
 
     // Reasonable defaults.
     this.message.author.bot = false;
@@ -408,12 +410,13 @@ export class MockMessage {
    * cooldown manager.
    */
   public mockCooldownActive(): this {
-    if (!this.listener.spec.cooldown) {
+    const manager = cooldownService.getManager(this.listener.spec.id);
+    if (!manager) {
       throw new Error(
         `listener ${this.listener.spec.id} doesn't have a cooldown manager`)
       ;
     }
-    this.listener.spec.cooldown.refresh(this.message);
+    manager.refresh(this.message);
     return this;
   }
 
