@@ -9,6 +9,7 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../../middleware/privilege.middleware";
+import cooldownService from "../../../services/cooldown.service";
 import { CommandBuilder } from "../../../types/command.types";
 import { formatHoursMinsSeconds } from "../../../utils/dates.utils";
 import { toBulletedList } from "../../../utils/markdown.utils";
@@ -67,14 +68,16 @@ setCooldown.execute(async (interaction) => {
     return;
   }
 
-  if (!listener.cooldown) {
-    listener.cooldown = new CooldownManager();
+  let manager = cooldownService.getManager(listener.id);
+  if (!manager) {
+    manager = new CooldownManager();
+    cooldownService.setManager(listener.id, manager);
   }
 
   const type = options.getString("type", true) as CooldownSpec["type"];
 
   if (type === "disabled") {
-    listener.cooldown.update({ type: "disabled" });
+    manager.update({ type: "disabled" });
     await interaction.reply({
       content: `Disabled cooldown for **${listenerId}**!`,
       ephemeral: !broadcast,
@@ -93,11 +96,11 @@ setCooldown.execute(async (interaction) => {
 
   switch (type) {
     case "global":
-      listener.cooldown.update({ type, seconds });
+      manager.update({ type, seconds });
       break;
     case "user":
     case "channel":
-      listener.cooldown.update({ type, defaultSeconds: seconds });
+      manager.update({ type, defaultSeconds: seconds });
       break;
   }
 

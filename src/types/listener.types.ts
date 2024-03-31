@@ -1,12 +1,8 @@
 import { Awaitable, ClientEvents, Events } from "discord.js";
-import lodash from "lodash";
+import _ from "lodash";
 import { z } from "zod";
 
-import {
-  CooldownManager,
-  CooldownSpec,
-  useCooldown,
-} from "../middleware/cooldown.middleware";
+import { CooldownSpec, useCooldown } from "../middleware/cooldown.middleware";
 
 export type ListenerFilterFunction<Type extends keyof ClientEvents>
   = (...args: ClientEvents[Type]) => Awaitable<boolean>;
@@ -76,12 +72,6 @@ export type ListenerSpec<Type extends keyof ClientEvents> = {
    * - Uncaught exceptions count as "failed".
    */
   execute: ListenerExecuteFunction<Type>;
-  /**
-   * Dynamic cooldown manager for message creation listeners. If you want to be
-   * able to change this listener's cooldown spec at runtime (such as through
-   * commands), then you should include this property.
-   */
-  cooldown?: Type extends Events.MessageCreate ? CooldownManager : never;
 };
 
 /**
@@ -103,7 +93,6 @@ export const listenerSpecSchema = z.object({
     afterExecute: z.function().optional(),
   })).optional(),
   execute: z.function(),
-  cooldown: z.instanceof(CooldownManager).optional(),
 });
 
 /**
@@ -120,7 +109,7 @@ export const listenerSpecSchema = z.object({
  *    ```
  */
 export class ListenerBuilder<Type extends keyof ClientEvents> {
-  private id?: string;
+  protected id?: string;
   private once: boolean = false;
   private filters: ListenerFilter<Type>[] = [];
   private executeCallback?: ListenerExecuteFunction<Type>;
@@ -183,7 +172,6 @@ export class ListenerBuilder<Type extends keyof ClientEvents> {
 export class MessageListenerBuilder
   extends ListenerBuilder<Events.MessageCreate> {
 
-  private cooldownManager?: CooldownManager;
   private optIntoDMs: boolean = false;
 
   constructor() {
@@ -194,19 +182,14 @@ export class MessageListenerBuilder
     this.filter(this.ignoreDMFilter);
   }
 
-  public cooldown(manager: CooldownManager): this;
-  public cooldown(spec: CooldownSpec): this;
   /**
-   * Use cooldown middleware. This method also automatically saves the cooldown
-   * manager instance on the built listener spec, making it available to code
-   * that wants to query/update the cooldown through the bot client at runtime.
+   * Use cooldown middleware.
    */
-  public cooldown(arg: CooldownManager | CooldownSpec): this {
-    let manager: CooldownManager;
-    if (arg instanceof CooldownManager) manager = arg;
-    else manager = new CooldownManager(arg);
-    this.filter(useCooldown(manager));
-    this.cooldownManager = manager;
+  public cooldown(spec: CooldownSpec): this {
+    if (this.id === undefined) {
+      throw new Error("unique listener ID needed before registering cooldown");
+    }
+    this.filter(useCooldown(this.id, spec));
     return this;
   }
 
@@ -220,12 +203,9 @@ export class MessageListenerBuilder
   }
 
   public override toSpec(): ListenerSpec<Events.MessageCreate> {
-    const spec = {
-      ...super.toSpec(),
-      cooldown: this.cooldownManager,
-    };
+    const spec = super.toSpec();
     if (this.optIntoDMs) {
-      lodash.remove(spec.filters!, elem => elem === this.ignoreDMFilter);
+      _.remove(spec.filters!, elem => elem === this.ignoreDMFilter);
     }
     return spec;
   }
