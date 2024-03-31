@@ -5,6 +5,7 @@ import {
   RoleLevel,
   checkPrivilege,
 } from "../../../middleware/privilege.middleware";
+import cooldownService from "../../../services/cooldown.service";
 import { CommandBuilder } from "../../../types/command.types";
 import { formatHoursMinsSeconds } from "../../../utils/dates.utils";
 import { getAllMembers } from "../../../utils/iteration.utils";
@@ -67,7 +68,7 @@ overrideCooldown.execute(async (interaction) => {
     return;
   }
 
-  const { cooldown } = listener;
+  const cooldown = cooldownService.getManager(listener.id);
 
   if (!cooldown || cooldown.type === "disabled") {
     await interaction.reply({
@@ -100,7 +101,7 @@ overrideCooldown.execute(async (interaction) => {
       });
       return;
     }
-    for (const member of members) {cooldown.setDuration(duration, member.id);}
+    for (const member of members) { cooldown.setDuration(duration, member.id); }
     await interaction.reply({
       content:
         `Set **${listenerId}** cooldown duration override for ` +
@@ -113,7 +114,7 @@ overrideCooldown.execute(async (interaction) => {
   }
 
   if (bypass !== null) {
-    for (const member of members) {cooldown.setBypass(bypass, member.id);}
+    for (const member of members) { cooldown.setBypass(bypass, member.id); }
     await interaction.reply({
       content:
         `${bypass ? "Enabled" : "Disabled"} **${listenerId}** bypass ` +

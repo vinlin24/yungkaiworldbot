@@ -18,6 +18,7 @@ import {
   PerIDCooldownDump,
   PerUserCooldownDump,
 } from "../../../middleware/cooldown.middleware";
+import cooldownService from "../../../services/cooldown.service";
 import { CommandBuilder } from "../../../types/command.types";
 import { ListenerSpec } from "../../../types/listener.types";
 import { formatHoursMinsSeconds } from "../../../utils/dates.utils";
@@ -111,7 +112,8 @@ function formatListenerCooldownDump(
   now: Date,
   listener: ListenerSpec<Events.MessageCreate>,
 ): string {
-  const dump = listener.cooldown?.dump();
+  const manager = cooldownService.getManager(listener.id);
+  const dump = manager?.dump();
   let formatted: string;
   switch (dump?.type) {
     case "global":
@@ -219,7 +221,10 @@ listCooldowns.execute(async (interaction) => {
   // Otherwise provide the dumps for all listeners.
   const listeners = Array.from(listenerMap.values());
   const entries = listeners
-    .filter(l => l.cooldown?.type && l.cooldown.type !== "disabled")
+    .filter(l => {
+      const manager = cooldownService.getManager(l.id);
+      return manager && manager.type !== "disabled";
+    })
     .map(l => formatListenerCooldownDump(now, l));
 
   if (entries.length === 0) {
