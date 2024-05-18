@@ -2,6 +2,7 @@ import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
 import { clamp } from "lodash";
 
 import { ListenerFilterFunction } from "../types/listener.types";
+import { TIME_UNITS } from "../utils/dates.utils";
 import { parseCustomEmojis } from "../utils/emojis.utils";
 
 /**
@@ -128,5 +129,30 @@ export function containsEmoji(unicodeEmoji: string): MessageFilterFunction {
 export function inChannel(...cids: string[]): MessageFilterFunction {
   return function (message) {
     return cids.includes(message.channelId);
+  };
+}
+
+/**
+ * Return a filter that checks for whether the message is from a user that has
+ * been in the server for at least the specified amount of time.
+ */
+export function authorHasBeenMemberFor(
+  numUnits: number,
+  unitType: keyof typeof TIME_UNITS,
+): MessageFilterFunction {
+  return function (message) {
+    const { member } = message;
+    if (!member) return false;
+
+    const { joinedTimestamp } = member;
+    if (joinedTimestamp === null) return false;
+
+    const conversionFactor = TIME_UNITS[unitType];
+    const numSecondsTimeDelta = numUnits * conversionFactor;
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const joinedAtSeconds = Math.floor(joinedTimestamp / 1000);
+
+    return nowSeconds - joinedAtSeconds >= numSecondsTimeDelta;
   };
 }
