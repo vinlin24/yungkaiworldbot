@@ -13,6 +13,7 @@ import { GuildTextBasedChannel, Message } from "discord.js";
 
 /* eslint-disable import-newlines/enforce */
 import {
+  authorHasBeenMemberFor,
   channelPollutionAllowed,
   channelPollutionAllowedOrBypass,
   containsCustomEmoji,
@@ -225,5 +226,35 @@ describe("checking for emojis", () => {
       const passed = closure(message);
       expect(passed).toEqual(false);
     });
+  });
+});
+
+describe("checking author membership time", () => {
+  const ONE_DAY_NUM_MILLISECONDS = 24 * 60 * 60 * 1000;
+
+  it("should pass if member has been a member for long enough", () => {
+    const message = {
+      member: {
+        joinedTimestamp: Date.now() - (ONE_DAY_NUM_MILLISECONDS * 2),
+      },
+    } as Message;
+    const closure = authorHasBeenMemberFor(1, "day");
+
+    const passed = closure(message);
+
+    expect(passed).toEqual(true);
+  });
+
+  it("shouldn't pass if member hasn't been a member for long enough", () => {
+    const message = {
+      member: {
+        joinedTimestamp: Date.now(),
+      },
+    } as Message;
+    const closure = authorHasBeenMemberFor(1, "day");
+
+    const passed = closure(message);
+
+    expect(passed).toEqual(false);
   });
 });
