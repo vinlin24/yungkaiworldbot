@@ -1,7 +1,7 @@
 import { bold } from "discord.js";
 
 import { BOT_DEV_RID, KAI_RID } from "../../../../src/config";
-import setConcertedReactSpec from "../../../../src/controllers/dev/control/set-concerted-react.command";
+import setConcertedReactSpec from "../../../../src/controllers/dev/control/set-concerted.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import devControlService from "../../../../src/services/dev-control.service";
 import { MockInteraction } from "../../../test-utils";
