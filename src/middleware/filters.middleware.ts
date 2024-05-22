@@ -1,4 +1,9 @@
-import { Awaitable, Events, GuildTextBasedChannel } from "discord.js";
+import {
+  Awaitable,
+  Events,
+  GuildTextBasedChannel,
+  Snowflake,
+} from "discord.js";
 import { clamp } from "lodash";
 
 import { ListenerFilterFunction } from "../types/listener.types";
@@ -23,8 +28,18 @@ export const ignoreBots: MessageFilterFunction = message => !message.author.bot;
  * Only listen to messages created by a specific user(s), specified by user
  * ID(s).
  */
-export function messageFrom(...userIds: string[]): MessageFilterFunction {
+export function messageFrom(...userIds: Snowflake[]): MessageFilterFunction {
   return message => userIds.some(uid => message.author.id === uid);
+}
+
+export function messageFromRoles(
+  ...roleIds: Snowflake[]
+): MessageFilterFunction {
+  return message => {
+    const member = message.member;
+    if (!member) return false;
+    return member.roles.cache.some(role => roleIds.includes(role.id));
+  };
 }
 
 /**
