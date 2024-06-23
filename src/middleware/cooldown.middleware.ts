@@ -240,8 +240,13 @@ export abstract class PerIDCooldownManager<
   }
 
   public override setBypass(bypass: boolean, discordId: string): void {
-    if (bypass) this.overrides.set(discordId, 0);
-    else this.overrides.delete(discordId); // ID falls back to defaultSeconds.
+    if (bypass) {
+      this.overrides.set(discordId, 0);
+      this.expirations.delete(discordId); // Clear existing cooldown, if exists.
+    }
+    else {
+      this.overrides.delete(discordId);
+    } // ID falls back to defaultSeconds.
   }
 
   public override dump(): DumpType {
