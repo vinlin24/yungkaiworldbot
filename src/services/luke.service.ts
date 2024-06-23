@@ -42,7 +42,7 @@ export class LukeService {
       response = `Welcome back, ${author.displayName}!`;
       jokeType = "welcome";
     }
-    else if (captured.trim().toLowerCase() === "so silly") {
+    else if (this.isSillyVariant(captured)) {
       response = "ur so silly";
       jokeType = "silly";
     }
@@ -57,6 +57,12 @@ export class LukeService {
     );
     return true;
   };
+
+  private isSillyVariant(captured: string): boolean {
+    captured = captured.trim();
+    captured = captured.replace(/[^a-z]/gi, "");
+    return captured.startsWith("sosilly");
+  }
 }
 
 export default new LukeService();
