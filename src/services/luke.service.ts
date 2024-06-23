@@ -28,7 +28,7 @@ export class LukeService {
     const [, notPresent, captured] = matches;
 
     let response: string;
-    let jokeType: "negative" | "affirmative" | "welcome";
+    let jokeType: "negative" | "affirmative" | "welcome" | "silly";
 
     // Negative version of the joke.
     if (notPresent) {
@@ -41,6 +41,10 @@ export class LukeService {
     else if (captured.match(/^(back|awake|up|here|alive)[.~!?-]*$/i)) {
       response = `Welcome back, ${author.displayName}!`;
       jokeType = "welcome";
+    }
+    else if (captured.trim().toLowerCase() === "so silly") {
+      response = "ur so silly";
+      jokeType = "silly";
     }
     else {
       response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
