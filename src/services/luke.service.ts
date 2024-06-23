@@ -28,7 +28,7 @@ export class LukeService {
     const [, notPresent, captured] = matches;
 
     let response: string;
-    let jokeType: "negative" | "affirmative" | "welcome";
+    let jokeType: "negative" | "affirmative" | "welcome" | "silly";
 
     // Negative version of the joke.
     if (notPresent) {
@@ -42,6 +42,10 @@ export class LukeService {
       response = `Welcome back, ${author.displayName}!`;
       jokeType = "welcome";
     }
+    else if (this.isSillyVariant(captured)) {
+      response = "ur so silly";
+      jokeType = "silly";
+    }
     else {
       response = `Hi ${captured}, I'm ${message.client.user.displayName}!`;
       jokeType = "affirmative";
@@ -53,6 +57,12 @@ export class LukeService {
     );
     return true;
   };
+
+  private isSillyVariant(captured: string): boolean {
+    captured = captured.trim();
+    captured = captured.replace(/[^a-z]/gi, "");
+    return captured.startsWith("sosilly");
+  }
 }
 
 export default new LukeService();

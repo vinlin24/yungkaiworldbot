@@ -49,9 +49,6 @@ export function messageFromRoles(
 export function isPollutionImmuneChannel(
   channel: GuildTextBasedChannel,
 ): boolean {
-  // Might be best to not annoy the kiddos too much.
-  if (channel.name.indexOf("general") !== -1) return true;
-
   // Don't pollute important channels.
   const importantSubstrings = ["introductions", "announcements", "welcome"];
   if (importantSubstrings.some(s => channel.name.indexOf(s) !== -1)) {

@@ -69,7 +69,6 @@ describe("messageFrom middleware", () => {
 
 describe("channel pollution", () => {
   const IMPORTANT_CHANNELS = [
-    "general",
     "introductions",
     "staff-introductions",
     "announcements",

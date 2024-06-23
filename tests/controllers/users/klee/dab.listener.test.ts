@@ -21,7 +21,7 @@ describe("dab listener", () => {
   });
 
   it("should react with neko L in pollution-immune channel", async () => {
-    mock.mockContent("dab").mockChannel({ name: "general" });
+    mock.mockContent("dab").mockChannel({ name: "welcome" });
     await mock.simulateEvent();
     mock.expectReactedWith(GUILD_EMOJIS.NEKO_L);
   });
