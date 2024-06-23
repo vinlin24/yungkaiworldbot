@@ -24,7 +24,7 @@ it("should require privilege level >= DEV", async () => {
 it("should set the service state to be true", async () => {
   mock
     .mockCaller({ roleIds: [BOT_DEV_RID] })
-    .mockOption("Boolean", "enabled", true);
+    .mockOption("Boolean", "reactions_enabled", true);
   jest.replaceProperty(devControlService, "reactWithDev", false);
 
   await mock.simulateCommand();
@@ -32,14 +32,16 @@ it("should set the service state to be true", async () => {
   expect(devControlService.reactWithDev).toEqual(true);
   mock.expectRepliedWith({
     ephemeral: true,
-    content: `${bold("Enabled")} concerted DEV reactions.`,
+    content: expect.stringContaining(
+      `${bold("Enabled")} concerted DEV reactions`,
+    ),
   });
 });
 
 it("should set the service state to be false", async () => {
   mock
     .mockCaller({ roleIds: [BOT_DEV_RID] })
-    .mockOption("Boolean", "enabled", false);
+    .mockOption("Boolean", "reactions_enabled", false);
   jest.replaceProperty(devControlService, "reactWithDev", true);
 
   await mock.simulateCommand();
@@ -47,6 +49,8 @@ it("should set the service state to be false", async () => {
   expect(devControlService.reactWithDev).toEqual(false);
   mock.expectRepliedWith({
     ephemeral: true,
-    content: `${bold("Disabled")} concerted DEV reactions.`,
+    content: expect.stringContaining(
+      `${bold("Disabled")} concerted DEV reactions`,
+    ),
   });
 });
