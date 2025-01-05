@@ -218,3 +218,10 @@ export class MessageListenerBuilder
 export class DuplicateListenerIDError extends Error {
   constructor(public readonly duplicateId: string) { super(duplicateId); }
 }
+
+/**
+ * Due to the immense popularity of this event type, this type has been
+ * abbreviated.
+ */
+export type MessageListenerExecuteFunction
+  = ListenerExecuteFunction<Events.MessageCreate>;

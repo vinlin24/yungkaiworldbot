@@ -2,16 +2,18 @@ import {
   ChatInputCommandInteraction,
   DMChannel,
   EmojiResolvable,
-  Events,
   GuildMember,
   InteractionReplyOptions,
+  InteractionResponse,
   Message,
   MessageCreateOptions,
   MessageFlags,
 } from "discord.js";
+import winston from "winston";
 
 import getLogger from "../logger";
-import { ListenerExecuteFunction } from "../types/listener.types";
+import { HandlerProxy } from "../types/handler-proxy.abc";
+import { MessageListenerExecuteFunction } from "../types/listener.types";
 import { formatContext } from "./logging.utils";
 
 const log = getLogger(__filename);
@@ -19,6 +21,8 @@ const log = getLogger(__filename);
 /**
  * Wrapper for the boilerplate of replying to a `Message` with the `@silent`
  * setting and without pinging anyone.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export async function replySilently(
   message: Message,
@@ -36,9 +40,11 @@ export async function replySilently(
 /**
  * Same as `replySilently` but return a closure that can be passed directly to
  * `Listener#execute`.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export function replySilentlyWith(content: string)
-  : ListenerExecuteFunction<Events.MessageCreate> {
+  : MessageListenerExecuteFunction {
   return async (message) => {
     await replySilently(message, content);
     log.debug(`${formatContext(message)}: replied with '${content}'.`);
@@ -48,9 +54,11 @@ export function replySilentlyWith(content: string)
 /**
  * Return a closure that can be passed directly to `Listener#execute`. Reacts
  * to the message with the specified emoji.
+ *
+ * @deprecated Use `MessageHandler`.
  */
 export function reactWith(emoji: EmojiResolvable)
-  : ListenerExecuteFunction<Events.MessageCreate> {
+  : MessageListenerExecuteFunction {
   return async (message) => {
     await message.react(emoji);
     log.debug(`${formatContext(message)}: reacted with ${emoji}.`);
@@ -59,8 +67,10 @@ export function reactWith(emoji: EmojiResolvable)
 
 /**
  * Silently reply to the message with the message's own content.
+ *
+ * @deprecated Use `MessageHandler`.
  */
-export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
+export const echoContent: MessageListenerExecuteFunction
   = async function (message) {
     await replySilently(message, message.content);
     log.debug(`${formatContext(message)}: echoed '${message.content}'.`);
@@ -68,11 +78,16 @@ export const echoContent: ListenerExecuteFunction<Events.MessageCreate>
 
 /**
  * Get the DM channel of a member.
+ *
+ * @deprecated Use `TextChannelHandler`.
  */
 export async function getDMChannel(member: GuildMember): Promise<DMChannel> {
   return member.dmChannel ?? await member.createDM();
 }
 
+/**
+ * @deprecated Use `ChatInputCommandInteractionHandler`.
+ */
 export async function replyWithGenericACK(
   interaction: ChatInputCommandInteraction,
   options?: Omit<InteractionReplyOptions, "content">,
@@ -82,4 +97,61 @@ export async function replyWithGenericACK(
     ephemeral: true, // Default to ephemeral (possibly overridden thru options).
     ...(options ?? {}),
   });
+}
+
+/**
+ * Wrapper for a discord.js `ChatInputCommandInteraction` to centralize error
+ * handling as well as abstract common operations on interactions.
+ */
+export class ChatInputCommandInteractionHandler extends HandlerProxy {
+  constructor(
+    /** The Discord slash command interaction to wrap. */
+    public readonly interaction: ChatInputCommandInteraction,
+    /* The logger to use. */
+    logger?: winston.Logger,
+  ) {
+    super(interaction, logger ?? getLogger(__filename));
+  }
+
+  /**
+   * Reply to the interaction. This wraps `ChatInputCommandInteraction#reply` by
+   * providing our own centralized, custom error handling.
+   */
+  public async reply(
+    options: string | InteractionReplyOptions,
+  ): Promise<InteractionResponse | null> {
+    try {
+      return await this.interaction.reply(options);
+    }
+    catch (error) {
+      this.log.error(
+        `${this.context}: failed to reply to interaction.`,
+      );
+      this.handleError(error as Error);
+      return null;
+    }
+  }
+
+  /**
+   * Reply with some generic acknowledgement. Every interaction should be
+   * replied to as to not display an "Application failed to respond." error
+   * as the slash command output. If there is no meaningful response to give,
+   * you can use this method.
+   */
+  public async replyWithGenericACK(
+    options?: Omit<InteractionReplyOptions, "content">,
+  ): Promise<InteractionResponse | null> {
+    return await this.reply({
+      content: "👍",
+      // Default to ephemeral (possibly overridden thru options).
+      ephemeral: true,
+      ...(options ?? {}),
+    });
+  }
+
+  protected override handleError(error: Error): void {
+    // TODO: console.error() should be the fallback behavior. Implement an
+    // if-else ladder with specialized behavior for specific types of errors.
+    console.error(error);
+  }
 }
