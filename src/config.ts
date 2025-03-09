@@ -39,4 +39,11 @@ export const ALPHA_MOD_RID = "1102008787340103682";
 export const BABY_MOD_RID = "1162114191876960318";
 
 const { env } = process;
+
+/**
+ * Temporary (?) workaround for the security concerns of having a dedicated
+ * developer role. We'll hard-code developer UIDs into the environment file.
+ */
+export const DEVELOPER_UIDS = env.DEVELOPER_UIDS.split(",").map(s => s.trim());
+
 export default env;

@@ -20,6 +20,7 @@ import { fromZodError } from "zod-validation-error";
 
 import { CommandRunner } from "../src/bot/command.runner";
 import { ListenerRunner } from "../src/bot/listener.runner";
+import { DEVELOPER_UIDS } from "../src/config";
 import { RoleLevel } from "../src/middleware/privilege.middleware";
 import cooldownService from "../src/services/cooldown.service";
 import { ClientWithIntentsAndRunnersABC } from "../src/types/client.abc";
@@ -140,6 +141,18 @@ export class MockInteraction {
       mockRoles(member, options.roleIds);
     }
 
+    return this;
+  }
+
+  /**
+   * ARRANGE.
+   *
+   * Mock that the caller is one of the developers. Shorthand for using
+   * `mockCaller` with a specific developer UID.
+   */
+  public mockCallerIsDev(): this {
+    const member = this.interaction.member as DeepMockProxy<GuildMember>;
+    member.user.id = DEVELOPER_UIDS[0];
     return this;
   }
 

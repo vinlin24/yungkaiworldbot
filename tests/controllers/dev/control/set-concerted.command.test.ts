@@ -1,6 +1,6 @@
 import { bold } from "discord.js";
 
-import { BOT_DEV_RID, KAI_RID } from "../../../../src/config";
+import { KAI_RID } from "../../../../src/config";
 import setConcertedReactSpec from "../../../../src/controllers/dev/control/set-concerted.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import devControlService from "../../../../src/services/dev-control.service";
@@ -23,7 +23,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should set the service state to be true", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("Boolean", "reactions_enabled", true);
   jest.replaceProperty(devControlService, "reactWithDev", false);
 
@@ -40,7 +40,7 @@ it("should set the service state to be true", async () => {
 
 it("should set the service state to be false", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("Boolean", "reactions_enabled", false);
   jest.replaceProperty(devControlService, "reactWithDev", true);
 
