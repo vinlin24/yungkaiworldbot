@@ -1,7 +1,7 @@
 import { Collection, Message, inlineCode } from "discord.js";
 import { mockDeep } from "jest-mock-extended";
 
-import { BOT_DEV_RID, KAI_RID } from "../../../../src/config";
+import { KAI_RID } from "../../../../src/config";
 import devReactSpec from "../../../../src/controllers/dev/control/react.command";
 import { RoleLevel } from "../../../../src/middleware/privilege.middleware";
 import { MockInteraction } from "../../../test-utils";
@@ -33,7 +33,7 @@ it("should require privilege level >= DEV", async () => {
 
 it("should react to the most recent message", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("String", "emojis", "🤩");
   const mockMessage = mockDeep<Message<true>>();
   mock.interaction.channel!.messages.fetch
@@ -47,7 +47,7 @@ it("should react to the most recent message", async () => {
 
 it("should react to the specified message (using ID)", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("String", "emojis", "🫡")
     .mockOption("String", "message", dummyMessageId);
   const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -61,7 +61,7 @@ it("should react to the specified message (using ID)", async () => {
 it("should react to the specified message (using URL)", async () => {
   const dummyUrl = `https://discord.com/channels/3344/6677/${dummyMessageId}`;
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("String", "emojis", "😪")
     .mockOption("String", "message", dummyUrl);
   const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -75,7 +75,7 @@ it("should react to the specified message (using URL)", async () => {
 describe("caret notation", () => {
   beforeEach(() => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "🔥");
   });
 
@@ -103,7 +103,7 @@ describe("caret notation", () => {
 describe("error handling", () => {
   it("should reject invalid emojis", async () => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "😨");
     const mockMessage = mockChannelFetchMessage(mock);
     mockMessage.react.mockRejectedValueOnce("DUMMY-ERROR");
@@ -120,7 +120,7 @@ describe("error handling", () => {
 
   it("should reject invalid message identifiers", async () => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "😨")
       .mockOption("String", "message", "lmao");
 
@@ -134,7 +134,7 @@ describe("error handling", () => {
 
   it("should reject input strings without any emojis", async () => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "lorem ipsum");
 
     await mock.simulateCommand();
@@ -151,7 +151,7 @@ describe("error handling", () => {
 describe("multiple emojis at once", () => {
   it("should react with all emojis in the string", async () => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "hello 💯 there 🥳!")
       .mockOption("String", "message", dummyMessageId);
     const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -166,7 +166,7 @@ describe("multiple emojis at once", () => {
   it("should work with both Unicode and custom emojis", async () => {
     const dummyCustomEmoji = "<:customEmoji:4242424242>";
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", `general ${dummyCustomEmoji} kenobi 😠!`)
       .mockOption("String", "message", dummyMessageId);
     const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);
@@ -180,7 +180,7 @@ describe("multiple emojis at once", () => {
 
   it("should continue reacting even on a failed reaction", async () => {
     mock
-      .mockCaller({ roleIds: [BOT_DEV_RID] })
+      .mockCallerIsDev()
       .mockOption("String", "emojis", "wow ❌ amazing ✅ lol")
       .mockOption("String", "message", dummyMessageId);
     const mockMessage = mockChannelFetchMessageById(mock, dummyMessageId);

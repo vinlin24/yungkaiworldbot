@@ -6,7 +6,7 @@ import {
   PresenceUpdateStatus,
 } from "discord.js";
 
-import { BOT_DEV_RID, KAI_RID } from "../../../src/config";
+import { KAI_RID } from "../../../src/config";
 import presenceSpec, {
   ActivityTypeName,
   PresenceUpdateStatusName,
@@ -36,7 +36,7 @@ it("should require privilege >= DEV", async () => {
 
 it("should clear the activity as long as the flag is set", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("Boolean", "clear_activity", true)
     .mockOption("String", "activity_name", "unit testing!");
 
@@ -49,7 +49,7 @@ it("should clear the activity as long as the flag is set", async () => {
 
 it("should disallow providing an activity type without a name", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption<ActivityTypeName>("String", "activity_type", "Listening");
 
   await mock.simulateCommand();
@@ -64,7 +64,7 @@ it("should disallow providing an activity type without a name", async () => {
 
 it("should set the activity name if provided", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("String", "activity_name", "unit testing!");
 
   await mock.simulateCommand();
@@ -85,7 +85,7 @@ it("should set the activity name if provided", async () => {
 
 it("should set the activity name with type if provided", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption("String", "activity_name", "unit testing!")
     .mockOption<ActivityTypeName>("String", "activity_type", "Listening");
 
@@ -107,7 +107,7 @@ it("should set the activity name with type if provided", async () => {
 
 it("should set the status if provided", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption<PresenceUpdateStatusName>("String", "status", "Idle");
 
   await mock.simulateCommand();
@@ -121,7 +121,7 @@ it("should set the status if provided", async () => {
 
 it("should set everything if all provided", async () => {
   mock
-    .mockCaller({ roleIds: [BOT_DEV_RID] })
+    .mockCallerIsDev()
     .mockOption<PresenceUpdateStatusName>("String", "status", "Idle")
     .mockOption<ActivityTypeName>("String", "activity_type", "Listening")
     .mockOption("String", "activity_name", "unit testing!");

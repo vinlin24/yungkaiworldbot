@@ -48,6 +48,9 @@ declare global {
     NI_UID: string;
     S_UID: string;
     WYS_UID: string;
+    CODIE_UID: string;
+
+    DEVELOPER_UIDS: string;
 
     // ///////////////////////// //
     //      Discord Bot IDs      //
